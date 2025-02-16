@@ -60,16 +60,14 @@ clean: ## Remove build artifacts and cache directories
 	find . -type f -name "*.pyc" -delete
 
 .PHONY: format
-format: ## Format code using black and isort
+format: ## Format code using black
 	@echo "${BLUE}Formatting code...${NC}"
 	$(PYTHON) black --config pyproject.toml $(PYTHON_FILES)
-	$(PYTHON) isort $(PYTHON_FILES)
 
 .PHONY: lint
 lint: ## Run all linters
 	@echo "${BLUE}Running linters...${NC}"
 	$(PYTHON) black --config pyproject.toml --check $(PYTHON_FILES)
-	$(PYTHON) isort --check-only $(PYTHON_FILES)
 	$(PYTHON) autoflake --config pyproject.toml  $(PYTHON_FILES)
 	$(PYTHON) ruff check --config pyproject.toml  $(PYTHON_FILES)
 	$(PYTHON) mypy --config-file pyproject.toml $(PYTHON_FILES)

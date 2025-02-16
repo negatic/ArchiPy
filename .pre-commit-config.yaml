@@ -68,11 +68,6 @@ repos:
         entry: poetry run autoflake --config pyproject.toml
         files: \.(py|pyi)$
         language: system
-      - id: isort
-        name: isort
-        entry: poetry run isort
-        files: \.(py|pyi)$
-        language: system
       - id: black
         name: black
         entry: poetry run black --config pyproject.toml
