@@ -75,7 +75,7 @@ repos:
         language: system
       - id: ruff
         name: ruff
-        entry: poetry run ruff check --config pyproject.toml
+        entry: poetry run ruff check --config pyproject.toml --fix
         files: \.(py|pyi)$
         language: system
       - id: add-trailing-comma

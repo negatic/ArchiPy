@@ -254,3 +254,11 @@ class FileConfig(BaseModel):
         description="Default number of minutes until link expiration",  # Default 60 minutes (1 hour)
     )
     ALLOWED_EXTENSIONS: list[str] = Field(default=["jpg", "jpeg", "png"], description="List of allowed file extensions")
+
+
+class DatetimeConfig(BaseModel):
+    TIME_IR_API_KEY: str | None = "ZAVdqwuySASubByCed5KYuYMzb9uB2f7"
+    TIME_IR_API_ENDPOINT: str | None = "https://api.time.ir/v1/event/fa/events/calendar"
+    REQUEST_TIMEOUT: int = 5
+    MAX_RETRIES: int = 3
+    CACHE_TTL: int = 86400  # TTL for cache in seconds (24 hours)

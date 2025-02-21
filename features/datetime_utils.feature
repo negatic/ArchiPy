@@ -32,3 +32,37 @@ Feature: Datetime Utilities
     Given a datetime "2024-06-01T10:00:00"
     When 1 day is subtracted
     Then the resulting datetime should be "2024-05-31T10:00:00"
+
+    Scenario: Check if a Gregorian date is a holiday in Iran (Non-holiday date)
+#    Assume this date is not a holiday in Iran
+    Given a Gregorian date "2025-02-19"
+    When we check if the date is a holiday in Iran
+    Then the result should be False
+
+  Scenario: Check if a Gregorian date is a holiday in Iran (Holiday date)
+#    Nowruz, a holiday in Iran
+    Given a Gregorian date "2025-03-21"
+    When we check if the date is a holiday in Iran
+    Then the result should be True
+
+  Scenario: Check holiday status for today's date
+    Given today's date in Gregorian calendar
+    When we check if the date is a holiday in Iran
+    Then the result should be either True or False
+
+  Scenario: Handle invalid Gregorian date input
+    Given an invalid Gregorian date "2025-02-30"
+    When we check if the date is a holiday in Iran
+    Then an error should be raised
+
+  Scenario: Ensure caching mechanism works for holiday checks
+#    Nowruz, a holiday in Iran
+    Given a Gregorian date "2025-03-27"
+    When we check if the date is a holiday in Iran multiple times
+    Then the result should be cached, avoiding repeated API calls
+
+  Scenario: Check if a date in the past is correctly identified as a holiday
+#    Nowruz in a past year
+    Given a Gregorian date "2021-03-21"
+    When we check if the date is a holiday in Iran
+    Then the result should be True

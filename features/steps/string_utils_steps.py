@@ -80,12 +80,7 @@ def step_given_none_string(context):
 
 @when("checking if the string is empty")
 def step_when_checking_empty_string(context):
-    context.result_boolean = StringUtils.is_string_none_or_empty(context.test_text)
-
-
-@then("the result should be True")
-def step_then_result_should_be_true(context):
-    assert context.result_boolean is True
+    context.result = StringUtils.is_string_none_or_empty(context.test_text)
 
 
 @given('a complex text "{text}"')

@@ -10,6 +10,7 @@ from pydantic_settings import (
 
 from archipy.configs.config_template import (
     AuthConfig,
+    DatetimeConfig,
     ElasticSearchAPMConfig,
     ElasticSearchConfig,
     EmailConfig,
@@ -70,20 +71,21 @@ class BaseConfig(BaseSettings, Generic[R]):
         )
 
     AUTH: AuthConfig = AuthConfig()
+    DATETIME: DatetimeConfig = DatetimeConfig()
     ELASTIC: ElasticSearchConfig = ElasticSearchConfig()
     ELASTIC_APM: ElasticSearchAPMConfig = ElasticSearchAPMConfig()
     EMAIL: EmailConfig = EmailConfig()
     ENVIRONMENT: EnvironmentType = EnvironmentType.LOCAL
     FASTAPI: FastAPIConfig = FastAPIConfig()
+    FILE: FileConfig = FileConfig()
     GRPC: GrpcConfig = GrpcConfig()
     KAFKA: KafkaConfig = KafkaConfig()
     KAVENEGAR: KavenegarConfig = KavenegarConfig()
     KEYCLOAK: KeycloakConfig = KeycloakConfig()
-    SQLALCHEMY: SqlAlchemyConfig = SqlAlchemyConfig()
     PROMETHEUS: PrometheusConfig = PrometheusConfig()
     REDIS: RedisConfig = RedisConfig()
     SENTRY: SentryConfig = SentryConfig()
-    FILE: FileConfig = FileConfig()
+    SQLALCHEMY: SqlAlchemyConfig = SqlAlchemyConfig()
 
     def customize(self) -> None: ...
 

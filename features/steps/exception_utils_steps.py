@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from grpc import StatusCode
 
 from archipy.helpers.utils.exception_utils import ExceptionUtils
-from archipy.models.exceptions import InvalidPhoneNumberException, NotFoundException
+from archipy.models.exceptions import CommonsBaseException, InvalidPhoneNumberException, NotFoundException
 
 
 @given('a raised exception "{exception_type}" with message "{message}"')
@@ -86,6 +86,7 @@ def step_given_list_of_exceptions(context, exception_names):
     exception_mapping = {
         "InvalidPhoneNumberException": InvalidPhoneNumberException,
         "NotFoundException": NotFoundException,
+        "CommonsBaseException": CommonsBaseException,
     }
     # Convert exception names into actual class references
     context.exception_list = [
