@@ -2,9 +2,6 @@ import logging
 import time
 from typing import Any, Callable, TypeVar
 
-# Set up basic logging configuration
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
 # Define a type variable for the return type of the decorated function
 F = TypeVar("F", bound=Callable[..., Any])
 
