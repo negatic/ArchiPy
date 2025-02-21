@@ -15,9 +15,21 @@ from archipy.models.exceptions import (
 
 
 class BaseUtils(ExceptionUtils, DatetimeUtils, PasswordUtils, JWTUtils, TOTPUtils, FileUtils, StringUtils):
+    """A utility class that combines multiple utility functionalities into a single class.
+
+    This class inherits from various utility classes to provide a centralized place for common utility methods.
+    """
+
     @staticmethod
     def sanitize_iranian_landline_or_phone_number(landline_or_phone_number: str) -> str:
-        """Remove non-numeric characters from the phone number and handle country code."""
+        """Sanitizes an Iranian landline or mobile phone number by removing non-numeric characters and standardizing the format.
+
+        Args:
+            landline_or_phone_number (str): The phone number to sanitize.
+
+        Returns:
+            str: The sanitized phone number in a standardized format.
+        """
         # Remove non-numeric characters
         cleaned_number = re.sub(r'\D', '', landline_or_phone_number)
 
@@ -35,6 +47,14 @@ class BaseUtils(ExceptionUtils, DatetimeUtils, PasswordUtils, JWTUtils, TOTPUtil
 
     @classmethod
     def validate_iranian_phone_number(cls, phone_number: str) -> None:
+        """Validates an Iranian mobile phone number.
+
+        Args:
+            phone_number (str): The phone number to validate.
+
+        Raises:
+            InvalidPhoneNumberException: If the phone number is invalid.
+        """
         # Sanitize the input to remove spaces, dashes, or other non-numeric characters
         sanitized_number = cls.sanitize_iranian_landline_or_phone_number(phone_number)
         # Define the regular expression pattern for Iranian phone numbers
@@ -46,6 +66,14 @@ class BaseUtils(ExceptionUtils, DatetimeUtils, PasswordUtils, JWTUtils, TOTPUtil
 
     @classmethod
     def validate_iranian_landline_number(cls, landline_number: str) -> None:
+        """Validates an Iranian landline number.
+
+        Args:
+            landline_number (str): The landline number to validate.
+
+        Raises:
+            InvalidLandlineNumberException: If the landline number is invalid.
+        """
         # Sanitize the input to remove spaces, dashes, or other non-numeric characters
         sanitized_number = cls.sanitize_iranian_landline_or_phone_number(landline_number)
         # Landline examples: `0` + 2 to 4-digit area code + 7 to 8-digit local number
@@ -56,8 +84,7 @@ class BaseUtils(ExceptionUtils, DatetimeUtils, PasswordUtils, JWTUtils, TOTPUtil
 
     @classmethod
     def validate_iranian_national_code_pattern(cls, national_code: str) -> str:
-        """
-        Validates an Iranian National ID number using the official algorithm.
+        """Validates an Iranian National ID number using the official algorithm.
         To see how the algorithm works, see http://www.aliarash.com/article/codemeli/codemeli.htm
 
         The algorithm works by:
@@ -68,23 +95,47 @@ class BaseUtils(ExceptionUtils, DatetimeUtils, PasswordUtils, JWTUtils, TOTPUtil
         5. Comparing the check digit based on specific rules
 
         Args:
-            national_code: A string containing the national ID to validate
+            national_code (str): A string containing the national ID to validate.
 
         Returns:
-            The validated national ID string
+            str: The validated national ID string.
 
         Raises:
-            JibitNationalIDInvalidException: If the ID is invalid due to length or checksum
+            InvalidNationalCodeException: If the ID is invalid due to length or checksum.
         """
 
         def _validate_length(national_code: str) -> None:
+            """Validates that the national code is exactly 10 digits long.
+
+            Args:
+                national_code (str): The national code to validate.
+
+            Raises:
+                InvalidNationalCodeException: If the length is not 10 digits.
+            """
             if not len(national_code) == 10:
                 raise InvalidNationalCodeException(national_code)
 
         def _calculate_weighted_sum(national_code: str) -> int:
+            """Calculates the weighted sum of the national code digits.
+
+            Args:
+                national_code (str): The national code to calculate the weighted sum for.
+
+            Returns:
+                int: The weighted sum of the national code digits.
+            """
             return sum(int(digit) * (10 - i) for i, digit in enumerate(national_code[:-1]))
 
         def _get_checksums(national_code: str) -> tuple[int, int]:
+            """Calculates the expected and actual checksums for the national code.
+
+            Args:
+                national_code (str): The national code to calculate checksums for.
+
+            Returns:
+                tuple[int, int]: A tuple containing the calculated checksum and the actual checksum.
+            """
             weighted_sum = _calculate_weighted_sum(national_code)
             remainder = weighted_sum % 11
 

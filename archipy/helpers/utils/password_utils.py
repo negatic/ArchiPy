@@ -11,12 +11,18 @@ from archipy.configs.config_template import AuthConfig
 
 
 class PasswordUtils:
+    """A utility class for handling password-related operations, such as hashing, verification, and validation."""
 
     @staticmethod
     def hash_password(password: str, auth_config: AuthConfig | None = None) -> str:
-        """
-        Hash a password using PBKDF2 with SHA256
-        Returns: base64 encoded string of "salt:hash"
+        """Hashes a password using PBKDF2 with SHA256.
+
+        Args:
+            password (str): The password to hash.
+            auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
+
+        Returns:
+            str: A base64-encoded string containing the salt and hash in the format "salt:hash".
         """
 
         configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
@@ -29,8 +35,15 @@ class PasswordUtils:
 
     @staticmethod
     def verify_password(password: str, stored_password: str, auth_config: AuthConfig | None = None) -> bool:
-        """
-        Verify a password against a stored hash
+        """Verifies a password against a stored hash.
+
+        Args:
+            password (str): The password to verify.
+            stored_password (str): The stored password hash to compare against.
+            auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
+
+        Returns:
+            bool: True if the password matches the stored hash, False otherwise.
         """
         try:
             configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
@@ -50,15 +63,14 @@ class PasswordUtils:
 
     @staticmethod
     def validate_password(password: str, auth_config: AuthConfig | None = None) -> None:
-        """
-        Validate a password against the password policy.
+        """Validates a password against the password policy.
 
         Args:
-            password: Password to validate
-            auth_config: Password policy configuration
+            password (str): The password to validate.
+            auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
 
-        Returns:
-            None
+        Raises:
+            ValueError: If the password does not meet the policy requirements.
         """
         configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
         errors = []
@@ -83,14 +95,13 @@ class PasswordUtils:
 
     @staticmethod
     def generate_password(auth_config: AuthConfig | None = None) -> str:
-        """
-        Generate a random password that meets the policy requirements.
+        """Generates a random password that meets the policy requirements.
 
         Args:
-            auth_config: Password policy configuration
+            auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
 
         Returns:
-            str: Generated password
+            str: A randomly generated password that meets the policy requirements.
         """
         configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
 
@@ -129,16 +140,15 @@ class PasswordUtils:
         password_history: list[str],
         auth_config: AuthConfig | None = None,
     ) -> None:
-        """
-        Validate a new password against password history.
+        """Validates a new password against the password history.
 
         Args:
-            new_password: New password to validate
-            password_history: List of previous password hashes
-            auth_config: Auth configuration
+            new_password (str): The new password to validate.
+            password_history (list[str]): A list of previous password hashes.
+            auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
 
-        Returns:
-            None
+        Raises:
+            ValueError: If the new password has been used recently or does not meet the policy requirements.
         """
         configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
         errors = []

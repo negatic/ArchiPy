@@ -8,6 +8,21 @@ from archipy.adapters.redis import AsyncRedisAdapter
 
 
 class FastAPIRestRateLimitHandler:
+    """A rate-limiting handler for FastAPI REST endpoints using Redis for tracking.
+
+    This class provides rate-limiting functionality by tracking the number of requests
+    made to a specific endpoint within a defined time window. If the request limit is
+    exceeded, it raises an HTTP 429 Too Many Requests error.
+
+    Args:
+        calls_count (StrictInt): The maximum number of allowed requests within the time window.
+        milliseconds (StrictInt): The time window in milliseconds.
+        seconds (StrictInt): The time window in seconds.
+        minutes (StrictInt): The time window in minutes.
+        hours (StrictInt): The time window in hours.
+        days (StrictInt): The time window in days.
+    """
+
     def __init__(
         self,
         calls_count: StrictInt = 1,
@@ -25,6 +40,14 @@ class FastAPIRestRateLimitHandler:
         self.redis_client = AsyncRedisAdapter()
 
     async def _check(self, key: str) -> int:
+        """Checks if the request count for the given key exceeds the allowed limit.
+
+        Args:
+            key (str): The Redis key used to track the request count.
+
+        Returns:
+            int: The remaining time-to-live (TTL) in milliseconds if the limit is exceeded, otherwise 0.
+        """
         # Use await for getting value from Redis as it's asynchronous
         current_request = await self.redis_client.get(key)
         if current_request is None:
@@ -42,6 +65,15 @@ class FastAPIRestRateLimitHandler:
         return ttl
 
     async def __call__(self, request: Request, response: Response):
+        """Handles the rate-limiting logic for incoming requests.
+
+        Args:
+            request (Request): The incoming FastAPI request.
+            response (Response): The outgoing FastAPI response.
+
+        Raises:
+            HTTPException: If the rate limit is exceeded, an HTTP 429 Too Many Requests error is raised.
+        """
         rate_key = await self._get_identifier(request)
         key = f"RateLimitHandler:{rate_key}:{request.scope['path']}:{request.method}"
         pexpire = await self._check(key)  # Awaiting the function since it is an async call
@@ -50,12 +82,28 @@ class FastAPIRestRateLimitHandler:
 
     @staticmethod
     async def _get_identifier(request: Request) -> str:
+        """Generates a unique identifier for the request based on the client's IP and request path.
+
+        Args:
+            request (Request): The incoming FastAPI request.
+
+        Returns:
+            str: A unique identifier for the request.
+        """
         forwarded = request.headers.get("X-Forwarded-For")
         ip = forwarded.split(",")[0] if forwarded else request.client.host
         return f"{ip}:{request.scope['path']}"
 
     @staticmethod
     async def _create_callback(pexpire: int):
+        """Raises an HTTP 429 Too Many Requests error with the appropriate headers.
+
+        Args:
+            pexpire (int): The remaining time-to-live (TTL) in milliseconds before the rate limit resets.
+
+        Raises:
+            HTTPException: An HTTP 429 Too Many Requests error with the `Retry-After` header.
+        """
         expire = ceil(pexpire / 1000)
         raise HTTPException(
             status_code=HTTP_429_TOO_MANY_REQUESTS,

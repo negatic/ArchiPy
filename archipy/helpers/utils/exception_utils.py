@@ -30,9 +30,18 @@ except ImportError:
 
 
 class ExceptionUtils:
+    """A utility class for handling exceptions, including capturing, reporting, and generating responses."""
+
     @staticmethod
     def capture_exception(exception: BaseException) -> None:
-        """Capture an exception and report it to configured external services."""
+        """Captures an exception and reports it to configured external services.
+
+        This method logs the exception locally and optionally reports it to Sentry and Elastic APM,
+        depending on the configuration.
+
+        Args:
+            exception (BaseException): The exception to capture and report.
+        """
         # Always log the exception locally
         logging.exception("An exception occurred: %s", str(exception))
         config = BaseConfig.global_config()
@@ -64,7 +73,18 @@ class ExceptionUtils:
         http_status: int | HTTPStatus | None = None,
         grpc_status: int | StatusCode | None = None,
     ) -> ExceptionDetailDTO:
-        """Helper function to create ExceptionDetailDTO with appropriate status codes"""
+        """Creates an `ExceptionDetailDTO` with appropriate status codes.
+
+        Args:
+            code (str): A unique error code.
+            message_en (str): The error message in English.
+            message_fa (str): The error message in Persian.
+            http_status (int | HTTPStatus | None): The HTTP status code associated with the error.
+            grpc_status (int | StatusCode | None): The gRPC status code associated with the error.
+
+        Returns:
+            ExceptionDetailDTO: The created exception detail object.
+        """
         status_kwargs = {}
 
         if HTTP_AVAILABLE and http_status is not None:
@@ -77,6 +97,18 @@ class ExceptionUtils:
 
     @staticmethod
     async def async_handle_fastapi_exception(request: Request, exception: CommonsBaseException) -> JSONResponse:
+        """Handles a FastAPI exception and returns a JSON response.
+
+        Args:
+            request (Request): The incoming FastAPI request.
+            exception (CommonsBaseException): The exception to handle.
+
+        Returns:
+            JSONResponse: A JSON response containing the exception details.
+
+        Raises:
+            NotImplementedError: If FastAPI is not available.
+        """
         if not HTTP_AVAILABLE:
             raise NotImplementedError
         return JSONResponse(
@@ -86,13 +118,34 @@ class ExceptionUtils:
 
     @staticmethod
     def handle_grpc_exception(exception: CommonsBaseException) -> tuple[int, str]:
+        """Handles a gRPC exception and returns a tuple of status code and message.
+
+        Args:
+            exception (CommonsBaseException): The exception to handle.
+
+        Returns:
+            tuple[int, str]: A tuple containing the gRPC status code and error message.
+
+        Raises:
+            NotImplementedError: If gRPC is not available.
+        """
         if not GRPC_AVAILABLE:
             raise NotImplementedError
         return (exception.grpc_status_code or StatusCode.UNKNOWN.value[0], exception.get_message())
 
     @staticmethod
     def get_fastapi_exception_responses(exceptions: list[type[CommonsBaseException]]) -> dict[int, dict[str, Any]]:
-        """Generate OpenAPI response documentation for given exceptions"""
+        """Generates OpenAPI response documentation for the given exceptions.
+
+        This method creates OpenAPI-compatible response schemas for FastAPI exceptions,
+        including validation errors and custom exceptions.
+
+        Args:
+            exceptions (list[type[CommonsBaseException]]): A list of exception types to generate responses for.
+
+        Returns:
+            dict[int, dict[str, Any]]: A dictionary mapping HTTP status codes to their corresponding response schemas.
+        """
         responses = {}
 
         # Add validation error response by default

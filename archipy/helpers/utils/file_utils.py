@@ -8,9 +8,23 @@ from archipy.helpers.utils.datetime_utils import DatetimeUtils
 
 
 class FileUtils:
+    """A utility class for handling file-related operations, such as creating secure links and validating file names."""
 
     @staticmethod
     def _create_secure_link_hash(path: str, expires_at: float, file_config: FileConfig | None = None) -> str:
+        """Generates a secure hash for a file link based on the file path, expiration timestamp, and secret key.
+
+        Args:
+            path (str): The file path to generate the hash for.
+            expires_at (float): The expiration timestamp for the link.
+            file_config (FileConfig | None): Optional file configuration object. If not provided, uses the global config.
+
+        Returns:
+            str: A base64-encoded secure hash for the file link.
+
+        Raises:
+            ValueError: If the `SECRET_KEY` in the configuration is `None`.
+        """
         configs: FileConfig = file_config or BaseConfig.global_config().FILE  # type: ignore [attr-defined]
         secret: str | None = configs.SECRET_KEY
         if secret is None:
@@ -27,18 +41,18 @@ class FileUtils:
         file_config: FileConfig | None = None,
     ) -> str:
         """
-        Create a secure link with expiration for file access.
+        Creates a secure link with expiration for file access.
 
         Args:
-            path: The file path to create a secure link for.
-            minutes: Number of minutes until link expiration (defaults to config's DEFAULT_EXPIRY_MINUTES).
-            file_config: Optional file configuration object.
+            path (str): The file path to create a secure link for.
+            minutes (int | None): Number of minutes until link expiration. Defaults to the config's `DEFAULT_EXPIRY_MINUTES`.
+            file_config (FileConfig | None): Optional file configuration object. If not provided, uses the global config.
 
         Returns:
-            str: Secure link with hash and expiration timestamp.
+            str: A secure link with a hash and expiration timestamp.
 
         Raises:
-            ValueError: If path is empty or minutes is negative.
+            ValueError: If the `path` is empty or `minutes` is negative.
         """
         if not path:
             raise ValueError("Path cannot be empty")
@@ -60,6 +74,18 @@ class FileUtils:
         file_name: str,
         file_config: FileConfig | None = None,
     ) -> bool:
+        """Validates a file name based on allowed extensions.
+
+        Args:
+            file_name (str): The file name to validate.
+            file_config (FileConfig | None): Optional file configuration object. If not provided, uses the global config.
+
+        Returns:
+            bool: `True` if the file name has an allowed extension, `False` otherwise.
+
+        Raises:
+            ValueError: If `file_name` is not a string or `allowed_extensions` is not a list.
+        """
         configs: FileConfig = file_config or BaseConfig.global_config().FILE  # type: ignore [attr-defined]
         allowed_extensions: list[str] = configs.ALLOWED_EXTENSIONS
 
