@@ -202,6 +202,14 @@ class ExceptionMessageType(Enum):
         grpc_status=StatusCode.UNIMPLEMENTED if GRPC_AVAILABLE else None,
     )
 
+    DEPRECATION = create_exception_detail(
+        code="DEPRECATION",
+        message_en="This operation is deprecated and will be removed in a future version.",
+        message_fa="این عملیات منسوخ شده و در نسخه‌های آینده حذف خواهد شد.",
+        http_status=HTTPStatus.GONE if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.UNAVAILABLE if GRPC_AVAILABLE else None,
+    )
+
     UNAVAILABLE = create_exception_detail(
         code="UNAVAILABLE",
         message_en="Service is currently unavailable",
