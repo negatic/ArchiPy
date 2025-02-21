@@ -18,8 +18,8 @@ class DatetimeUtils:
     utility functions for timezone-aware datetime objects, date ranges, and string formatting.
     """
 
-    _holiday_cache: ClassVar[dict[str, tuple[bool, datetime]]] = {}
     """A class-level cache for storing holiday statuses to avoid redundant API calls."""
+    _holiday_cache: ClassVar[dict[str, tuple[bool, datetime]]] = {}
 
     @staticmethod
     def convert_to_jalali(target_date: date) -> jdatetime.date:
