@@ -21,22 +21,49 @@ from archipy.models.exceptions import (
 
 
 class FastAPIExceptionHandler:
-    """Handles various types of exceptions and converts them to appropriate JSON responses"""
+    """Handles various types of exceptions and converts them to appropriate JSON responses."""
 
     @staticmethod
     def create_error_response(exception: CommonsBaseException) -> JSONResponse:
-        """Creates a standardized error response"""
+        """
+        Creates a standardized error response.
+
+        Args:
+            exception (CommonsBaseException): The exception to be converted into a response.
+
+        Returns:
+            JSONResponse: A JSON response containing the exception details.
+        """
         BaseUtils.capture_exception(exception)
         return JSONResponse(status_code=exception.http_status_code, content=exception.to_dict())
 
     @staticmethod
     async def custom_exception_handler(request: Request, exception: CommonsBaseException) -> JSONResponse:
-        """Handle custom exceptions"""
+        """
+        Handles custom exceptions.
+
+        Args:
+            request (Request): The incoming request.
+            exception (CommonsBaseException): The custom exception to handle.
+
+        Returns:
+            JSONResponse: A JSON response containing the exception details.
+        """
         return FastAPIExceptionHandler.create_error_response(exception)
 
     # TODO Remove http_exception_handler
     @staticmethod
     async def http_exception_handler(request: Request, exception: HTTPException) -> JSONResponse:
+        """
+        Handles HTTP exceptions.
+
+        Args:
+            request (Request): The incoming request.
+            exception (HTTPException): The HTTP exception to handle.
+
+        Returns:
+            JSONResponse: A JSON response containing the exception details.
+        """
         detail = ExceptionDetailDTO(
             code="TODO_REMOVE_ME",
             http_status=exception.status_code,
@@ -48,10 +75,30 @@ class FastAPIExceptionHandler:
 
     @staticmethod
     async def generic_exception_handler(request: Request, exception: Exception) -> JSONResponse:
+        """
+        Handles generic exceptions.
+
+        Args:
+            request (Request): The incoming request.
+            exception (Exception): The generic exception to handle.
+
+        Returns:
+            JSONResponse: A JSON response containing the exception details.
+        """
         return FastAPIExceptionHandler.create_error_response(UnknownException())
 
     @staticmethod
     async def validation_exception_handler(request: Request, exception: ValidationError) -> JSONResponse:
+        """
+        Handles validation exceptions.
+
+        Args:
+            request (Request): The incoming request.
+            exception (ValidationError): The validation exception to handle.
+
+        Returns:
+            JSONResponse: A JSON response containing the validation error details.
+        """
         errors = []
         for error in exception.errors():
             errors.append(
@@ -69,16 +116,29 @@ class FastAPIExceptionHandler:
 
 
 class FastAPIUtils:
-    """Utility class for FastAPI configuration and setup"""
+    """Utility class for FastAPI configuration and setup."""
 
     @staticmethod
     def custom_generate_unique_id(route: APIRoute) -> str:
-        """Generate a unique ID for API routes."""
+        """
+        Generates a unique ID for API routes.
+
+        Args:
+            route (APIRoute): The route for which to generate a unique ID.
+
+        Returns:
+            str: A unique ID for the route.
+        """
         return f"{route.tags[0]}-{route.name}" if route.tags else route.name
 
     @staticmethod
     def setup_sentry(config: BaseConfig) -> None:
-        """Initialize Sentry configuration if enabled."""
+        """
+        Initializes Sentry configuration if enabled.
+
+        Args:
+            config (BaseConfig): The configuration object containing Sentry settings.
+        """
         if not config.SENTRY.IS_ENABLED:
             return
 
@@ -98,7 +158,13 @@ class FastAPIUtils:
 
     @staticmethod
     def setup_cors(app: FastAPI, config: BaseConfig) -> None:
-        """Configure CORS middleware."""
+        """
+        Configures CORS middleware.
+
+        Args:
+            app (FastAPI): The FastAPI application instance.
+            config (BaseConfig): The configuration object containing CORS settings.
+        """
         origins = [str(origin).strip("/") for origin in config.FASTAPI.CORS_MIDDLEWARE_ALLOW_ORIGINS]
         app.add_middleware(
             CORSMiddleware,
@@ -110,7 +176,13 @@ class FastAPIUtils:
 
     @staticmethod
     def setup_elastic_apm(app: FastAPI, config: BaseConfig) -> None:
-        """Configure Elastic APM if enabled."""
+        """
+        Configures Elastic APM if enabled.
+
+        Args:
+            app (FastAPI): The FastAPI application instance.
+            config (BaseConfig): The configuration object containing Elastic APM settings.
+        """
         if not config.ELASTIC_APM.IS_ENABLED:
             return
 
@@ -125,7 +197,12 @@ class FastAPIUtils:
 
     @staticmethod
     def setup_exception_handlers(app: FastAPI) -> None:
-        """Configure exception handlers."""
+        """
+        Configures exception handlers for the FastAPI application.
+
+        Args:
+            app (FastAPI): The FastAPI application instance.
+        """
         app.add_exception_handler(RequestValidationError, FastAPIExceptionHandler.validation_exception_handler)
         app.add_exception_handler(ValidationError, FastAPIExceptionHandler.validation_exception_handler)
         app.add_exception_handler(CommonsBaseException, FastAPIExceptionHandler.custom_exception_handler)
@@ -134,15 +211,19 @@ class FastAPIUtils:
 
 
 class AppUtils:
+    """Utility class for creating and configuring FastAPI applications."""
 
     @classmethod
     def create_fastapi_app(cls, config: BaseConfig | None = None, configure_exception_handlers: bool = True) -> FastAPI:
         """
-        Create and configure FastAPI application.
+        Creates and configures a FastAPI application.
 
         Args:
-            config: Optional custom configuration. If not provided, uses global config.
-            configure_exception_handlers: Whether to configure exception handlers.
+            config (BaseConfig | None): Optional custom configuration. If not provided, uses global config.
+            configure_exception_handlers (bool): Whether to configure exception handlers.
+
+        Returns:
+            FastAPI: The configured FastAPI application instance.
         """
         config = config or BaseConfig.global_config()
 

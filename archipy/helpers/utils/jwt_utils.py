@@ -18,17 +18,16 @@ class JWTUtils:
         additional_claims: dict[str, Any] | None = None,
         auth_config: AuthConfig | None = None,
     ) -> str:
-        """
-        Create a JWT token with enhanced security features.
+        """Creates a JWT token with enhanced security features.
 
         Args:
-            data: Base claims data
-            expires_in: Token expiration time in seconds
-            additional_claims: Optional additional claims
-            auth_config: Optional auth configuration override
+            data (dict[str, Any]): Base claims data to include in the token.
+            expires_in (int): Token expiration time in seconds.
+            additional_claims (dict[str, Any] | None): Optional additional claims to include in the token.
+            auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
 
         Returns:
-            str: Encoded JWT token
+            str: The encoded JWT token.
 
         Raises:
             ValueError: If data is empty or expiration is invalid
@@ -75,16 +74,15 @@ class JWTUtils:
         additional_claims: dict[str, Any] | None = None,
         auth_config: AuthConfig | None = None,
     ) -> str:
-        """
-        Create an access token for a user.
+        """Creates an access token for a user.
 
         Args:
-            user_uuid: User's UUID
-            additional_claims: Optional additional claims
-            auth_config: Optional auth configuration override
+            user_uuid (UUID): The user's UUID to include in the token.
+            additional_claims (dict[str, Any] | None): Optional additional claims to include in the token.
+            auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
 
         Returns:
-            str: Encoded access token
+            str: The encoded access token.
         """
         configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
 
@@ -106,16 +104,15 @@ class JWTUtils:
         additional_claims: dict[str, Any] | None = None,
         auth_config: AuthConfig | None = None,
     ) -> str:
-        """
-        Create a refresh token for a user.
+        """Creates a refresh token for a user.
 
         Args:
-            user_uuid: User's UUID
-            additional_claims: Optional additional claims
-            auth_config: Optional auth configuration override
+            user_uuid (UUID): The user's UUID to include in the token.
+            additional_claims (dict[str, Any] | None): Optional additional claims to include in the token.
+            auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
 
         Returns:
-            str: Encoded refresh token
+            str: The encoded refresh token.
         """
         configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
 
@@ -137,20 +134,19 @@ class JWTUtils:
         verify_type: str | None = None,
         auth_config: AuthConfig | None = None,
     ) -> dict[str, Any]:
-        """
-        Decode and verify a JWT token with enhanced security checks.
+        """Decodes and verifies a JWT token with enhanced security checks.
 
         Args:
-            token: JWT token to decode
-            verify_type: Optional token type to verify
-            auth_config: Optional auth configuration override
+            token (str): The JWT token to decode.
+            verify_type (str | None): Optional token type to verify (e.g., "access" or "refresh").
+            auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
 
         Returns:
-            dict: Decoded token payload
+            dict[str, Any]: The decoded token payload.
 
         Raises:
-            TokenExpiredException: Token has expired
-            InvalidTokenException: Token is invalid
+            TokenExpiredException: If the token has expired.
+            InvalidTokenException: If the token is invalid (e.g., invalid signature, audience, issuer, or type).
         """
         import jwt
         from jwt.exceptions import (
@@ -207,29 +203,52 @@ class JWTUtils:
 
     @classmethod
     def verify_access_token(cls, token: str, auth_config: AuthConfig | None = None) -> dict[str, Any]:
-        """Verify an access token."""
+        """Verifies an access token.
+
+        Args:
+            token (str): The access token to verify.
+            auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
+
+        Returns:
+            dict[str, Any]: The decoded access token payload.
+
+        Raises:
+            InvalidTokenException: If the token is invalid or not an access token.
+            TokenExpiredException: If the token has expired.
+        """
         configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
         return cls.decode_token(token, verify_type="access", auth_config=configs)
 
     @classmethod
     def verify_refresh_token(cls, token: str, auth_config: AuthConfig | None = None) -> dict[str, Any]:
-        """Verify a refresh token."""
+        """Verifies a refresh token.
+
+        Args:
+            token (str): The refresh token to verify.
+            auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
+
+        Returns:
+            dict[str, Any]: The decoded refresh token payload.
+
+        Raises:
+            InvalidTokenException: If the token is invalid or not a refresh token.
+            TokenExpiredException: If the token has expired.
+        """
         configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
         return cls.decode_token(token, verify_type="refresh", auth_config=configs)
 
     @staticmethod
     def extract_user_uuid(payload: dict[str, Any]) -> UUID:
-        """
-        Extract user UUID from token payload.
+        """Extracts the user UUID from the token payload.
 
         Args:
-            payload: Decoded token payload
+            payload (dict[str, Any]): The decoded token payload.
 
         Returns:
-            UUID: User's UUID
+            UUID: The user's UUID.
 
         Raises:
-            InvalidTokenException: If user identifier is invalid or missing
+            InvalidTokenException: If the user identifier is invalid or missing.
         """
         try:
             return UUID(payload["sub"])
@@ -238,18 +257,17 @@ class JWTUtils:
 
     @classmethod
     def get_token_expiry(cls, token: str, auth_config: AuthConfig | None = None) -> int:
-        """
-        Get token expiry timestamp.
+        """Gets the token expiry timestamp.
 
         Args:
-            token: JWT token
-            auth_config: Optional auth configuration override
+            token (str): The JWT token.
+            auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
 
         Returns:
-            int: Token expiry timestamp in seconds
+            int: The token expiry timestamp in seconds.
 
         Raises:
-            InvalidTokenException: If token is invalid
+            InvalidTokenException: If the token is invalid.
         """
         payload = cls.decode_token(token, auth_config=auth_config)
         return int(payload["exp"])

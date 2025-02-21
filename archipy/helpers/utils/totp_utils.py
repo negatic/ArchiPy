@@ -13,11 +13,23 @@ from archipy.helpers.utils.datetime_utils import DatetimeUtils
 
 
 class TOTPUtils:
-    """Utility class for TOTP (Time-based One-Time Password) operations."""
+    """Utility class for TOTP (Time-based One-Time Password) operations.
+
+    This class provides methods for generating and verifying TOTP codes, as well as generating
+    secure secret keys for TOTP initialization.
+    """
 
     @classmethod
     def generate_totp(cls, secret: str | UUID, auth_config: AuthConfig | None = None) -> Tuple[str, datetime]:
-        """Generate a TOTP code using HMAC-SHA1."""
+        """Generates a TOTP code using HMAC-SHA1.
+
+        Args:
+            secret (str | UUID): The secret key used to generate the TOTP code.
+            auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
+
+        Returns:
+            Tuple[str, datetime]: A tuple containing the generated TOTP code and its expiration time.
+        """
         configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
 
         # Convert secret to bytes if it's UUID
@@ -53,7 +65,16 @@ class TOTPUtils:
 
     @classmethod
     def verify_totp(cls, secret: str | UUID, totp_code: str, auth_config: AuthConfig | None = None) -> bool:
-        """Verify a TOTP code."""
+        """Verifies a TOTP code against the provided secret.
+
+        Args:
+            secret (str | UUID): The secret key used to generate the TOTP code.
+            totp_code (str): The TOTP code to verify.
+            auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
+
+        Returns:
+            bool: `True` if the TOTP code is valid, `False` otherwise.
+        """
         configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
 
         if not totp_code.isdigit():
@@ -87,7 +108,14 @@ class TOTPUtils:
 
     @staticmethod
     def generate_secret_key_for_totp(auth_config: AuthConfig | None = None) -> str:
-        """Generate a random secret key for TOTP initialization."""
+        """Generates a random secret key for TOTP initialization.
+
+        Args:
+            auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
+
+        Returns:
+            str: A base32-encoded secret key for TOTP initialization.
+        """
         configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
 
         random_bytes = random.randbytes(configs.SALT_LENGTH)

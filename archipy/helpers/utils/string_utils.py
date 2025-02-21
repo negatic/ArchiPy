@@ -5,16 +5,35 @@ from archipy.helpers.utils.string_utils_constants import StringUtilsConstants
 
 
 class StringUtils(StringUtilsConstants):
-    """String utilities for text normalization and cleaning."""
+    """String utilities for text normalization, cleaning, and masking.
+
+    This class provides methods for handling Persian and Arabic text, including normalization,
+    punctuation cleaning, number conversion, and masking of sensitive information like URLs,
+    emails, and phone numbers.
+    """
 
     @classmethod
     def remove_arabic_vowels(cls, text: str) -> str:
-        """Remove Arabic vowels from text."""
+        """Removes Arabic vowels (tashkeel) from the text.
+
+        Args:
+            text (str): The input text containing Arabic vowels.
+
+        Returns:
+            str: The text with Arabic vowels removed.
+        """
         return text.translate(cls.arabic_vowel_translate_table)
 
     @classmethod
     def normalize_persian_chars(cls, text: str) -> str:
-        """Normalize Persian characters."""
+        """Normalizes Persian characters to their standard forms.
+
+        Args:
+            text (str): The input text containing Persian characters.
+
+        Returns:
+            str: The text with Persian characters normalized.
+        """
         text = text.translate(cls.alphabet_akoolad_alef_translate_table)
         text = text.translate(cls.alphabet_alef_translate_table)
         text = text.translate(cls.alphabet_be_translate_table)
@@ -52,7 +71,14 @@ class StringUtils(StringUtilsConstants):
 
     @classmethod
     def normalize_punctuation(cls, text: str) -> str:
-        """Normalize punctuation marks."""
+        """Normalizes punctuation marks in the text.
+
+        Args:
+            text (str): The input text containing punctuation marks.
+
+        Returns:
+            str: The text with punctuation marks normalized.
+        """
         text = text.translate(cls.punctuation_translate_table1)
         text = text.translate(cls.punctuation_translate_table2)
         text = text.translate(cls.punctuation_translate_table3)
@@ -70,7 +96,14 @@ class StringUtils(StringUtilsConstants):
 
     @classmethod
     def normalize_numbers(cls, text: str) -> str:
-        """Normalize numbers to English format."""
+        """Normalizes numbers in the text to English format.
+
+        Args:
+            text (str): The input text containing numbers.
+
+        Returns:
+            str: The text with numbers normalized to English format.
+        """
         text = text.translate(cls.number_zero_translate_table)
         text = text.translate(cls.number_one_translate_table)
         text = text.translate(cls.number_two_translate_table)
@@ -84,7 +117,14 @@ class StringUtils(StringUtilsConstants):
 
     @classmethod
     def clean_spacing(cls, text: str) -> str:
-        """Clean up spacing issues in text."""
+        """Cleans up spacing issues in the text, such as non-breaking spaces and zero-width non-joiners.
+
+        Args:
+            text (str): The input text with spacing issues.
+
+        Returns:
+            str: The text with spacing cleaned up.
+        """
         text = text.replace('\u200c', ' ')  # ZWNJ
         text = text.replace('\xa0', ' ')  # NBSP
 
@@ -95,37 +135,82 @@ class StringUtils(StringUtilsConstants):
 
     @classmethod
     def normalize_punctuation_spacing(cls, text: str) -> str:
-        """Apply proper spacing around punctuation marks."""
+        """Applies proper spacing around punctuation marks.
+
+        Args:
+            text (str): The input text with punctuation spacing issues.
+
+        Returns:
+            str: The text with proper spacing around punctuation marks.
+        """
         for pattern, repl in cls.punctuation_spacing_patterns:
             text = pattern.sub(repl, text)
         return text
 
     @classmethod
     def remove_punctuation_marks(cls, text: str) -> str:
-        """Remove punctuation marks from text."""
+        """Removes punctuation marks from the text.
+
+        Args:
+            text (str): The input text containing punctuation marks.
+
+        Returns:
+            str: The text with punctuation marks removed.
+        """
         return text.translate(cls.punctuation_persian_marks_to_space_translate_table)
 
     @classmethod
     def mask_urls(cls, text: str, mask: str | None = None) -> str:
-        """Mask URLs in text."""
+        """Masks URLs in the text with a specified mask.
+
+        Args:
+            text (str): The input text containing URLs.
+            mask (str | None): The mask to replace URLs with. Defaults to "MASK_URL".
+
+        Returns:
+            str: The text with URLs masked.
+        """
         mask = mask or "MASK_URL"
         return compile(r'https?://\S+|www\.\S+').sub(f' {mask} ', text)
 
     @classmethod
     def mask_emails(cls, text: str, mask: str | None = None) -> str:
-        """Mask email addresses in text."""
+        """Masks email addresses in the text with a specified mask.
+
+        Args:
+            text (str): The input text containing email addresses.
+            mask (str | None): The mask to replace emails with. Defaults to "MASK_EMAIL".
+
+        Returns:
+            str: The text with email addresses masked.
+        """
         mask = mask or "MASK_EMAIL"
         return compile(r'\S+@\S+\.\S+').sub(f' {mask} ', text)
 
     @classmethod
     def mask_phones(cls, text: str, mask: str | None = None) -> str:
-        """Mask phone numbers in text."""
+        """Masks phone numbers in the text with a specified mask.
+
+        Args:
+            text (str): The input text containing phone numbers.
+            mask (str | None): The mask to replace phone numbers with. Defaults to "MASK_PHONE".
+
+        Returns:
+            str: The text with phone numbers masked.
+        """
         mask = mask or "MASK_PHONE"
         return compile(r'(?:\+98|0)?(?:\d{3}\s*?\d{3}\s*?\d{4})').sub(f' {mask} ', text)
 
     @classmethod
     def convert_english_number_to_persian(cls, text: str) -> str:
-        """Convert English numbers to Persian numbers."""
+        """Converts English numbers to Persian numbers in the text.
+
+        Args:
+            text (str): The input text containing English numbers.
+
+        Returns:
+            str: The text with English numbers converted to Persian numbers.
+        """
         table = {
             48: 1776,  # 0
             49: 1777,  # 1
@@ -143,7 +228,14 @@ class StringUtils(StringUtilsConstants):
 
     @classmethod
     def convert_numbers_to_english(cls, text: str) -> str:
-        """Convert Persian/Arabic numbers to English numbers."""
+        """Converts Persian/Arabic numbers to English numbers in the text.
+
+        Args:
+            text (str): The input text containing Persian/Arabic numbers.
+
+        Returns:
+            str: The text with Persian/Arabic numbers converted to English numbers.
+        """
         table = {
             1776: 48,  # 0
             1777: 49,  # 1
@@ -170,12 +262,26 @@ class StringUtils(StringUtilsConstants):
 
     @classmethod
     def convert_add_3digit_delimiter(cls, value: int) -> str:
-        """Add a thousand separators to numbers."""
+        """Adds thousand separators to numbers.
+
+        Args:
+            value (int): The number to format.
+
+        Returns:
+            str: The formatted number with thousand separators.
+        """
         return f"{value:,}" if isinstance(value, int) else value
 
     @classmethod
     def remove_emoji(cls, text: str) -> str:
-        """Remove emoji characters from text."""
+        """Removes emoji characters from the text.
+
+        Args:
+            text (str): The input text containing emojis.
+
+        Returns:
+            str: The text with emojis removed.
+        """
         emoji_pattern = compile(
             pattern="["
             "\U0001F600-\U0001F64F"  # emoticons
@@ -196,14 +302,30 @@ class StringUtils(StringUtilsConstants):
 
     @classmethod
     def replace_currencies_with_mask(cls, text: str, mask: str | None = None) -> str:
+        """Masks currency symbols and amounts in the text.
+
+        Args:
+            text (str): The input text containing currency symbols and amounts.
+            mask (str | None): The mask to replace currencies with. Defaults to "MASK_CURRENCIES".
+
+        Returns:
+            str: The text with currency symbols and amounts masked.
+        """
         mask = mask or "MASK_CURRENCIES"
-        """Mask currency symbols and amounts."""
         currency_pattern = compile(r"(\\|zł|£|\$|₡|₦|¥|₩|₪|₫|€|₱|₲|₴|₹|﷼)+")
         return currency_pattern.sub(f" {mask} ", text)
 
     @classmethod
     def replace_numbers_with_mask(cls, text: str, mask: str | None = None) -> str:
-        """Mask numbers in text."""
+        """Masks numbers in the text.
+
+        Args:
+            text (str): The input text containing numbers.
+            mask (str | None): The mask to replace numbers with. Defaults to "MASK_NUMBERS".
+
+        Returns:
+            str: The text with numbers masked.
+        """
         mask = mask or "MASK_NUMBERS"
         numbers = re.findall("[0-9]+", text)
         for number in sorted(numbers, key=len, reverse=True):
@@ -212,7 +334,14 @@ class StringUtils(StringUtilsConstants):
 
     @classmethod
     def is_string_none_or_empty(cls, text: str) -> bool:
-        """Check if string is None or empty."""
+        """Checks if a string is `None` or empty (after stripping whitespace).
+
+        Args:
+            text (str): The input string to check.
+
+        Returns:
+            bool: `True` if the string is `None` or empty, `False` otherwise.
+        """
         return text is None or isinstance(text, str) and not text.strip()
 
     @classmethod
@@ -239,7 +368,32 @@ class StringUtils(StringUtilsConstants):
         remove_punctuation: bool = False,
         normalize_punctuation_spacing: bool = False,
     ) -> str:
-        """Normalize text with configurable options."""
+        """Normalizes Persian text with configurable options.
+
+        Args:
+            text (str): The input text to normalize.
+            remove_vowels (bool): Whether to remove Arabic vowels. Defaults to `True`.
+            normalize_punctuation (bool): Whether to normalize punctuation marks. Defaults to `True`.
+            normalize_numbers (bool): Whether to normalize numbers to English format. Defaults to `True`.
+            normalize_persian_chars (bool): Whether to normalize Persian characters. Defaults to `True`.
+            mask_urls (bool): Whether to mask URLs. Defaults to `False`.
+            mask_emails (bool): Whether to mask email addresses. Defaults to `False`.
+            mask_phones (bool): Whether to mask phone numbers. Defaults to `False`.
+            mask_currencies (bool): Whether to mask currency symbols and amounts. Defaults to `False`.
+            mask_all_numbers (bool): Whether to mask all numbers. Defaults to `False`.
+            remove_emojis (bool): Whether to remove emojis. Defaults to `False`.
+            url_mask (str | None): The mask to replace URLs with. Defaults to `None`.
+            email_mask (str | None): The mask to replace email addresses with. Defaults to `None`.
+            phone_mask (str | None): The mask to replace phone numbers with. Defaults to `None`.
+            currency_mask (str | None): The mask to replace currency symbols and amounts with. Defaults to `None`.
+            number_mask (str | None): The mask to replace numbers with. Defaults to `None`.
+            clean_spacing (bool): Whether to clean up spacing issues. Defaults to `True`.
+            remove_punctuation (bool): Whether to remove punctuation marks. Defaults to `False`.
+            normalize_punctuation_spacing (bool): Whether to apply proper spacing around punctuation marks. Defaults to `False`.
+
+        Returns:
+            str: The normalized text.
+        """
         if not text:
             return text
 
