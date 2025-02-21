@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 from archipy.models.dtos.exception_dto import ExceptionDetailDTO
 from archipy.models.types.exception_message_types import ExceptionMessageType
@@ -27,7 +27,7 @@ class CommonsBaseException(Exception):
         self,
         error: ExceptionDetailDTO | ExceptionMessageType | None = None,
         lang: str = "fa",
-        additional_data: Optional[dict] = None,
+        additional_data: dict | None = None,
         *args: Any,
     ) -> None:
         """
@@ -81,7 +81,7 @@ class CommonsBaseException(Exception):
         return response
 
     @property
-    def http_status_code(self) -> Optional[int]:
+    def http_status_code(self) -> int | None:
         """
         Get the HTTP status code if HTTP support is available.
 
@@ -91,7 +91,7 @@ class CommonsBaseException(Exception):
         return self.error_detail.http_status if HTTP_AVAILABLE else None
 
     @property
-    def grpc_status_code(self) -> Optional[int]:
+    def grpc_status_code(self) -> int | None:
         """
         Get the gRPC status code if gRPC support is available.
 
@@ -256,6 +256,17 @@ class DeadlineExceededException(CommonsBaseException):
         operation: str | None = None,
         lang: str = "fa",
         error: ExceptionDetailDTO = ExceptionMessageType.DEADLINE_EXCEEDED.value,
+    ) -> None:
+        super().__init__(error, lang, additional_data={"operation": operation} if operation else None)
+
+
+class DeprecationException(CommonsBaseException):
+
+    def __init__(
+        self,
+        operation: str | None = None,
+        lang: str = "fa",
+        error: ExceptionDetailDTO = ExceptionMessageType.DEPRECATION.value,
     ) -> None:
         super().__init__(error, lang, additional_data={"operation": operation} if operation else None)
 

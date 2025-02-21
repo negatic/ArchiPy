@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from collections.abc import Mapping, Sequence
-from typing import Any, List, Optional, Type
+from typing import Any, List, Type
 from uuid import UUID
 
 from sqlalchemy import Executable, Select
@@ -75,11 +75,11 @@ class AsyncSqlAlchemyPort:
         raise NotImplementedError
 
     @abstractmethod
-    async def create(self, entity: BaseEntity) -> Optional[BaseEntity]:
+    async def create(self, entity: BaseEntity) -> BaseEntity | None:
         raise NotImplementedError
 
     @abstractmethod
-    async def bulk_create(self, entities: List[BaseEntity]) -> Optional[List[BaseEntity]]:
+    async def bulk_create(self, entities: List[BaseEntity]) -> List[BaseEntity] | None:
         raise NotImplementedError
 
     @abstractmethod
@@ -95,9 +95,9 @@ class AsyncSqlAlchemyPort:
         raise NotImplementedError
 
     @abstractmethod
-    async def execute(self, statement, params: Optional[dict] = None):
+    async def execute(self, statement, params: dict | None = None):
         raise NotImplementedError
 
     @abstractmethod
-    async def scalars(self, statement, params: Optional[dict] = None):
+    async def scalars(self, statement, params: dict | None = None):
         raise NotImplementedError
