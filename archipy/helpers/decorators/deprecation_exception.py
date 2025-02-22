@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Type, TypeVar
+from typing import Any, TypeVar
 
 from archipy.models.exceptions import DeprecationException
 
@@ -7,12 +8,11 @@ from archipy.models.exceptions import DeprecationException
 F = TypeVar("F", bound=Callable[..., Any])
 
 # Define a type variable for the return type of the decorated class
-T = TypeVar("T", bound=Type[Any])
+T = TypeVar("T", bound=type[Any])
 
 
 def method_deprecation_error(operation: str | None = None, lang: str = "fa") -> Callable[[F], F]:
-    """
-    A decorator that raises a DeprecationException when the decorated method is called.
+    """A decorator that raises a DeprecationException when the decorated method is called.
 
     Args:
         operation (str, optional): The name of the operation that is deprecated.
@@ -55,8 +55,7 @@ def method_deprecation_error(operation: str | None = None, lang: str = "fa") -> 
 
 
 def class_deprecation_error(operation: str | None = None, lang: str = "fa") -> Callable[[T], T]:
-    """
-    A decorator that raises a DeprecationException when the decorated class is instantiated.
+    """A decorator that raises a DeprecationException when the decorated class is instantiated.
 
     Args:
         operation (str, optional): The name of the operation that is deprecated.

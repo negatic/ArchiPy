@@ -25,8 +25,7 @@ class FastAPIExceptionHandler:
 
     @staticmethod
     def create_error_response(exception: CommonsBaseException) -> JSONResponse:
-        """
-        Creates a standardized error response.
+        """Creates a standardized error response.
 
         Args:
             exception (CommonsBaseException): The exception to be converted into a response.
@@ -39,8 +38,7 @@ class FastAPIExceptionHandler:
 
     @staticmethod
     async def custom_exception_handler(request: Request, exception: CommonsBaseException) -> JSONResponse:
-        """
-        Handles custom exceptions.
+        """Handles custom exceptions.
 
         Args:
             request (Request): The incoming request.
@@ -54,8 +52,7 @@ class FastAPIExceptionHandler:
     # TODO Remove http_exception_handler
     @staticmethod
     async def http_exception_handler(request: Request, exception: HTTPException) -> JSONResponse:
-        """
-        Handles HTTP exceptions.
+        """Handles HTTP exceptions.
 
         Args:
             request (Request): The incoming request.
@@ -75,8 +72,7 @@ class FastAPIExceptionHandler:
 
     @staticmethod
     async def generic_exception_handler(request: Request, exception: Exception) -> JSONResponse:
-        """
-        Handles generic exceptions.
+        """Handles generic exceptions.
 
         Args:
             request (Request): The incoming request.
@@ -89,8 +85,7 @@ class FastAPIExceptionHandler:
 
     @staticmethod
     async def validation_exception_handler(request: Request, exception: ValidationError) -> JSONResponse:
-        """
-        Handles validation exceptions.
+        """Handles validation exceptions.
 
         Args:
             request (Request): The incoming request.
@@ -120,8 +115,7 @@ class FastAPIUtils:
 
     @staticmethod
     def custom_generate_unique_id(route: APIRoute) -> str:
-        """
-        Generates a unique ID for API routes.
+        """Generates a unique ID for API routes.
 
         Args:
             route (APIRoute): The route for which to generate a unique ID.
@@ -133,8 +127,7 @@ class FastAPIUtils:
 
     @staticmethod
     def setup_sentry(config: BaseConfig) -> None:
-        """
-        Initializes Sentry configuration if enabled.
+        """Initializes Sentry configuration if enabled.
 
         Args:
             config (BaseConfig): The configuration object containing Sentry settings.
@@ -158,8 +151,7 @@ class FastAPIUtils:
 
     @staticmethod
     def setup_cors(app: FastAPI, config: BaseConfig) -> None:
-        """
-        Configures CORS middleware.
+        """Configures CORS middleware.
 
         Args:
             app (FastAPI): The FastAPI application instance.
@@ -176,8 +168,7 @@ class FastAPIUtils:
 
     @staticmethod
     def setup_elastic_apm(app: FastAPI, config: BaseConfig) -> None:
-        """
-        Configures Elastic APM if enabled.
+        """Configures Elastic APM if enabled.
 
         Args:
             app (FastAPI): The FastAPI application instance.
@@ -197,8 +188,7 @@ class FastAPIUtils:
 
     @staticmethod
     def setup_exception_handlers(app: FastAPI) -> None:
-        """
-        Configures exception handlers for the FastAPI application.
+        """Configures exception handlers for the FastAPI application.
 
         Args:
             app (FastAPI): The FastAPI application instance.
@@ -215,8 +205,7 @@ class AppUtils:
 
     @classmethod
     def create_fastapi_app(cls, config: BaseConfig | None = None, configure_exception_handlers: bool = True) -> FastAPI:
-        """
-        Creates and configures a FastAPI application.
+        """Creates and configures a FastAPI application.
 
         Args:
             config (BaseConfig | None): Optional custom configuration. If not provided, uses global config.

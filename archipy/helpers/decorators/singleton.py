@@ -2,8 +2,7 @@ import threading
 
 
 def singleton(thread_safe=True):
-    """
-    A decorator to create thread-safe Singleton classes.
+    """A decorator to create thread-safe Singleton classes.
 
     This decorator ensures that only one instance of a class is created. It supports an optional
     `thread_safe` parameter to control whether thread-safety mechanisms (e.g., locks) should be used.
@@ -37,8 +36,7 @@ def singleton(thread_safe=True):
     """
 
     def decorator(cls):
-        """
-        The inner decorator function that implements the Singleton pattern.
+        """The inner decorator function that implements the Singleton pattern.
 
         Args:
             cls: The class to be decorated as a Singleton.
@@ -50,8 +48,7 @@ def singleton(thread_safe=True):
         lock = threading.Lock() if thread_safe else None  # Lock for thread-safe instance creation
 
         def get_instance(*args, **kwargs):
-            """
-            Create or return the Singleton instance of the class.
+            """Create or return the Singleton instance of the class.
 
             If `thread_safe` is True, a lock is used to ensure that only one instance is created
             even in a multi-threaded environment. If `thread_safe` is False, no locking mechanism

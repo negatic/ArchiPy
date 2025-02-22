@@ -13,7 +13,7 @@ def step_then_validation_result(context: Context, expected_result) -> None:
     assert context.is_valid == expected_bool
 
 
-@then('the verification should {expected_result}')
+@then("the verification should {expected_result}")
 def step_then_verification_succeeds(context: Context, expected_result) -> None:
     expected_bool = expected_result == "succeed"
     assert context.is_verified is expected_bool

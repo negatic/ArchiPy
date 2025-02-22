@@ -40,8 +40,7 @@ class FileUtils:
         minutes: int | None = None,
         file_config: FileConfig | None = None,
     ) -> str:
-        """
-        Creates a secure link with expiration for file access.
+        """Creates a secure link with expiration for file access.
 
         Args:
             path (str): The file path to create a secure link for.

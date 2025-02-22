@@ -8,23 +8,23 @@ def step_given_password(context, password):
     context.password = password
 
 
-@given('the password is hashed')
+@given("the password is hashed")
 def step_given_password_hashed(context):
     context.hashed_password = PasswordUtils.hash_password(context.password, context.test_config.AUTH)
 
 
-@when('the password is hashed')
+@when("the password is hashed")
 def step_when_password_hashed(context):
     context.hashed_password = PasswordUtils.hash_password(context.password, context.test_config.AUTH)
 
 
-@then('a hashed password should be returned')
+@then("a hashed password should be returned")
 def step_then_hashed_password_returned(context):
     assert context.hashed_password is not None
     assert isinstance(context.hashed_password, str)
 
 
-@when('the password is verified')
+@when("the password is verified")
 def step_when_password_verified(context):
     context.is_verified = PasswordUtils.verify_password(
         context.password,
@@ -42,7 +42,7 @@ def step_when_wrong_password_verified(context, wrong_password):
     )
 
 
-@when('the password is validated')
+@when("the password is validated")
 def step_when_password_validated(context):
     try:
         PasswordUtils.validate_password(context.password, context.test_config.AUTH)
@@ -63,12 +63,12 @@ def step_then_validation_fails_with_message(context):
     assert context.validation_error is not None
 
 
-@when('a secure password is generated')
+@when("a secure password is generated")
 def step_when_secure_password_generated(context):
     context.generated_password = PasswordUtils.generate_password(context.test_config.AUTH)
 
 
-@then('the generated password should meet security requirements')
+@then("the generated password should meet security requirements")
 def step_then_secure_password_meets_requirements(context):
     assert len(context.generated_password) >= context.test_config.AUTH.MIN_LENGTH
     assert any(char.isdigit() for char in context.generated_password)

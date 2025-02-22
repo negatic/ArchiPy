@@ -64,10 +64,9 @@ def _atomic(function: Callable) -> Callable:
                 if not is_nested_atomic_block:
                     session.commit()
                 return result
-            else:
-                with session.begin():
-                    result = function(*args, **kwargs)
-                    return result
+            with session.begin():
+                result = function(*args, **kwargs)
+                return result
         except (SerializationFailure, DeadlockDetected) as exception:
             session.rollback()
             raise AbortedException() from exception
@@ -75,8 +74,7 @@ def _atomic(function: Callable) -> Callable:
             if hasattr(exception, "orig") and isinstance(exception.orig, SerializationFailure):
                 session.rollback()
                 raise DeadlockDetectedException() from exception
-            else:
-                raise InternalException() from exception
+            raise InternalException() from exception
         except Exception as exception:
             logging.debug(f"Exception occurred in atomic block, rollback will be initiated, ex:{exception}")
             session.rollback()
@@ -142,10 +140,9 @@ def _async_atomic(function: Callable) -> Callable:
                 if not is_nested_atomic_block:
                     await session.commit()
                 return result
-            else:
-                async with session.begin():
-                    result = await function(*args, **kwargs)
-                    return result
+            async with session.begin():
+                result = await function(*args, **kwargs)
+                return result
         except (SerializationFailure, DeadlockDetected) as exception:
             await session.rollback()
             raise AbortedException() from exception
@@ -153,8 +150,7 @@ def _async_atomic(function: Callable) -> Callable:
             if hasattr(exception, "orig") and isinstance(exception.orig, SerializationFailure):
                 await session.rollback()
                 raise DeadlockDetectedException() from exception
-            else:
-                raise InternalException() from exception
+            raise InternalException() from exception
         except Exception as exception:
             logging.debug(f"Exception occurred in atomic block, rollback will be initiated, ex:{exception}")
             await session.rollback()

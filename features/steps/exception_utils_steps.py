@@ -92,7 +92,7 @@ def step_given_list_of_exceptions(context, exception_names):
     # Convert exception names into actual class references
     context.exception_list = [
         exception_mapping[exc.strip()]
-        for exc in exception_names.strip('[]').split(",")
+        for exc in exception_names.strip("[]").split(",")
         if exc.strip() in exception_mapping
     ]
 

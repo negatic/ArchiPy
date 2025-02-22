@@ -36,7 +36,7 @@ Priority :
             4. os level environment variable
             5. class field value
 """
-R = TypeVar('R')  # Runtime Config
+R = TypeVar("R")  # Runtime Config
 
 
 class BaseConfig(BaseSettings, Generic[R]):

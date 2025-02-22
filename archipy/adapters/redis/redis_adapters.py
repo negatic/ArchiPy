@@ -1,5 +1,5 @@
 from collections.abc import Awaitable, Callable, Iterable, Iterator, Mapping
-from typing import Any, Union, override
+from typing import Any, override
 
 from redis.asyncio.client import Pipeline as AsyncPipeline, PubSub as AsyncPubSub, Redis as AsyncRedis
 from redis.client import Pipeline, PubSub, Redis
@@ -201,7 +201,7 @@ class RedisAdapter(RedisPort):
         return self.read_only_client.sismember(name, value)
 
     @override
-    def smembers(self, name: str) -> Union[Awaitable[set], set]:
+    def smembers(self, name: str) -> Awaitable[set] | set:
         return self.read_only_client.smembers(name)
 
     @override
@@ -254,7 +254,7 @@ class RedisAdapter(RedisPort):
         end: int,
         desc: bool = False,
         withscores: bool = False,
-        score_cast_func: Union[type, Callable] = float,
+        score_cast_func: type | Callable = float,
         byscore: bool = False,
         bylex: bool = False,
         offset: int | None = None,
@@ -280,7 +280,7 @@ class RedisAdapter(RedisPort):
         start: int,
         end: int,
         withscores: bool = False,
-        score_cast_func: Union[type, Callable] = float,
+        score_cast_func: type | Callable = float,
     ) -> RedisResponseType:
         return self.read_only_client.zrevrange(name, start, end, withscores, score_cast_func)
 
@@ -293,7 +293,7 @@ class RedisAdapter(RedisPort):
         start: int | None = None,
         num: int | None = None,
         withscores: bool = False,
-        score_cast_func: Union[type, Callable] = float,
+        score_cast_func: type | Callable = float,
     ) -> RedisResponseType:
         return self.read_only_client.zrangebyscore(name, min, max, start, num, withscores, score_cast_func)
 
@@ -557,7 +557,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.read_only_client.sismember(name, value)
 
     @override
-    async def smembers(self, name: str) -> Union[Awaitable[set], set]:
+    async def smembers(self, name: str) -> Awaitable[set] | set:
         return await self.read_only_client.smembers(name)
 
     @override
@@ -610,7 +610,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         end: int,
         desc: bool = False,
         withscores: bool = False,
-        score_cast_func: Union[type, Callable] = float,
+        score_cast_func: type | Callable = float,
         byscore: bool = False,
         bylex: bool = False,
         offset: int | None = None,
@@ -636,7 +636,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         start: int,
         end: int,
         withscores: bool = False,
-        score_cast_func: Union[type, Callable] = float,
+        score_cast_func: type | Callable = float,
     ) -> RedisResponseType:
         return await self.read_only_client.zrevrange(name, start, end, withscores, score_cast_func)
 
@@ -649,7 +649,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         start: int | None = None,
         num: int | None = None,
         withscores: bool = False,
-        score_cast_func: Union[type, Callable] = float,
+        score_cast_func: type | Callable = float,
     ) -> RedisResponseType:
         return await self.read_only_client.zrangebyscore(name, min, max, start, num, withscores, score_cast_func)
 

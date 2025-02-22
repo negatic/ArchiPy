@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from collections.abc import Awaitable, Callable, Iterable, Iterator, Mapping
 from datetime import datetime, timedelta
-from typing import Any, Union
+from typing import Any
 
 # Define generic type variables for better type hinting
 RedisAbsExpiryType = int | datetime
@@ -176,7 +176,7 @@ class RedisPort:
         raise NotImplementedError
 
     @abstractmethod
-    def smembers(self, name: str) -> Union[Awaitable[set], set]:
+    def smembers(self, name: str) -> Awaitable[set] | set:
         raise NotImplementedError
 
     @abstractmethod
@@ -229,7 +229,7 @@ class RedisPort:
         end: int,
         desc: bool = False,
         withscores: bool = False,
-        score_cast_func: Union[type, Callable] = float,
+        score_cast_func: type | Callable = float,
         byscore: bool = False,
         bylex: bool = False,
         offset: int | None = None,
@@ -244,7 +244,7 @@ class RedisPort:
         start: int,
         end: int,
         withscores: bool = False,
-        score_cast_func: Union[type, Callable] = float,
+        score_cast_func: type | Callable = float,
     ) -> RedisResponseType:
         raise NotImplementedError
 
@@ -257,7 +257,7 @@ class RedisPort:
         start: int | None = None,
         num: int | None = None,
         withscores: bool = False,
-        score_cast_func: Union[type, Callable] = float,
+        score_cast_func: type | Callable = float,
     ) -> RedisResponseType:
         raise NotImplementedError
 
@@ -499,7 +499,7 @@ class AsyncRedisPort:
         raise NotImplementedError
 
     @abstractmethod
-    async def smembers(self, name: str) -> Union[Awaitable[set], set]:
+    async def smembers(self, name: str) -> Awaitable[set] | set:
         raise NotImplementedError
 
     @abstractmethod
@@ -552,7 +552,7 @@ class AsyncRedisPort:
         end: int,
         desc: bool = False,
         withscores: bool = False,
-        score_cast_func: Union[type, Callable] = float,
+        score_cast_func: type | Callable = float,
         byscore: bool = False,
         bylex: bool = False,
         offset: int | None = None,
@@ -567,7 +567,7 @@ class AsyncRedisPort:
         start: int,
         end: int,
         withscores: bool = False,
-        score_cast_func: Union[type, Callable] = float,
+        score_cast_func: type | Callable = float,
     ) -> RedisResponseType:
         raise NotImplementedError
 
@@ -580,7 +580,7 @@ class AsyncRedisPort:
         start: int | None = None,
         num: int | None = None,
         withscores: bool = False,
-        score_cast_func: Union[type, Callable] = float,
+        score_cast_func: type | Callable = float,
     ) -> RedisResponseType:
         raise NotImplementedError
 

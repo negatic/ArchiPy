@@ -7,7 +7,7 @@ from archipy.models.dtos.pagination_dto import PaginationDTO
 from archipy.models.dtos.sort_dto import SortDTO
 
 # Generic types
-T = TypeVar('T', bound=Enum)
+T = TypeVar("T", bound=Enum)
 
 
 class SearchInputDTO(BaseModel, Generic[T]):

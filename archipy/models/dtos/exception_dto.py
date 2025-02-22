@@ -52,9 +52,9 @@ class ExceptionDetailDTO(BaseDTO):
         status_kwargs = {}
 
         if HTTP_AVAILABLE and http_status is not None:
-            status_kwargs['http_status'] = http_status.value if isinstance(http_status, HTTPStatus) else http_status
+            status_kwargs["http_status"] = http_status.value if isinstance(http_status, HTTPStatus) else http_status
 
         if GRPC_AVAILABLE and grpc_status is not None:
-            status_kwargs['grpc_status'] = grpc_status.value[0] if isinstance(grpc_status, StatusCode) else grpc_status
+            status_kwargs["grpc_status"] = grpc_status.value[0] if isinstance(grpc_status, StatusCode) else grpc_status
 
         return ExceptionDetailDTO(code=code, message_en=message_en, message_fa=message_fa, **status_kwargs)

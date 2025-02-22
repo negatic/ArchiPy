@@ -4,7 +4,6 @@ import hmac
 import random
 import struct
 from datetime import datetime
-from typing import Tuple
 from uuid import UUID
 
 from archipy.configs.base_config import BaseConfig
@@ -20,7 +19,7 @@ class TOTPUtils:
     """
 
     @classmethod
-    def generate_totp(cls, secret: str | UUID, auth_config: AuthConfig | None = None) -> Tuple[str, datetime]:
+    def generate_totp(cls, secret: str | UUID, auth_config: AuthConfig | None = None) -> tuple[str, datetime]:
         """Generates a TOTP code using HMAC-SHA1.
 
         Args:
@@ -41,9 +40,9 @@ class TOTPUtils:
         time_step_counter = int(current_time / configs.TOTP_TIME_STEP)
 
         # Generate HMAC-SHA1 hash
-        secret_bytes = str(secret).encode('utf-8')
-        time_bytes = struct.pack('>Q', time_step_counter)
-        hmac_obj = hmac.new(secret_bytes, time_bytes, configs.HASH_ALGORITHM.replace('HS', 'SHA'))
+        secret_bytes = str(secret).encode("utf-8")
+        time_bytes = struct.pack(">Q", time_step_counter)
+        hmac_obj = hmac.new(secret_bytes, time_bytes, configs.HASH_ALGORITHM.replace("HS", "SHA"))
         hmac_result = hmac_obj.digest()
 
         # Get offset and truncate
@@ -86,9 +85,9 @@ class TOTPUtils:
         for i in range(-configs.TOTP_VERIFICATION_WINDOW, configs.TOTP_VERIFICATION_WINDOW + 1):
             time_step_counter = int(current_time / configs.TOTP_TIME_STEP) + i
 
-            secret_bytes = str(secret).encode('utf-8')
-            time_bytes = struct.pack('>Q', time_step_counter)
-            hmac_obj = hmac.new(secret_bytes, time_bytes, configs.HASH_ALGORITHM.replace('HS', 'SHA'))
+            secret_bytes = str(secret).encode("utf-8")
+            time_bytes = struct.pack(">Q", time_step_counter)
+            hmac_obj = hmac.new(secret_bytes, time_bytes, configs.HASH_ALGORITHM.replace("HS", "SHA"))
             hmac_result = hmac_obj.digest()
 
             offset = hmac_result[-1] & 0xF
@@ -119,8 +118,8 @@ class TOTPUtils:
         configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
 
         random_bytes = random.randbytes(configs.SALT_LENGTH)
-        master_key = configs.TOTP_SECRET_KEY.get_secret_value().encode('utf-8')
+        master_key = configs.TOTP_SECRET_KEY.get_secret_value().encode("utf-8")
 
         # Use HMAC with master key for additional security
-        hmac_obj = hmac.new(master_key, random_bytes, configs.HASH_ALGORITHM.replace('HS', 'SHA'))
-        return base64.b32encode(hmac_obj.digest()).decode('utf-8')
+        hmac_obj = hmac.new(master_key, random_bytes, configs.HASH_ALGORITHM.replace("HS", "SHA"))
+        return base64.b32encode(hmac_obj.digest()).decode("utf-8")

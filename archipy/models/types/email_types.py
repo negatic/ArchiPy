@@ -2,9 +2,7 @@ from enum import StrEnum
 
 
 class EmailAttachmentType(StrEnum):
-    """
-    Enum for different types of attachments
-    """
+    """Enum for different types of attachments"""
 
     FILE = "file"
     BASE64 = "base64"
@@ -13,9 +11,7 @@ class EmailAttachmentType(StrEnum):
 
 
 class EmailAttachmentDispositionType(StrEnum):
-    """
-    Enum for attachment disposition types
-    """
+    """Enum for attachment disposition types"""
 
     ATTACHMENT = "attachment"
     INLINE = "inline"

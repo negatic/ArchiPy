@@ -37,7 +37,6 @@ private-package = "^1.1.0"
 pre-commit = "^3.7.1"
 pre-commit-hooks = "^4.6.0"
 codespell = "^2.4.1"
-autoflake = "^2.3.1"
 ruff = "^0.7.4"
 black = "^24.4.2"
 add-trailing-comma = "^3.1.0"
@@ -73,10 +72,19 @@ build-backend = "poetry.core.masonry.api"
 Homepage = "https://github.com/SyntaxArc/ArchiPy"
 
 [tool.black]
+# Enable colored output
 color = true
+
+# Set the maximum line length
 line-length = 120
+
+# Target Python version
 target-version = ["py313"]
-skip-string-normalization = true
+
+# Skip string normalization (useful for projects with mixed quote styles)
+skip-string-normalization = false
+
+# Exclude specific files and directories
 extend-exclude = '''
 /(
     \.eggs
@@ -89,103 +97,177 @@ extend-exclude = '''
   | buck-out
   | build
   | dist
+  | migrations  # Exclude database migration files
+  | node_modules  # Exclude Node.js dependencies
+  | __pycache__  # Exclude Python cache directories
 )/
 '''
 
 [tool.ruff]
-fix = false
+# Enable automatic fixes for supported rules
+fix = true
+
 lint.select = [
-    "B", # flake8-bugbear
-    "C", # flake8-comprehensions
-    "C4", # comprehensions
-    "E", # pycodestyle errors
-    "F", # pyflakes
-    "I", # isort
-    "INT", # flake8-gettext
-    "ISC", # implicit string concatenation
-    "PGH", # pygrep-hooks
-    "PIE", # misc lints
-    "PLC", "PLE", "PLR", "PLW", # pylint
-    "PYI", # flake8-pyi
-    "Q", # flake8-quotes
-    "RUF", # Ruff-specific rules
-    "T10", # flake8-debugger
-    "TCH", # type-checking imports
-    "TID", # tidy imports
-    "W", # pycodestyle warnings
-    "YTT", # flake8-2020
+    "ALL", # Enable all rules by default
+    "ANN", # flake8-annotations for type annotations
+    "D", # pydocstyle for docstring linting
+    "ERA", # flake8-eradicate for detecting commented-out code
+    "F841", # Unused variable
+    "I001", # isort for import sorting
+    "N", # flake8-naming for naming conventions
+    "PTH", # flake8-use-pathlib for pathlib recommendations
+    "Q", # flake8-quotes for quote consistency
+    "RET", # flake8-return for return statement linting
+    "S", # flake8-bandit for security linting
+    "SIM", # flake8-simplify for simplifying code
+    "TCH", # flake8-type-checking for type-checking imports
+    "TRY", # flake8-try-except for better exception handling
+    "UP", # pyupgrade rules for modern Python features
 ]
+
+# Explicitly ignore specific rules
 lint.ignore = [
-    "C901", # too complex
-    "RUF001", "RUF003", # String contains ambiguous
+    "C901", # Function is too complex (McCabe complexity)
+    "RUF001", "RUF003", # String contains ambiguous characters
     "PLR2004", # Magic value used in comparison
-    "Q000", # ignore single quotes
-    "TCH002",
-    "B008",
-    "PLR0913", # too many argument for function "swagger fastapi",
-    "RUF012", # Mutable class attributes should be annotated with `typing.ClassVar` in runtime confige ALLOW_ORIGINS = ["*"]
-    "E501",
-    "F811"
+    "Q000", # Allow single quotes (conflicts with Black's double-quote preference)
+    "TCH002", # Type-checking import issues
+    "PLR0913", # Too many arguments in function (e.g., FastAPI Swagger)
+    "E501", # Line too long (handled by Black)
+    "F811", # Redefinition of unused function
+    "S101", # Ignore assert used (equivalent to bandit's B101)
+    "S403", # Ignore pickle usage (equivalent to bandit's B403)
+    "S301", # Ignore pickle usage (equivalent to bandit's B301)
 ]
+
+# Define source directories
 src = ["archipy", "tests", "features"]
+
+# Set line length to match Black's configuration
 line-length = 120
+
+# Target Python version
 target-version = "py313"
 
+# Per-file ignores
 [tool.ruff.lint.per-file-ignores]
-# ignore F811 Redefinition of function in steps implementations
+# Ignore F811 (redefinition of function) in steps implementations
 "features/steps/*" = ["F811"]
+"scripts/*" = ["S603", "S607"]
 
+# Configure McCabe complexity
 [tool.ruff.lint.mccabe]
-max-complexity = 10
+max-complexity = 10  # Maximum allowed McCabe complexity
 
+# Configure Pylint rules
 [tool.ruff.lint.pylint]
-max-args = 5
-max-branches = 16
-max-returns = 16
-max-statements = 50
+max-args = 5  # Maximum number of function arguments
+max-branches = 16  # Maximum number of branches in a function
+max-returns = 16  # Maximum number of return statements in a function
+max-statements = 50  # Maximum number of statements in a function
 
-[tool.autoflake]
-check = false
-in-place = true
-recursive = true
-remove-all-unused-imports = true
-ignore-init-module-imports = true
-
+# Configure isort (import sorting)
 [tool.ruff.lint.isort]
-combine-as-imports = true
-known-first-party = ["archipy"]
-section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+combine-as-imports = true  # Combine `import` and `from ... import` statements
+known-first-party = ["archipy"]  # Treat `archipy` as a first-party module
+section-order = [
+    "future", # `__future__` imports
+    "standard-library", # Standard library imports
+    "third-party", # Third-party imports
+    "first-party", # First-party imports (e.g., `archipy`)
+    "local-folder", # Local folder imports
+]
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "double"  # Use double quotes for inline strings
+multiline-quotes = "single"  # Use single quotes for multiline strings
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"  # Use Google-style docstrings
 
 [tool.mypy]
+# Enable checking of untyped function definitions
 check_untyped_defs = true
+
+# Disallow using `Any` in generic types
 disallow_any_generics = false
+
+# Disallow incomplete type definitions
 disallow_incomplete_defs = true
+
+# Disallow subclassing `Any`
 disallow_subclassing_any = true
-disallow_untyped_calls = false
+
+# Disallow calling untyped functions
+disallow_untyped_calls = true
+
+# Disallow untyped decorators
 disallow_untyped_decorators = true
+
+# Disallow untyped function definitions
 disallow_untyped_defs = true
+
+# Follow imports silently
 follow_imports = "silent"
+
+# Disallow implicit re-exports
 no_implicit_reexport = true
+
+# Enable pretty output
 pretty = true
+
+# Target Python version
 python_version = "3.13"
+
+# Show error codes
 show_error_codes = true
+
+# Show error context
 show_error_context = true
+
+# Enable strict optional checking
 strict_optional = true
+
+# Warn about missing return statements
 warn_no_return = true
+
+# Warn about redundant casts
 warn_redundant_casts = true
+
+# Warn about returning `Any`
 warn_return_any = true
+
+# Warn about unreachable code
 warn_unreachable = true
+
+# Warn about unused configs
 warn_unused_configs = true
+
+# Warn about unused `# type: ignore` comments
 warn_unused_ignores = true
-plugins = ["pydantic.mypy"]
+
+# Enable Pydantic plugin for better type checking
+plugins = [
+    "pydantic.mypy", # Pydantic plugin for better type checking
+    "sqlalchemy.ext.mypy.plugin", # SQLAlchemy plugin for ORM type checking
+    "fastapi.mypy", # FastAPI plugin for route and dependency type checking
+]
+
+
 
 [[tool.mypy.overrides]]
-module = []
+module = [
+    "features.*", # Apply overrides to features files
+    "scripts.*", # Apply overrides to script files
+    "redis.*", # Apply overrides to Redis
+    "grpc.*", # Apply overrides to gRPC
+    "google.protobuf.*", # Apply overrides to protobuf
+    "requests.*", # Apply overrides to requests
+    "jdatetime.*", # Apply overrides to jdatetime
+    "sentry_sdk.*", # Apply overrides to sentry-sdk
+    "apscheduler.*", # Apply overrides to apscheduler
+]
 ignore_missing_imports = true
-
-[tool.bandit]
-exclude_dirs = ["tests", "features"]
-skips = ["B101", "B403", "B301"]
 
 [tool.config]
 pyproject_root_var = "pyproject"

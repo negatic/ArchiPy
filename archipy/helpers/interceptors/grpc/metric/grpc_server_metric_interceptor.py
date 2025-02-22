@@ -18,21 +18,21 @@ class GrpcServerMetricInterceptor(BaseGrpcServerInterceptor):
 
     from prometheus_client import Histogram
 
-    """Buckets for measuring response times between 0 and 1 second."""
+    "Buckets for measuring response times between 0 and 1 second."
     ZERO_TO_ONE_SECONDS_BUCKETS: ClassVar[list[float]] = [i / 1000 for i in range(0, 1000, 5)]
 
-    """Buckets for measuring response times between 1 and 5 seconds."""
+    "Buckets for measuring response times between 1 and 5 seconds."
     ONE_TO_FIVE_SECONDS_BUCKETS: ClassVar[list[float]] = [i / 100 for i in range(100, 500, 20)]
 
-    """Buckets for measuring response times between 5 and 30 seconds."""
+    "Buckets for measuring response times between 5 and 30 seconds."
     FIVE_TO_THIRTY_SECONDS_BUCKETS: ClassVar[list[float]] = [i / 100 for i in range(500, 3000, 50)]
 
-    """Combined buckets for measuring response times from 0 to 30 seconds and beyond."""
+    "Combined buckets for measuring response times from 0 to 30 seconds and beyond."
     TOTAL_BUCKETS = (
         ZERO_TO_ONE_SECONDS_BUCKETS + ONE_TO_FIVE_SECONDS_BUCKETS + FIVE_TO_THIRTY_SECONDS_BUCKETS + [float("inf")]
     )
 
-    """Prometheus histogram for tracking response times of gRPC methods."""
+    "Prometheus histogram for tracking response times of gRPC methods."
     RESPONSE_TIME_SECONDS = Histogram(
         "response_time_seconds",
         "Time spent processing request",

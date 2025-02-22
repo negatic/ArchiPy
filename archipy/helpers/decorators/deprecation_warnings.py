@@ -1,16 +1,16 @@
 import warnings
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Type, TypeVar
+from typing import Any, TypeVar
 
 # Define a type variable for the return type of the decorated function
 F = TypeVar("F", bound=Callable[..., Any])
 # Define a type variable for the return type of the decorated class
-T = TypeVar("T", bound=Type[Any])
+T = TypeVar("T", bound=type[Any])
 
 
 def method_deprecation_warning(message: str | None = None) -> Callable[[F], F]:
-    """
-    A decorator that issues a deprecation warning when the decorated method is called.
+    """A decorator that issues a deprecation warning when the decorated method is called.
 
     Args:
         message (str, optional): The deprecation message to display when the method is called.
@@ -54,8 +54,7 @@ def method_deprecation_warning(message: str | None = None) -> Callable[[F], F]:
 
 
 def class_deprecation_warning(message: str | None = None) -> Callable[[T], T]:
-    """
-    A decorator that issues a deprecation warning when the decorated class is instantiated.
+    """A decorator that issues a deprecation warning when the decorated class is instantiated.
 
     Args:
         message (str, optional): The deprecation message to display when the class is instantiated.

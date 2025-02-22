@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from collections.abc import Mapping, Sequence
-from typing import Any, List, Type
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import Executable, Select
@@ -24,7 +24,7 @@ class SqlAlchemyPort:
     @abstractmethod
     def execute_search_query(
         self,
-        entity: Type[BaseEntity],
+        entity: type[BaseEntity],
         query: Select,
         pagination: PaginationDTO | None = None,
         sort_info: SortDTO | None = SortDTO.default(),
@@ -68,7 +68,7 @@ class AsyncSqlAlchemyPort:
     @abstractmethod
     async def execute_search_query(
         self,
-        entity: Type[BaseEntity],
+        entity: type[BaseEntity],
         query: Select,
         pagination: PaginationDTO | None,
         sort_info: SortDTO | None = SortDTO.default(),
@@ -80,7 +80,7 @@ class AsyncSqlAlchemyPort:
         raise NotImplementedError
 
     @abstractmethod
-    async def bulk_create(self, entities: List[BaseEntity]) -> List[BaseEntity] | None:
+    async def bulk_create(self, entities: list[BaseEntity]) -> list[BaseEntity] | None:
         raise NotImplementedError
 
     @abstractmethod
@@ -92,7 +92,7 @@ class AsyncSqlAlchemyPort:
         raise NotImplementedError
 
     @abstractmethod
-    async def bulk_delete(self, entities: List[BaseEntity]) -> None:
+    async def bulk_delete(self, entities: list[BaseEntity]) -> None:
         raise NotImplementedError
 
     @abstractmethod

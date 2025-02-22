@@ -29,7 +29,6 @@ setup: ## Setup project pre-requisites
 	pipx ensurepath
 	poetry completions bash >> ~/.bash_completion
 
-
 .PHONY: install
 install: ## Install project dependencies
 	@echo "${BLUE}Installing project dependencies...${NC}"
@@ -67,11 +66,8 @@ format: ## Format code using black
 .PHONY: lint
 lint: ## Run all linters
 	@echo "${BLUE}Running linters...${NC}"
-	$(PYTHON) black --config pyproject.toml --check $(PYTHON_FILES)
-	$(PYTHON) autoflake --config pyproject.toml  $(PYTHON_FILES)
 	$(PYTHON) ruff check --config pyproject.toml  $(PYTHON_FILES)
 	$(PYTHON) mypy --config-file pyproject.toml $(PYTHON_FILES)
-	$(PYTHON) bandit -r $(PROJECT_NAME)
 
 .PHONY: behave
 behave: ## Run tests with behave
@@ -89,56 +85,34 @@ version: ## Display current version
 	@$(POETRY) version
 	@echo "${YELLOW}Current tag(Fetching...):${NC}"
 	@git fetch && git describe --tags  --abbrev=0
+
 .PHONY: bump-patch
-bump-patch: ## Bump patch version (use rc=true for release candidate)
+bump-patch: ## Bump patch version
 	@echo "${BLUE}Bumping patch version...${NC}"
 	@if [ -n "$(message)" ]; then \
-		if [ "$(rc)" = "true" ]; then \
-			$(PYTHON) python scripts/bump_version.py patch -m "$(message)" --rc; \
-		else \
-			$(PYTHON) python scripts/bump_version.py patch -m "$(message)"; \
-		fi \
+		$(PYTHON) python scripts/bump_version.py patch -m "$(message)"; \
 	else \
-		if [ "$(rc)" = "true" ]; then \
-			$(PYTHON) python scripts/bump_version.py patch -m "$$(git log -1 --pretty=%s)" --rc; \
-		else \
-			$(PYTHON) python scripts/bump_version.py patch -m "$$(git log -1 --pretty=%s)"; \
-		fi \
+		$(PYTHON) python scripts/bump_version.py patch -m "$$(git log -1 --pretty=%s)"; \
 	fi
 
 .PHONY: bump-minor
-bump-minor: ## Bump minor version (use rc=true for release candidate)
+bump-minor: ## Bump minor version
 	@echo "${BLUE}Bumping minor version...${NC}"
 	@if [ -n "$(message)" ]; then \
-		if [ "$(rc)" = "true" ]; then \
-			$(PYTHON) python scripts/bump_version.py minor -m "$(message)" --rc; \
-		else \
-			$(PYTHON) python scripts/bump_version.py minor -m "$(message)"; \
-		fi \
+		$(PYTHON) python scripts/bump_version.py minor -m "$(message)"; \
 	else \
-		if [ "$(rc)" = "true" ]; then \
-			$(PYTHON) python scripts/bump_version.py minor -m "$$(git log -1 --pretty=%s)" --rc; \
-		else \
-			$(PYTHON) python scripts/bump_version.py minor -m "$$(git log -1 --pretty=%s)"; \
-		fi \
+		$(PYTHON) python scripts/bump_version.py minor -m "$$(git log -1 --pretty=%s)"; \
 	fi
 
 .PHONY: bump-major
-bump-major: ## Bump major version (use rc=true for release candidate)
+bump-major: ## Bump major version
 	@echo "${BLUE}Bumping major version...${NC}"
 	@if [ -n "$(message)" ]; then \
-		if [ "$(rc)" = "true" ]; then \
-			$(PYTHON) python scripts/bump_version.py major -m "$(message)" --rc; \
-		else \
-			$(PYTHON) python scripts/bump_version.py major -m "$(message)"; \
-		fi \
+		$(PYTHON) python scripts/bump_version.py major -m "$(message)"; \
 	else \
-		if [ "$(rc)" = "true" ]; then \
-			$(PYTHON) python scripts/bump_version.py major -m "$$(git log -1 --pretty=%s)" --rc; \
-		else \
-			$(PYTHON) python scripts/bump_version.py major -m "$$(git log -1 --pretty=%s)"; \
-		fi \
+		$(PYTHON) python scripts/bump_version.py major -m "$$(git log -1 --pretty=%s)"; \
 	fi
+
 .PHONY: docker-build
 docker-build: ## Build Docker image
 	@echo "${BLUE}Building Docker image...${NC}"
@@ -156,7 +130,6 @@ pre-commit: ## Run pre-commit hooks
 
 .PHONY: check
 check: lint test ## Run all checks (linting and tests)
-
 
 .PHONY: ci
 ci: ## Run CI pipeline locally

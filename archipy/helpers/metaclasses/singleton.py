@@ -2,8 +2,7 @@ import threading
 
 
 class Singleton(type):
-    """
-    A thread-safe Singleton metaclass that ensures only one instance of a class is created.
+    """A thread-safe Singleton metaclass that ensures only one instance of a class is created.
 
     This metaclass can be used to create Singleton classes. It supports an optional `thread_safe`
     parameter to control whether thread-safety mechanisms (e.g., locks) should be used.
@@ -36,8 +35,7 @@ class Singleton(type):
     _lock = threading.Lock()  # Lock for thread-safe instance creation
 
     def __new__(cls, name, bases, dct, **kwargs):
-        """
-        Create a new Singleton metaclass instance.
+        """Create a new Singleton metaclass instance.
 
         Args:
             name (str): The name of the class.
@@ -49,7 +47,7 @@ class Singleton(type):
             type: A new metaclass instance.
         """
         # Extract the `thread_safe` parameter from kwargs
-        thread_safe = kwargs.pop('thread_safe', True)
+        thread_safe = kwargs.pop("thread_safe", True)
         # Create the new class
         new_class = super().__new__(cls, name, bases, dct, **kwargs)
         # Set the `thread_safe` attribute for the class
@@ -57,8 +55,7 @@ class Singleton(type):
         return new_class
 
     def __call__(cls, *args, **kwargs):
-        """
-        Create or return the Singleton instance of the class.
+        """Create or return the Singleton instance of the class.
 
         If `thread_safe` is True, a lock is used to ensure that only one instance is created
         even in a multi-threaded environment. If `thread_safe` is False, no locking mechanism

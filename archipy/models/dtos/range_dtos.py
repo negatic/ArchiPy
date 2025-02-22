@@ -8,7 +8,7 @@ from pydantic import StrictInt, field_validator, model_validator
 from archipy.models.dtos.base_dtos import BaseDTO
 
 # Generic types
-T = TypeVar('T', bound=Enum)
+T = TypeVar("T", bound=Enum)
 
 
 class RangeDTO(BaseDTO):

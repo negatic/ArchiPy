@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime
 
 from behave import given, then, when
+from features.test_entity import TestEntity
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -10,7 +11,6 @@ from archipy.adapters.orm.sqlalchemy.session_manager_mocks import AsyncSessionMa
 from archipy.adapters.orm.sqlalchemy.sqlalchemy_mocks import AsyncSqlAlchemyMock, SqlAlchemyMock
 from archipy.configs.config_template import SqlAlchemyConfig
 from archipy.models.entities import BaseEntity
-from features.test_entity import TestEntity
 
 
 @given("a SessionManagerMock instance")

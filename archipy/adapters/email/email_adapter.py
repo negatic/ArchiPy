@@ -90,9 +90,7 @@ class EmailConnectionPool:
 
 
 class AttachmentHandler:
-    """
-    Enhanced attachment handler with better type safety and validation
-    """
+    """Enhanced attachment handler with better type safety and validation"""
 
     @staticmethod
     def create_attachment(
@@ -104,9 +102,7 @@ class AttachmentHandler:
         content_id: str | None = None,
         max_size: int | None = None,
     ) -> EmailAttachmentDTO:
-        """
-        Create an attachment with validation
-        """
+        """Create an attachment with validation"""
         if max_size is None:
             max_size = BaseConfig.global_config().EMAIL.ATTACHMENT_MAX_SIZE
         try:
@@ -126,11 +122,9 @@ class AttachmentHandler:
 
     @staticmethod
     def _process_source(source: str | bytes | BinaryIO | HttpUrl, attachment_type: EmailAttachmentType) -> bytes:
-        """
-        Process different types of attachment sources
-        """
+        """Process different types of attachment sources"""
         if attachment_type == EmailAttachmentType.FILE:
-            with open(source, 'rb') as f:
+            with open(source, "rb") as f:
                 return f.read()
         elif attachment_type == EmailAttachmentType.BASE64:
             return base64.b64decode(source)
@@ -141,32 +135,28 @@ class AttachmentHandler:
         elif attachment_type == EmailAttachmentType.BINARY:
             if isinstance(source, bytes):
                 return source
-            elif hasattr(source, 'read'):
+            if hasattr(source, "read"):
                 return source.read()
             raise ValueError(f"Invalid binary source type: {type(source)}")
         raise ValueError(f"Unsupported attachment type: {attachment_type}")
 
     @staticmethod
     def process_attachment(msg: MIMEMultipart, attachment: EmailAttachmentDTO) -> None:
-        """
-        Process and attach the attachment to the email message
-        """
+        """Process and attach the attachment to the email message"""
         content = AttachmentHandler._get_content(attachment)
         part = AttachmentHandler._create_mime_part(content, attachment)
 
         # Add headers
-        part.add_header('Content-Disposition', attachment.content_disposition.value, filename=attachment.filename)
+        part.add_header("Content-Disposition", attachment.content_disposition.value, filename=attachment.filename)
 
         if attachment.content_id:
-            part.add_header('Content-ID', attachment.content_id)
+            part.add_header("Content-ID", attachment.content_id)
 
         msg.attach(part)
 
     @staticmethod
     def _get_content(attachment: EmailAttachmentDTO) -> bytes:
-        """
-        Get content as bytes from attachment
-        """
+        """Get content as bytes from attachment"""
         if isinstance(attachment.content, (str, bytes)):
             return attachment.content if isinstance(attachment.content, bytes) else attachment.content.encode()
         return attachment.content.read()
@@ -176,22 +166,19 @@ class AttachmentHandler:
         content: bytes,
         attachment: EmailAttachmentDTO,
     ) -> MIMEText | MIMEImage | MIMEAudio | MIMEBase:
-        """
-        Create appropriate MIME part based on content type
-        """
-        main_type, sub_type = attachment.content_type.split('/', 1)
+        """Create appropriate MIME part based on content type"""
+        main_type, sub_type = attachment.content_type.split("/", 1)
 
-        if main_type == 'text':
+        if main_type == "text":
             return MIMEText(content.decode(), sub_type)
-        elif main_type == 'image':
+        if main_type == "image":
             return MIMEImage(content, _subtype=sub_type)
-        elif main_type == 'audio':
+        if main_type == "audio":
             return MIMEAudio(content, _subtype=sub_type)
-        else:
-            part = MIMEBase(main_type, sub_type)
-            part.set_payload(content)
-            encoders.encode_base64(part)
-            return part
+        part = MIMEBase(main_type, sub_type)
+        part.set_payload(content)
+        encoders.encode_base64(part)
+        return part
 
 
 class EmailAdapter(EmailPort):
@@ -212,9 +199,7 @@ class EmailAdapter(EmailPort):
         template: str | None = None,
         template_vars: dict | None = None,
     ) -> None:
-        """
-        Send email with advanced features and connection pooling
-        """
+        """Send email with advanced features and connection pooling"""
         connection = None
         try:
             connection = self.connection_pool.get_connection()
@@ -238,8 +223,7 @@ class EmailAdapter(EmailPort):
                         connection.smtp_connection.send_message(msg, to_addrs=recipients)
                         logging.debug(f"Email sent successfully to {to_email}")
                         return
-                    else:
-                        connection.connect()
+                    connection.connect()
                 except Exception as e:
                     if attempt == self.config.MAX_RETRIES - 1:
                         BaseUtils.capture_exception(e)
@@ -264,19 +248,19 @@ class EmailAdapter(EmailPort):
         template_vars: dict | None = None,
     ) -> MIMEMultipart:
         msg = MIMEMultipart()
-        msg['From'] = self.config.EMAIL_USERNAME
-        msg['To'] = to_email if isinstance(to_email, str) else ", ".join(to_email)
-        msg['Subject'] = subject
+        msg["From"] = self.config.EMAIL_USERNAME
+        msg["To"] = to_email if isinstance(to_email, str) else ", ".join(to_email)
+        msg["Subject"] = subject
 
         if cc:
-            msg['Cc'] = cc if isinstance(cc, str) else ", ".join(cc)
+            msg["Cc"] = cc if isinstance(cc, str) else ", ".join(cc)
         if bcc:
-            msg['Bcc'] = bcc if isinstance(bcc, str) else ", ".join(bcc)
+            msg["Bcc"] = bcc if isinstance(bcc, str) else ", ".join(bcc)
 
         if template:
             body = Template(template).render(**(template_vars or {}))
 
-        msg.attach(MIMEText(body, 'html' if html else 'plain'))
+        msg.attach(MIMEText(body, "html" if html else "plain"))
 
         if attachments:
             for attachment in attachments:

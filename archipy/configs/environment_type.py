@@ -31,7 +31,6 @@ class EnvironmentType(StrEnum):
     def log_level(self) -> int:
         if self.is_production:
             return WARNING
-        elif self.is_test:
+        if self.is_test:
             return INFO
-        else:
-            return DEBUG
+        return DEBUG

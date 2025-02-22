@@ -22,9 +22,9 @@ except ImportError:
 class ExceptionMessageType(Enum):
     # Authentication Errors (400, 401, 403)
     UNAUTHENTICATED_TYPE = ExceptionDetailDTO.create_exception_detail(
-        code='UNAUTHENTICATED_TYPE',
-        message_en='You are not authorized to perform this action.',
-        message_fa='You are not authorized to perform this action.',
+        code="UNAUTHENTICATED_TYPE",
+        message_en="You are not authorized to perform this action.",
+        message_fa="You are not authorized to perform this action.",
         http_status=HTTPStatus.UNAUTHORIZED if HTTP_AVAILABLE else None,
         grpc_status=StatusCode.UNAUTHENTICATED if GRPC_AVAILABLE else None,
     )

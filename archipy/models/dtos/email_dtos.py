@@ -8,9 +8,7 @@ from archipy.models.types.email_types import EmailAttachmentDispositionType, Ema
 
 
 class EmailAttachmentDTO(BaseDTO):
-    """
-    Pydantic model for email attachments
-    """
+    """Pydantic model for email attachments"""
 
     content: str | bytes | BinaryIO
     filename: str
@@ -20,11 +18,11 @@ class EmailAttachmentDTO(BaseDTO):
     attachment_type: EmailAttachmentType
     max_size: int
 
-    @field_validator('content_type')
+    @field_validator("content_type")
     def set_content_type(cls, v, values):
-        if v is None and 'filename' in values:
-            content_type, _ = mimetypes.guess_type(values['filename'])
-            return content_type or 'application/octet-stream'
+        if v is None and "filename" in values:
+            content_type, _ = mimetypes.guess_type(values["filename"])
+            return content_type or "application/octet-stream"
         return v
 
     @model_validator(mode="after")
@@ -36,8 +34,8 @@ class EmailAttachmentDTO(BaseDTO):
                 raise ValueError(f"Attachment size exceeds maximum allowed size of {model.max_size} bytes")
         return model
 
-    @field_validator('content_id')
+    @field_validator("content_id")
     def validate_content_id(cls, v, values):
-        if v and not v.startswith('<'):
-            return f'<{v}>'
+        if v and not v.startswith("<"):
+            return f"<{v}>"
         return v

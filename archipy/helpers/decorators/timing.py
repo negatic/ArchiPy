@@ -1,14 +1,14 @@
 import logging
 import time
-from typing import Any, Callable, TypeVar
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 # Define a type variable for the return type of the decorated function
 F = TypeVar("F", bound=Callable[..., Any])
 
 
 def timing(func: F) -> F:
-    """
-    A decorator that measures the execution time of a function and logs it if the logging level is DEBUG.
+    """A decorator that measures the execution time of a function and logs it if the logging level is DEBUG.
 
     Args:
         func (Callable): The function to be decorated.

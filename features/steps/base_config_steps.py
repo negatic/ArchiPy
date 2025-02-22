@@ -1,9 +1,9 @@
 import os
 
 from behave import given, then, when
+from features.environment import TestConfig
 
 from archipy.configs.base_config import BaseConfig
-from features.environment import TestConfig
 
 
 @given("a custom BaseConfig instance")

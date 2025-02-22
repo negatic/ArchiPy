@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from unittest.mock import patch
 
 from behave import given, then, when
@@ -19,7 +19,7 @@ def step_when_timezone_ensured(context: Context) -> None:
 
 @then("the result should be in UTC timezone")
 def step_then_result_should_be_utc(context: Context) -> None:
-    assert context.result_datetime.tzinfo == timezone.utc
+    assert context.result_datetime.tzinfo == UTC
 
 
 @given('a datetime "{date_string}"')
@@ -146,7 +146,7 @@ def step_when_check_holiday_multiple_times(context: Context) -> None:
             },
         }
 
-    with patch.object(DatetimeUtils, '_call_holiday_api', side_effect=mock_call_holiday_api):
+    with patch.object(DatetimeUtils, "_call_holiday_api", side_effect=mock_call_holiday_api):
         context.api_call_count = 0
         # First call
         context.result_first = DatetimeUtils.is_holiday_in_iran(context.target_date)

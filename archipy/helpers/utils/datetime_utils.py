@@ -1,6 +1,7 @@
 import time
-from datetime import UTC, date, datetime, timedelta, timezone
-from typing import ClassVar, Generator
+from collections.abc import Generator
+from datetime import UTC, date, datetime, timedelta
+from typing import ClassVar
 
 import jdatetime
 import requests
@@ -102,6 +103,7 @@ class DatetimeUtils:
 
         Returns:
             bool: True if the date is a holiday, False otherwise.
+
         Raises:
             UnknownException: If the API request fails due to a network issue or other request-related errors.
         """
@@ -140,7 +142,7 @@ class DatetimeUtils:
         session.mount("https://", adapter)
 
         url = DatetimeUtils._build_api_url(jalali_date)
-        headers = {'x-api-key': BaseConfig.global_config().DATETIME.TIME_IR_API_KEY}
+        headers = {"x-api-key": BaseConfig.global_config().DATETIME.TIME_IR_API_KEY}
         response = session.get(url, headers=headers, timeout=BaseConfig.global_config().DATETIME.REQUEST_TIMEOUT)
         response.raise_for_status()
         return response.json()
@@ -190,7 +192,7 @@ class DatetimeUtils:
             datetime: The timezone-aware datetime object.
         """
         if dt.tzinfo is None:
-            return dt.replace(tzinfo=timezone.utc)
+            return dt.replace(tzinfo=UTC)
         return dt
 
     @classmethod

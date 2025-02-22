@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Type, Union, override
+from typing import Any, override
 from uuid import UUID
 
 from sqlalchemy import Delete, Executable, Result, ScalarResult, Update, func, select
@@ -30,33 +30,33 @@ class SqlAlchemyFilterMixin:
         if value is not None or operation in [FilterOperationType.IS_NULL, FilterOperationType.IS_NOT_NULL]:
             if operation == FilterOperationType.EQUAL:
                 return query.where(field == value)
-            elif operation == FilterOperationType.NOT_EQUAL:
+            if operation == FilterOperationType.NOT_EQUAL:
                 return query.where(field != value)
-            elif operation == FilterOperationType.LESS_THAN:
+            if operation == FilterOperationType.LESS_THAN:
                 return query.where(field < value)
-            elif operation == FilterOperationType.LESS_THAN_OR_EQUAL:
+            if operation == FilterOperationType.LESS_THAN_OR_EQUAL:
                 return query.where(field <= value)
-            elif operation == FilterOperationType.GREATER_THAN:
+            if operation == FilterOperationType.GREATER_THAN:
                 return query.where(field > value)
-            elif operation == FilterOperationType.GREATER_THAN_OR_EQUAL:
+            if operation == FilterOperationType.GREATER_THAN_OR_EQUAL:
                 return query.where(field >= value)
-            elif operation == FilterOperationType.IN_LIST:
+            if operation == FilterOperationType.IN_LIST:
                 return query.where(field.in_(value))
-            elif operation == FilterOperationType.NOT_IN_LIST:
+            if operation == FilterOperationType.NOT_IN_LIST:
                 return query.where(~field.in_(value))
-            elif operation == FilterOperationType.LIKE:
-                return query.where(field.like(f'%{value}%'))
-            elif operation == FilterOperationType.ILIKE:
-                return query.where(field.ilike(f'%{value}%'))
-            elif operation == FilterOperationType.STARTS_WITH:
+            if operation == FilterOperationType.LIKE:
+                return query.where(field.like(f"%{value}%"))
+            if operation == FilterOperationType.ILIKE:
+                return query.where(field.ilike(f"%{value}%"))
+            if operation == FilterOperationType.STARTS_WITH:
                 return query.where(field.startswith(value))
-            elif operation == FilterOperationType.ENDS_WITH:
+            if operation == FilterOperationType.ENDS_WITH:
                 return query.where(field.endswith(value))
-            elif operation == FilterOperationType.CONTAINS:
+            if operation == FilterOperationType.CONTAINS:
                 return query.where(field.contains(value))
-            elif operation == FilterOperationType.IS_NULL:
+            if operation == FilterOperationType.IS_NULL:
                 return query.where(field.is_(None))
-            elif operation == FilterOperationType.IS_NOT_NULL:
+            if operation == FilterOperationType.IS_NOT_NULL:
                 return query.where(field.isnot(None))
         return query
 
@@ -71,7 +71,7 @@ class SqlAlchemyPaginationMixin:
 
 class SqlAlchemySortMixin:
     @staticmethod
-    def _apply_sorting(entity: Type[BaseEntity], query: Select, sort_info: SortDTO | None) -> Select:
+    def _apply_sorting(entity: type[BaseEntity], query: Select, sort_info: SortDTO | None) -> Select:
         if sort_info is None:
             return query
         if isinstance(sort_info.column, str):
@@ -83,8 +83,7 @@ class SqlAlchemySortMixin:
 
         if sort_info.order == SortOrderType.ASCENDING:
             return query.order_by(sort_column.asc())
-        else:
-            return query.order_by(sort_column.desc())
+        return query.order_by(sort_column.desc())
 
 
 class SqlAlchemyAdapter(SqlAlchemyPort, SqlAlchemyPaginationMixin, SqlAlchemySortMixin):
@@ -95,7 +94,7 @@ class SqlAlchemyAdapter(SqlAlchemyPort, SqlAlchemyPaginationMixin, SqlAlchemySor
     @override
     def execute_search_query(
         self,
-        entity: Type[BaseEntity],
+        entity: type[BaseEntity],
         query: Select,
         pagination: PaginationDTO | None = None,
         sort_info: SortDTO | None = SortDTO.default(),
@@ -174,7 +173,7 @@ class AsyncSqlAlchemyAdapter(AsyncSqlAlchemyPort, SqlAlchemyPaginationMixin, Sql
     @override
     async def execute_search_query(
         self,
-        entity: Type[BaseEntity],
+        entity: type[BaseEntity],
         query: Select,
         pagination: PaginationDTO | None,
         sort_info: SortDTO | None = SortDTO.default(),
@@ -215,7 +214,7 @@ class AsyncSqlAlchemyAdapter(AsyncSqlAlchemyPort, SqlAlchemyPaginationMixin, Sql
         return entities
 
     @override
-    async def get_by_uuid(self, entity_type: type, entity_uuid: UUID) -> Union[Any, None]:
+    async def get_by_uuid(self, entity_type: type, entity_uuid: UUID) -> Any | None:
         if not issubclass(entity_type, BaseEntity):
             raise InvalidEntityTypeException(entity_type, BaseEntity)
         if not isinstance(entity_uuid, UUID):

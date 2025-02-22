@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from archipy.models.types.sort_order_type import SortOrderType
 
 # Generic types
-T = TypeVar('T', bound=Enum)
+T = TypeVar("T", bound=Enum)
 
 
 class SortDTO(BaseModel, Generic[T]):

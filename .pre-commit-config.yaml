@@ -63,11 +63,6 @@ repos:
         entry: poetry run codespell --toml pyproject.toml
         files: \.(py|pyi)$
         language: system
-      - id: autoflake
-        name: autoflake
-        entry: poetry run autoflake --config pyproject.toml
-        files: \.(py|pyi)$
-        language: system
       - id: black
         name: black
         entry: poetry run black --config pyproject.toml

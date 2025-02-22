@@ -4,7 +4,7 @@ from typing import TypeVar
 from pydantic import BaseModel, ConfigDict
 
 # Generic types
-T = TypeVar('T', bound=Enum)
+T = TypeVar("T", bound=Enum)
 
 
 class BaseDTO(BaseModel):

@@ -1,6 +1,7 @@
 import signal
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 from archipy.models.exceptions import DeadlineExceededException
 
@@ -9,8 +10,7 @@ F = TypeVar("F", bound=Callable[..., Any])
 
 
 def timeout(seconds: int) -> Callable[[F], F]:
-    """
-    A decorator that adds a timeout to a function. If the function takes longer than the specified
+    """A decorator that adds a timeout to a function. If the function takes longer than the specified
     number of seconds to execute, a DeadlineExceededException is raised.
 
     Args:

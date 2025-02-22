@@ -23,14 +23,14 @@ def _get_factory_and_method(
     """
     if rpc_handler.unary_unary:
         return grpc.unary_unary_rpc_method_handler, rpc_handler.unary_unary
-    elif rpc_handler.unary_stream:
+    if rpc_handler.unary_stream:
         return grpc.unary_stream_rpc_method_handler, rpc_handler.unary_stream
-    elif rpc_handler.stream_unary:
+    if rpc_handler.stream_unary:
         return grpc.stream_unary_rpc_method_handler, rpc_handler.stream_unary
-    elif rpc_handler.stream_stream:
+    if rpc_handler.stream_stream:
         return grpc.stream_stream_rpc_method_handler, rpc_handler.stream_stream
-    else:  # pragma: no cover
-        raise RuntimeError("RPC handler implementation does not exist")
+    # pragma: no cover
+    raise RuntimeError("RPC handler implementation does not exist")
 
 
 class MethodName(BaseDTO):
@@ -98,7 +98,7 @@ class BaseGrpcServerInterceptor(grpc.ServerInterceptor, metaclass=abc.ABCMeta):
         """
         next_handler = continuation(handler_call_details)
         if next_handler is None:
-            return
+            return None
         handler_factory, next_handler_method = _get_factory_and_method(next_handler)
 
         def invoke_intercept_method(request, context):

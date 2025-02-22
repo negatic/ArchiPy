@@ -31,7 +31,7 @@ class BaseUtils(ExceptionUtils, DatetimeUtils, PasswordUtils, JWTUtils, TOTPUtil
             str: The sanitized phone number in a standardized format.
         """
         # Remove non-numeric characters
-        cleaned_number = re.sub(r'\D', '', landline_or_phone_number)
+        cleaned_number = re.sub(r"\D", "", landline_or_phone_number)
 
         # Standardize international format to local Iran format
         if cleaned_number.startswith("0098"):  # Handles "0098"
@@ -58,7 +58,7 @@ class BaseUtils(ExceptionUtils, DatetimeUtils, PasswordUtils, JWTUtils, TOTPUtil
         # Sanitize the input to remove spaces, dashes, or other non-numeric characters
         sanitized_number = cls.sanitize_iranian_landline_or_phone_number(phone_number)
         # Define the regular expression pattern for Iranian phone numbers
-        iranian_mobile_pattern = re.compile(r'^09\d{9}$')  # Mobile numbers
+        iranian_mobile_pattern = re.compile(r"^09\d{9}$")  # Mobile numbers
 
         # Check if the phone number matches either mobile or landline pattern
         if not iranian_mobile_pattern.match(sanitized_number):
@@ -77,7 +77,7 @@ class BaseUtils(ExceptionUtils, DatetimeUtils, PasswordUtils, JWTUtils, TOTPUtil
         # Sanitize the input to remove spaces, dashes, or other non-numeric characters
         sanitized_number = cls.sanitize_iranian_landline_or_phone_number(landline_number)
         # Landline examples: `0` + 2 to 4-digit area code + 7 to 8-digit local number
-        iranian_landline_pattern = re.compile(r'^0\d{2,4}\d{7,8}$')
+        iranian_landline_pattern = re.compile(r"^0\d{2,4}\d{7,8}$")
 
         if not iranian_landline_pattern.match(sanitized_number):
             raise InvalidLandlineNumberException(landline_number)

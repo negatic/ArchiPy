@@ -1,6 +1,7 @@
 import logging
 import time
-from typing import Any, Callable, Optional, Tuple, Type, TypeVar
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 from archipy.models.exceptions import ResourceExhaustedException
 
@@ -11,13 +12,12 @@ F = TypeVar("F", bound=Callable[..., Any])
 def retry_decorator(
     max_retries: int = 3,
     delay: float = 1,
-    retry_on: Optional[Tuple[Type[Exception], ...]] = None,
-    ignore: Optional[Tuple[Type[Exception], ...]] = None,
-    resource_type: Optional[str] = None,
+    retry_on: tuple[type[Exception], ...] | None = None,
+    ignore: tuple[type[Exception], ...] | None = None,
+    resource_type: str | None = None,
     lang: str = "fa",
 ) -> Callable[[F], F]:
-    """
-    A decorator that retries a function when it raises an exception.
+    """A decorator that retries a function when it raises an exception.
 
     Args:
         max_retries (int): The maximum number of retry attempts. Defaults to 3.

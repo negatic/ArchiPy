@@ -1,33 +1,81 @@
-# ArchiPy
+# ArchiPy 🐍
 
-[TOC]
+**Architecture + Python – Perfect for Structured Design**
 
-------------
+ArchiPy is a Python project designed to provide a robust and structured architecture for building scalable and maintainable applications. It integrates modern Python tools and libraries to streamline development, testing, and deployment.
 
-## 📋 Prerequisites
+---
+
+## 📋 Table of Contents
+
+- [Features](#-features)
+- [Prerequisites](#-prerequisites)
+- [Installation](#-installation)
+- [Usage](#-usage)
+- [Development](#-development)
+- [Version Management](#-version-management)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
+
+## ✨ Features
+
+- **Modern Python Stack**: Built with Python 3.13 and leveraging tools like `pydantic`, `fastapi`, `gRPC` and `sqlalchemy`.
+- **Modular Design**: Optional dependencies for Redis, gRPC, PostgreSQL, Prometheus, and more.
+- **Type Safety**: Enforced by `mypy` and `pydantic` for robust code.
+- **Testing**: Integrated with `pytest` and `behave` for comprehensive testing.
+- **Linting and Formatting**: Uses `ruff` and `black` for clean and consistent code.
+- **Pre-commit Hooks**: Automates code quality checks before commits.
+- **Dependency Management**: Managed by `poetry` for reproducible builds.
+
+---
+
+## 🛠️ Prerequisites
 
 Before you begin, ensure you have the following installed:
-- Python 3.12.x
-- Docker (optional)
 
-## 🛠️ Installation
+- **Python 3.13.x**
+- **Poetry** (for dependency management)
 
-1. **Setup Project Prerequisites**
+---
+
+## 🚀 Installation
+
+1. **Clone the Repository**
    ```bash
-   sudo apt install make && make setup
+   git clone https://github.com/SyntaxArc/ArchiPy.git
+   cd ArchiPy
    ```
 
-2. **Install Dependencies**
+2. **Set Up the Project**
+   ```bash
+   make setup
+   ```
+
+3. **Install Dependencies**
    ```bash
    make install
    ```
 
-3. **Install Development Dependencies** (Optional)
+4. **Install Development Dependencies** (Optional)
    ```bash
    make install-dev
    ```
 
-## 🎯 Available Commands
+---
+
+## 🎯 Usage
+
+### Running the Project
+
+To run the project locally, use the following command:
+
+```bash
+poetry run python -m archipy
+```
+
+### Available Commands
 
 Run `make help` to see all available commands:
 
@@ -35,132 +83,38 @@ Run `make help` to see all available commands:
 make help
 ```
 
-### Common Commands
+#### Common Commands
 
-- 🧹 **Clean Project**
-  ```bash
-  make clean
-  ```
-
-- ✨ **Format Code**
+- **Format Code**
   ```bash
   make format
   ```
 
-- 🔍 **Run Linters**
+- **Run Linters**
   ```bash
   make lint
   ```
 
-- 🧪 **Run Tests**
+- **Run Tests**
   ```bash
   make behave
   ```
 
-- 🏗️ **Build Project**
+- **Build the Project**
   ```bash
   make build
   ```
 
-## 🔖 Version Management
-
-We follow [Semantic Versioning](https://semver.org/) principles with support for Release Candidates (RC). Our versioning system provides flexible options for version management.
-
-### Version Format
-
-- Regular versions: `X.Y.Z` (e.g., `1.2.3`)
-- Release Candidate versions: `X.Y.Zrc` (e.g., `1.2.3rc`)
-
-Where:
-- `X` = Major version (breaking changes)
-- `Y` = Minor version (new features, backward-compatible)
-- `Z` = Patch version (bug fixes, backward-compatible)
-- `rc` = Release Candidate suffix (pre-release versions)
-
-### Version Bumping Commands
-
-#### Basic Version Bumping
-
-- 🤏 **Patch Version** (Bug fixes)
+- **Clean Build Artifacts**
   ```bash
-  make bump-patch
+  make clean
   ```
 
-- 🍾 **Minor Version** (New features)
-  ```bash
-  make bump-minor
-  ```
+---
 
-- ⚠️ **Major Version** (Breaking changes)
-  ```bash
-  make bump-major
-  ```
+## 🛠️ Development
 
-#### Release Candidate Versions
-
-Add `rc=true` to create release candidate versions:
-
-```bash
-make bump-patch rc=true   # Creates a release candidate (e.g., 1.2.3rc)
-make bump-minor rc=true   # Creates a release candidate (e.g., 1.3.0rc)
-make bump-major rc=true   # Creates a release candidate (e.g., 2.0.0rc)
-```
-
-#### Custom Version Messages
-
-Add a custom message to your version bump:
-
-```bash
-make bump-patch message="Your custom message"
-```
-
-Combine with RC flag:
-```bash
-make bump-patch rc=true message="Release candidate for bug fix"
-```
-
-#### Version Bumping Behavior
-
-1. **Regular Version Bumping**:
-   - From `1.2.3` to `1.2.4`: `make bump-patch`
-   - From `1.2.3` to `1.3.0`: `make bump-minor`
-   - From `1.2.3` to `2.0.0`: `make bump-major`
-
-2. **RC Version Bumping**:
-   - From `1.2.3` to `1.2.4rc`: `make bump-patch rc=true`
-   - From `1.2.3rc` to `1.2.3`: `make bump-patch` (finalizes RC)
-   - From `1.2.3rc` to `1.2.4rc`: `make bump-patch rc=true`
-
-3. **Version Messages**:
-   - Without message: Uses last git commit message
-   - With message: Uses provided custom message
-
-## 🐳 Docker Support
-
-Build and run with Docker:
-
-```bash
-# Build Docker image
-make docker-build
-
-# Run Docker container
-make docker-run
-```
-
-## 🔄 Pre-commit Hooks
-
-1. **Install Pre-commit Hooks**
-   ```bash
-   poetry run pre-commit install
-   poetry run pre-commit autoupdate
-   ```
-
-2. **Run Pre-commit Checks**
-   ```bash
-   poetry run pre-commit run --all-files
-   ```
-
-## ✅ Development Workflow
+### Development Workflow
 
 1. **Run All Checks**
    ```bash
@@ -172,10 +126,84 @@ make docker-run
    make ci
    ```
 
-## 🔄 Updating Dependencies
+3. **Update Dependencies**
+   ```bash
+   make update
+   ```
 
-Keep your dependencies up to date:
+### Pre-commit Hooks
+
+1. **Install Pre-commit Hooks**
+   ```bash
+   poetry run pre-commit install
+   ```
+
+2. **Run Pre-commit Checks**
+   ```bash
+   poetry run pre-commit run --all-files
+   ```
+
+---
+
+## 🔖 Version Management
+
+We follow [Semantic Versioning (SemVer)](https://semver.org/) principles.
+
+### Version Bumping Commands
+
+- **Bump Patch Version** (Bug fixes)
+  ```bash
+  make bump-patch
+  ```
+
+- **Bump Minor Version** (New features)
+  ```bash
+  make bump-minor
+  ```
+
+- **Bump Major Version** (Breaking changes)
+  ```bash
+  make bump-major
+  ```
+
+#### Custom Version Messages
+
+Add a custom message to your version bump:
 
 ```bash
-make update
+make bump-patch message="Your custom message"
 ```
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. Fork the repository.
+2. Create a new branch for your feature or bugfix.
+3. Submit a pull request with a detailed description of your changes.
+
+---
+
+## 📄 License
+
+This project is licensed under the terms of the [LICENSE](LICENSE) file.
+
+---
+
+## 📞 Contact
+
+For questions or feedback, feel free to reach out:
+
+- **Mehdi Einali**: [einali@gmail.com](mailto:einali@gmail.com)
+- **Hossein Nejati**: [hosseinnejati14@gmail.com](mailto:hosseinnejati14@gmail.com)
+
+---
+
+## 🔗 Links
+
+- **GitHub Repository**: [https://github.com/SyntaxArc/ArchiPy](https://github.com/SyntaxArc/ArchiPy)
+- **Documentation**: [https://github.com/SyntaxArc/ArchiPy#readme](https://github.com/SyntaxArc/ArchiPy#readme)
+
+---

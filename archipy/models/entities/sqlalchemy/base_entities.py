@@ -22,7 +22,7 @@ class BaseEntity(DeclarativeBase):
 
     def __init_subclass__(cls, **kw: Any) -> None:
         if cls._is_abstract():
-            return None
+            return
         cls._validate_pk_column()
         super().__init_subclass__(**kw)
 

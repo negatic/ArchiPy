@@ -24,13 +24,12 @@ class PasswordUtils:
         Returns:
             str: A base64-encoded string containing the salt and hash in the format "salt:hash".
         """
-
         configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
         salt = os.urandom(configs.SALT_LENGTH)
-        pw_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt, configs.HASH_ITERATIONS)
+        pw_hash = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, configs.HASH_ITERATIONS)
 
         # Combine salt and hash, encode in base64
-        combined = b64encode(salt + pw_hash).decode('utf-8')
+        combined = b64encode(salt + pw_hash).decode("utf-8")
         return combined
 
     @staticmethod
@@ -49,12 +48,12 @@ class PasswordUtils:
             configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
 
             # Decode the stored password
-            decoded = b64decode(stored_password.encode('utf-8'))
+            decoded = b64decode(stored_password.encode("utf-8"))
             salt = decoded[: configs.SALT_LENGTH]
             stored_hash = decoded[configs.SALT_LENGTH :]
 
             # Hash the provided password with the same salt
-            pw_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt, configs.HASH_ITERATIONS)
+            pw_hash = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, configs.HASH_ITERATIONS)
 
             # Compare in constant time to prevent timing attacks
             return hmac.compare_digest(pw_hash, stored_hash)
@@ -76,22 +75,22 @@ class PasswordUtils:
         errors = []
 
         if len(password) < configs.MIN_LENGTH:
-            errors.append(f'Password must be at least {configs.MIN_LENGTH} characters long.')
+            errors.append(f"Password must be at least {configs.MIN_LENGTH} characters long.")
 
         if configs.REQUIRE_DIGIT and not any(char.isdigit() for char in password):
-            errors.append('Password must contain at least one digit.')
+            errors.append("Password must contain at least one digit.")
 
         if configs.REQUIRE_LOWERCASE and not any(char.islower() for char in password):
-            errors.append('Password must contain at least one lowercase letter.')
+            errors.append("Password must contain at least one lowercase letter.")
 
         if configs.REQUIRE_UPPERCASE and not any(char.isupper() for char in password):
-            errors.append('Password must contain at least one uppercase letter.')
+            errors.append("Password must contain at least one uppercase letter.")
 
         if configs.REQUIRE_SPECIAL and not any(char in configs.SPECIAL_CHARACTERS for char in password):
-            errors.append(f'Password must contain at least one special character: {configs.SPECIAL_CHARACTERS}')
+            errors.append(f"Password must contain at least one special character: {configs.SPECIAL_CHARACTERS}")
 
         if errors:
-            raise ValueError('; '.join(errors))
+            raise ValueError("; ".join(errors))
 
     @staticmethod
     def generate_password(auth_config: AuthConfig | None = None) -> str:
@@ -108,7 +107,7 @@ class PasswordUtils:
         lowercase_chars = string.ascii_lowercase
         uppercase_chars = string.ascii_uppercase
         digit_chars = string.digits
-        special_chars = ''.join(configs.SPECIAL_CHARACTERS)
+        special_chars = "".join(configs.SPECIAL_CHARACTERS)
 
         # Initialize with required characters
         password_chars = []
@@ -131,7 +130,7 @@ class PasswordUtils:
         # Shuffle the password characters
         random.shuffle(password_chars)
 
-        return ''.join(password_chars)
+        return "".join(password_chars)
 
     @classmethod
     def validate_password_history(
@@ -163,4 +162,4 @@ class PasswordUtils:
             errors.append("Password has been used recently")
 
         if errors:
-            raise ValueError('; '.join(errors))
+            raise ValueError("; ".join(errors))

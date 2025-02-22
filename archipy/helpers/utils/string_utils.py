@@ -125,8 +125,8 @@ class StringUtils(StringUtilsConstants):
         Returns:
             str: The text with spacing cleaned up.
         """
-        text = text.replace('\u200c', ' ')  # ZWNJ
-        text = text.replace('\xa0', ' ')  # NBSP
+        text = text.replace("\u200c", " ")  # ZWNJ
+        text = text.replace("\xa0", " ")  # NBSP
 
         for pattern, repl in cls.character_refinement_patterns:
             text = pattern.sub(repl, text)
@@ -171,7 +171,7 @@ class StringUtils(StringUtilsConstants):
             str: The text with URLs masked.
         """
         mask = mask or "MASK_URL"
-        return compile(r'https?://\S+|www\.\S+').sub(f' {mask} ', text)
+        return compile(r"https?://\S+|www\.\S+").sub(f" {mask} ", text)
 
     @classmethod
     def mask_emails(cls, text: str, mask: str | None = None) -> str:
@@ -185,7 +185,7 @@ class StringUtils(StringUtilsConstants):
             str: The text with email addresses masked.
         """
         mask = mask or "MASK_EMAIL"
-        return compile(r'\S+@\S+\.\S+').sub(f' {mask} ', text)
+        return compile(r"\S+@\S+\.\S+").sub(f" {mask} ", text)
 
     @classmethod
     def mask_phones(cls, text: str, mask: str | None = None) -> str:
@@ -199,7 +199,7 @@ class StringUtils(StringUtilsConstants):
             str: The text with phone numbers masked.
         """
         mask = mask or "MASK_PHONE"
-        return compile(r'(?:\+98|0)?(?:\d{3}\s*?\d{3}\s*?\d{4})').sub(f' {mask} ', text)
+        return compile(r"(?:\+98|0)?(?:\d{3}\s*?\d{3}\s*?\d{4})").sub(f" {mask} ", text)
 
     @classmethod
     def convert_english_number_to_persian(cls, text: str) -> str:

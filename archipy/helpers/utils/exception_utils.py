@@ -52,7 +52,7 @@ class ExceptionUtils:
 
                 sentry_sdk.capture_exception(exception)
             except ImportError:
-                logging.error("sentry_sdk is not installed, cannot capture exception in Sentry.")
+                logging.exception("sentry_sdk is not installed, cannot capture exception in Sentry.")
 
         # Report exception to Elastic APM if enabled
         if config.ELASTIC_APM.IS_ENABLED:
@@ -62,7 +62,7 @@ class ExceptionUtils:
                 client = elasticapm.get_client()
                 client.capture_exception()
             except ImportError:
-                logging.error("elasticapm is not installed, cannot capture exception in Elastic APM.")
+                logging.exception("elasticapm is not installed, cannot capture exception in Elastic APM.")
 
     @staticmethod
     async def async_handle_fastapi_exception(request: Request, exception: CommonsBaseException) -> JSONResponse:
