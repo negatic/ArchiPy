@@ -143,6 +143,11 @@ lint.ignore = [
 # Define source directories
 src = ["archipy", "tests", "features"]
 
+exclude = [
+    "features/*",
+    "scripts/*",
+]
+
 # Set line length to match Black's configuration
 line-length = 120
 
