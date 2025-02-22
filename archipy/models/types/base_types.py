@@ -8,11 +8,6 @@ class BaseType(Enum):
         return obj
 
 
-class SortOrderType(Enum):
-    ASCENDING = "ascending"
-    DESCENDING = "descending"
-
-
 class FilterOperationType(Enum):
     EQUAL = "equal"
     NOT_EQUAL = "not_equal"

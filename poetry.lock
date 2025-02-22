@@ -1599,15 +1599,15 @@ files = [
 
 [[package]]
 name = "psycopg-pool"
-version = "3.2.4"
+version = "3.2.5"
 description = "Connection Pool for Psycopg"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
 markers = "extra == \"postgres\""
 files = [
-    {file = "psycopg_pool-3.2.4-py3-none-any.whl", hash = "sha256:f6a22cff0f21f06d72fb2f5cb48c618946777c49385358e0c88d062c59cbd224"},
-    {file = "psycopg_pool-3.2.4.tar.gz", hash = "sha256:61774b5bbf23e8d22bedc7504707135aaf744679f8ef9b3fe29942920746a6ed"},
+    {file = "psycopg_pool-3.2.5-py3-none-any.whl", hash = "sha256:522b9befae8631550217fd2ae9904622daaf4b28a0a36ccfcc87ba3d2abc7100"},
+    {file = "psycopg_pool-3.2.5.tar.gz", hash = "sha256:507d845bd13da83df449ded7fb581b35dba613421bdb12962e608b16e70d6be9"},
 ]
 
 [package.dependencies]

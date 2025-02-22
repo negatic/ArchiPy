@@ -2,7 +2,7 @@ from abc import abstractmethod
 
 from pydantic import EmailStr
 
-from archipy.models.dtos import EmailAttachmentDTO
+from archipy.models.dtos.email_dtos import EmailAttachmentDTO
 
 
 class EmailPort:

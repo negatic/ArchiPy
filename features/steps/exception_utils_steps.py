@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from grpc import StatusCode
 
 from archipy.helpers.utils.exception_utils import ExceptionUtils
+from archipy.models.dtos.exception_dto import ExceptionDetailDTO
 from archipy.models.exceptions import CommonsBaseException, InvalidPhoneNumberException, NotFoundException
 
 
@@ -29,7 +30,7 @@ def step_then_exception_should_be_logged(context):
 
 @given('an exception with code "{code}", English message "{message_en}", and Persian message "{message_fa}"')
 def step_given_create_exception_detail(context, code, message_en, message_fa):
-    context.exception_details = ExceptionUtils.create_exception_detail(code, message_en, message_fa)
+    context.exception_details = ExceptionDetailDTO.create_exception_detail(code, message_en, message_fa)
 
 
 @when("an exception detail is created")

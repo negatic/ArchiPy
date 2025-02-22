@@ -7,7 +7,8 @@ from sqlalchemy import Executable, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from archipy.models.dtos import PaginationDTO, SortDTO
+from archipy.models.dtos.pagination_dto import PaginationDTO
+from archipy.models.dtos.sort_dto import SortDTO
 from archipy.models.entities import BaseEntity
 
 _CoreSingleExecuteParams = Mapping[str, Any]

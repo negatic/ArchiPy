@@ -11,10 +11,12 @@ from archipy.adapters.orm.sqlalchemy.session_manager_adapters import AsyncSessio
 from archipy.adapters.orm.sqlalchemy.sqlalchemy_ports import AnyExecuteParams, AsyncSqlAlchemyPort, SqlAlchemyPort
 from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import SqlAlchemyConfig
-from archipy.models.dtos import PaginationDTO, SortDTO
+from archipy.models.dtos.pagination_dto import PaginationDTO
+from archipy.models.dtos.sort_dto import SortDTO
 from archipy.models.entities import BaseEntity
 from archipy.models.exceptions import InvalidEntityTypeException
-from archipy.models.types import FilterOperationType, SortOrderType
+from archipy.models.types.base_types import FilterOperationType
+from archipy.models.types.sort_order_type import SortOrderType
 
 
 class SqlAlchemyFilterMixin:

@@ -3,7 +3,7 @@ from typing import BinaryIO, Self
 
 from pydantic import Field, field_validator, model_validator
 
-from archipy.models.dtos import BaseDTO
+from archipy.models.dtos.base_dtos import BaseDTO
 from archipy.models.types.email_types import EmailAttachmentDispositionType, EmailAttachmentType
 
 

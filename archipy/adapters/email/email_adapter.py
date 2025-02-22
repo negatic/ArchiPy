@@ -20,9 +20,9 @@ from archipy.adapters.email.email_port import EmailPort
 from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import EmailConfig
 from archipy.helpers.utils.base_utils import BaseUtils
-from archipy.models.dtos import EmailAttachmentDTO
+from archipy.models.dtos.email_dtos import EmailAttachmentDTO
 from archipy.models.exceptions import InvalidArgumentException
-from archipy.models.types import EmailAttachmentDispositionType, EmailAttachmentType
+from archipy.models.types.email_types import EmailAttachmentDispositionType, EmailAttachmentType
 
 
 class EmailConnectionManager:

@@ -4,7 +4,7 @@ from typing import Any
 
 import grpc
 
-from archipy.models.dtos import BaseDTO
+from archipy.models.dtos.base_dtos import BaseDTO
 
 
 def _get_factory_and_method(
