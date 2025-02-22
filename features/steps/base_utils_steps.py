@@ -1,10 +1,10 @@
 from behave import given, then, when
 
 from archipy.helpers.utils.base_utils import BaseUtils
-from archipy.models.exceptions import (
-    InvalidLandlineNumberException,
-    InvalidNationalCodeException,
-    InvalidPhoneNumberException,
+from archipy.models.errors import (
+    InvalidLandlineNumberError,
+    InvalidNationalCodeError,
+    InvalidPhoneNumberError,
 )
 
 
@@ -33,7 +33,7 @@ def step_when_validate_phone_number(context):
     context.is_valid = True
     try:
         BaseUtils.validate_iranian_phone_number(context.phone_number)
-    except InvalidPhoneNumberException:
+    except InvalidPhoneNumberError:
         context.is_valid = False
 
 
@@ -46,7 +46,7 @@ def step_given_invalid_phone_number(context, phone_number):
 def step_when_validate_invalid_phone_number(context):
     try:
         BaseUtils.validate_iranian_phone_number(context.phone_number)
-    except InvalidPhoneNumberException as e:
+    except InvalidPhoneNumberError as e:
         context.exception_message = str(e.message)
 
 
@@ -60,7 +60,7 @@ def step_when_validate_landline_number(context):
     context.is_valid = True
     try:
         BaseUtils.validate_iranian_landline_number(context.landline_number)
-    except InvalidLandlineNumberException:
+    except InvalidLandlineNumberError:
         context.is_valid = False
 
 
@@ -73,7 +73,7 @@ def step_given_invalid_landline_number(context, landline_number):
 def step_when_validate_invalid_landline_number(context):
     try:
         BaseUtils.validate_iranian_landline_number(context.landline_number)
-    except InvalidLandlineNumberException as e:
+    except InvalidLandlineNumberError as e:
         context.exception_message = str(e.message)
 
 
@@ -87,7 +87,7 @@ def step_when_validate_national_code(context):
     context.is_valid = True
     try:
         BaseUtils.validate_iranian_national_code_pattern(context.national_code)
-    except InvalidNationalCodeException:
+    except InvalidNationalCodeError:
         context.is_valid = False
 
 
@@ -100,5 +100,5 @@ def step_given_invalid_national_code(context, national_code):
 def step_when_validate_invalid_national_code(context):
     try:
         BaseUtils.validate_iranian_national_code_pattern(context.national_code)
-    except InvalidNationalCodeException as e:
+    except InvalidNationalCodeError as e:
         context.exception_message = str(e.message)

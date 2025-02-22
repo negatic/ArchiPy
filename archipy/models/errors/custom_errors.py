@@ -1,6 +1,6 @@
 from typing import Any
 
-from archipy.models.dtos.exception_dto import ExceptionDetailDTO
+from archipy.models.dtos.error_dto import ErrorDetailDTO
 from archipy.models.types.exception_message_types import ExceptionMessageType
 from archipy.models.types.language_type import LanguageType
 
@@ -21,12 +21,16 @@ except ImportError:
     StatusCode = None
 
 
-class CommonsBaseException(Exception):
-    """Base exception class for all custom exceptions."""
+class BaseError(Exception):
+    """Base exception class for all custom errors.
+
+    This class provides a standardized way to handle errors with support for localization,
+    additional context data, and integration with HTTP and gRPC status codes.
+    """
 
     def __init__(
         self,
-        error: ExceptionDetailDTO | ExceptionMessageType | None = None,
+        error: ErrorDetailDTO | ExceptionMessageType | None = None,
         lang: LanguageType = LanguageType.FA,
         additional_data: dict | None = None,
         *args: Any,
@@ -44,7 +48,7 @@ class CommonsBaseException(Exception):
         """
         if isinstance(error, ExceptionMessageType):
             self.error_detail = error.value
-        elif isinstance(error, ExceptionDetailDTO):
+        elif isinstance(error, ErrorDetailDTO):
             self.error_detail = error
         else:
             self.error_detail = ExceptionMessageType.UNKNOWN_ERROR.value
@@ -160,14 +164,14 @@ class CommonsBaseException(Exception):
 
 
 # Authentication Exceptions
-class InvalidPhoneNumberException(CommonsBaseException):
+class InvalidPhoneNumberError(BaseError):
     """Exception raised for invalid phone numbers."""
 
     def __init__(
         self,
         phone_number: str,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.INVALID_PHONE.value,
+        error: ErrorDetailDTO = ExceptionMessageType.INVALID_PHONE.value,
     ) -> None:
         """Initializes the exception.
 
@@ -179,14 +183,14 @@ class InvalidPhoneNumberException(CommonsBaseException):
         super().__init__(error, lang, additional_data={"phone_number": phone_number})
 
 
-class InvalidLandlineNumberException(CommonsBaseException):
+class InvalidLandlineNumberError(BaseError):
     """Exception raised for invalid landline numbers."""
 
     def __init__(
         self,
         landline_number: str,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.INVALID_LANDLINE.value,
+        error: ErrorDetailDTO = ExceptionMessageType.INVALID_LANDLINE.value,
     ) -> None:
         """Initializes the exception.
 
@@ -198,13 +202,13 @@ class InvalidLandlineNumberException(CommonsBaseException):
         super().__init__(error, lang, additional_data={"landline_number": landline_number})
 
 
-class TokenExpiredException(CommonsBaseException):
+class TokenExpiredError(BaseError):
     """Exception raised when a token has expired."""
 
     def __init__(
         self,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.TOKEN_EXPIRED.value,
+        error: ErrorDetailDTO = ExceptionMessageType.TOKEN_EXPIRED.value,
     ) -> None:
         """Initializes the exception.
 
@@ -215,13 +219,13 @@ class TokenExpiredException(CommonsBaseException):
         super().__init__(error, lang)
 
 
-class InvalidTokenException(CommonsBaseException):
+class InvalidTokenError(BaseError):
     """Exception raised when a token is invalid."""
 
     def __init__(
         self,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.INVALID_TOKEN.value,
+        error: ErrorDetailDTO = ExceptionMessageType.INVALID_TOKEN.value,
     ) -> None:
         """Initializes the exception.
 
@@ -232,13 +236,13 @@ class InvalidTokenException(CommonsBaseException):
         super().__init__(error, lang)
 
 
-class PermissionDeniedException(CommonsBaseException):
+class PermissionDeniedError(BaseError):
     """Exception raised when permission is denied."""
 
     def __init__(
         self,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.PERMISSION_DENIED.value,
+        error: ErrorDetailDTO = ExceptionMessageType.PERMISSION_DENIED.value,
     ) -> None:
         """Initializes the exception.
 
@@ -249,15 +253,15 @@ class PermissionDeniedException(CommonsBaseException):
         super().__init__(error, lang)
 
 
-# Resource Exceptions
-class NotFoundException(CommonsBaseException):
+# Resource Error
+class NotFoundError(BaseError):
     """Exception raised when a resource is not found."""
 
     def __init__(
         self,
         resource_type: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.NOT_FOUND.value,
+        error: ErrorDetailDTO = ExceptionMessageType.NOT_FOUND.value,
     ) -> None:
         """Initializes the exception.
 
@@ -269,14 +273,14 @@ class NotFoundException(CommonsBaseException):
         super().__init__(error, lang, additional_data={"resource_type": resource_type} if resource_type else None)
 
 
-class AlreadyExistsException(CommonsBaseException):
+class AlreadyExistsError(BaseError):
     """Exception raised when a resource already exists."""
 
     def __init__(
         self,
         resource_type: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.ALREADY_EXISTS.value,
+        error: ErrorDetailDTO = ExceptionMessageType.ALREADY_EXISTS.value,
     ) -> None:
         """Initializes the exception.
 
@@ -289,14 +293,14 @@ class AlreadyExistsException(CommonsBaseException):
 
 
 # Validation Exceptions
-class InvalidArgumentException(CommonsBaseException):
+class InvalidArgumentError(BaseError):
     """Exception raised for invalid arguments."""
 
     def __init__(
         self,
         argument_name: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.INVALID_ARGUMENT.value,
+        error: ErrorDetailDTO = ExceptionMessageType.INVALID_ARGUMENT.value,
     ) -> None:
         """Initializes the exception.
 
@@ -308,14 +312,14 @@ class InvalidArgumentException(CommonsBaseException):
         super().__init__(error, lang, additional_data={"argument": argument_name} if argument_name else None)
 
 
-class OutOfRangeException(CommonsBaseException):
+class OutOfRangeError(BaseError):
     """Exception raised when a value is out of range."""
 
     def __init__(
         self,
         field_name: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.OUT_OF_RANGE.value,
+        error: ErrorDetailDTO = ExceptionMessageType.OUT_OF_RANGE.value,
     ) -> None:
         """Initializes the exception.
 
@@ -328,14 +332,14 @@ class OutOfRangeException(CommonsBaseException):
 
 
 # Operation Exceptions
-class DeadlineExceededException(CommonsBaseException):
+class DeadlineExceededError(BaseError):
     """Exception raised when a deadline is exceeded."""
 
     def __init__(
         self,
         operation: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.DEADLINE_EXCEEDED.value,
+        error: ErrorDetailDTO = ExceptionMessageType.DEADLINE_EXCEEDED.value,
     ) -> None:
         """Initializes the exception.
 
@@ -347,14 +351,14 @@ class DeadlineExceededException(CommonsBaseException):
         super().__init__(error, lang, additional_data={"operation": operation} if operation else None)
 
 
-class DeprecationException(CommonsBaseException):
+class DeprecationError(BaseError):
     """Exception raised for deprecated operations."""
 
     def __init__(
         self,
         operation: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.DEPRECATION.value,
+        error: ErrorDetailDTO = ExceptionMessageType.DEPRECATION.value,
     ) -> None:
         """Initializes the exception.
 
@@ -366,14 +370,14 @@ class DeprecationException(CommonsBaseException):
         super().__init__(error, lang, additional_data={"operation": operation} if operation else None)
 
 
-class FailedPreconditionException(CommonsBaseException):
+class FailedPreconditionError(BaseError):
     """Exception raised when a precondition fails."""
 
     def __init__(
         self,
         condition: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.FAILED_PRECONDITION.value,
+        error: ErrorDetailDTO = ExceptionMessageType.FAILED_PRECONDITION.value,
     ) -> None:
         """Initializes the exception.
 
@@ -385,14 +389,14 @@ class FailedPreconditionException(CommonsBaseException):
         super().__init__(error, lang, additional_data={"condition": condition} if condition else None)
 
 
-class ResourceExhaustedException(CommonsBaseException):
+class ResourceExhaustedError(BaseError):
     """Exception raised when resources are exhausted."""
 
     def __init__(
         self,
         resource_type: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.RESOURCE_EXHAUSTED.value,
+        error: ErrorDetailDTO = ExceptionMessageType.RESOURCE_EXHAUSTED.value,
     ) -> None:
         """Initializes the exception.
 
@@ -404,14 +408,14 @@ class ResourceExhaustedException(CommonsBaseException):
         super().__init__(error, lang, additional_data={"resource_type": resource_type} if resource_type else None)
 
 
-class AbortedException(CommonsBaseException):
+class AbortedError(BaseError):
     """Exception raised when an operation is aborted."""
 
     def __init__(
         self,
         reason: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.ABORTED.value,
+        error: ErrorDetailDTO = ExceptionMessageType.ABORTED.value,
     ) -> None:
         """Initializes the exception.
 
@@ -423,14 +427,14 @@ class AbortedException(CommonsBaseException):
         super().__init__(error, lang, additional_data={"reason": reason} if reason else None)
 
 
-class CancelledException(CommonsBaseException):
+class CancelledError(BaseError):
     """Exception raised when an operation is cancelled."""
 
     def __init__(
         self,
         reason: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.CANCELLED.value,
+        error: ErrorDetailDTO = ExceptionMessageType.CANCELLED.value,
     ) -> None:
         """Initializes the exception.
 
@@ -443,14 +447,14 @@ class CancelledException(CommonsBaseException):
 
 
 # System Exceptions
-class InternalException(CommonsBaseException):
+class InternalError(BaseError):
     """Exception raised for internal errors."""
 
     def __init__(
         self,
         details: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.INTERNAL_ERROR.value,
+        error: ErrorDetailDTO = ExceptionMessageType.INTERNAL_ERROR.value,
     ) -> None:
         """Initializes the exception.
 
@@ -462,14 +466,14 @@ class InternalException(CommonsBaseException):
         super().__init__(error, lang, additional_data={"details": details} if details else None)
 
 
-class DataLossException(CommonsBaseException):
+class DataLossError(BaseError):
     """Exception raised when data is lost."""
 
     def __init__(
         self,
         details: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.DATA_LOSS.value,
+        error: ErrorDetailDTO = ExceptionMessageType.DATA_LOSS.value,
     ) -> None:
         """Initializes the exception.
 
@@ -481,14 +485,14 @@ class DataLossException(CommonsBaseException):
         super().__init__(error, lang, additional_data={"details": details} if details else None)
 
 
-class UnImplementedException(CommonsBaseException):
+class UnImplementedError(BaseError):
     """Exception raised for unimplemented features."""
 
     def __init__(
         self,
         feature: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.UNIMPLEMENTED.value,
+        error: ErrorDetailDTO = ExceptionMessageType.UNIMPLEMENTED.value,
     ) -> None:
         """Initializes the exception.
 
@@ -500,14 +504,14 @@ class UnImplementedException(CommonsBaseException):
         super().__init__(error, lang, additional_data={"feature": feature} if feature else None)
 
 
-class UnavailableException(CommonsBaseException):
+class UnavailableError(BaseError):
     """Exception raised when a service is unavailable."""
 
     def __init__(
         self,
         service: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.UNAVAILABLE.value,
+        error: ErrorDetailDTO = ExceptionMessageType.UNAVAILABLE.value,
     ) -> None:
         """Initializes the exception.
 
@@ -519,14 +523,14 @@ class UnavailableException(CommonsBaseException):
         super().__init__(error, lang, additional_data={"service": service} if service else None)
 
 
-class UnknownException(CommonsBaseException):
+class UnknownError(BaseError):
     """Exception raised for unknown errors."""
 
     def __init__(
         self,
         details: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.UNKNOWN_ERROR.value,
+        error: ErrorDetailDTO = ExceptionMessageType.UNKNOWN_ERROR.value,
     ) -> None:
         """Initializes the exception.
 
@@ -538,14 +542,14 @@ class UnknownException(CommonsBaseException):
         super().__init__(error, lang, additional_data={"details": details} if details else None)
 
 
-class InvalidNationalCodeException(CommonsBaseException):
+class InvalidNationalCodeError(BaseError):
     """Exception raised for invalid national codes."""
 
     def __init__(
         self,
         national_code: str,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.INVALID_NATIONAL_CODE.value,
+        error: ErrorDetailDTO = ExceptionMessageType.INVALID_NATIONAL_CODE.value,
     ) -> None:
         """Initializes the exception.
 
@@ -557,7 +561,7 @@ class InvalidNationalCodeException(CommonsBaseException):
         super().__init__(error, lang, additional_data={"national_code": national_code})
 
 
-class InvalidEntityTypeException(CommonsBaseException):
+class InvalidEntityTypeError(BaseError):
     """Exception raised for invalid entity types."""
 
     def __init__(
@@ -565,7 +569,7 @@ class InvalidEntityTypeException(CommonsBaseException):
         entity_type: Any | None = None,
         expected_type: type | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.INVALID_ENTITY_TYPE.value,
+        error: ErrorDetailDTO = ExceptionMessageType.INVALID_ENTITY_TYPE.value,
     ) -> None:
         """Initializes the exception.
 
@@ -578,13 +582,13 @@ class InvalidEntityTypeException(CommonsBaseException):
         super().__init__(error, lang, additional_data={"entity_type": entity_type, "expected_type": expected_type})
 
 
-class DeadlockDetectedException(CommonsBaseException):
+class DeadlockDetectedError(BaseError):
     """Exception raised when a deadlock is detected."""
 
     def __init__(
         self,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.DEADLOCK_TYPE.value,
+        error: ErrorDetailDTO = ExceptionMessageType.DEADLOCK_TYPE.value,
     ) -> None:
         """Initializes the exception.
 
@@ -595,13 +599,13 @@ class DeadlockDetectedException(CommonsBaseException):
         super().__init__(error, lang)
 
 
-class UnauthenticatedException(CommonsBaseException):
+class UnauthenticatedError(BaseError):
     """Exception raised when a user is unauthenticated."""
 
     def __init__(
         self,
         lang: LanguageType = LanguageType.FA,
-        error: ExceptionDetailDTO = ExceptionMessageType.UNAUTHENTICATED_TYPE.value,
+        error: ErrorDetailDTO = ExceptionMessageType.UNAUTHENTICATED_TYPE.value,
     ) -> None:
         """Initializes the exception.
 

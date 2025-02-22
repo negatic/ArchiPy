@@ -19,7 +19,7 @@ except ImportError:
     StatusCode = None
 
 
-class ExceptionDetailDTO(BaseDTO):
+class ErrorDetailDTO(BaseDTO):
     """Standardized error detail model"""
 
     code: str
@@ -29,7 +29,7 @@ class ExceptionDetailDTO(BaseDTO):
     grpc_status: int | None = None
 
     @classmethod
-    def create_exception_detail(
+    def create_error_detail(
         cls,
         code: str,
         message_en: str,
@@ -37,7 +37,7 @@ class ExceptionDetailDTO(BaseDTO):
         http_status: int | HTTPStatus | None = None,
         grpc_status: int | StatusCode | None = None,
     ) -> Self:
-        """Creates an `ExceptionDetailDTO` with appropriate status codes.
+        """Creates an `ErrorDetailDTO` with appropriate status codes.
 
         Args:
             code (str): A unique error code.
@@ -47,7 +47,7 @@ class ExceptionDetailDTO(BaseDTO):
             grpc_status (int | StatusCode | None): The gRPC status code associated with the error.
 
         Returns:
-            ExceptionDetailDTO: The created exception detail object.
+            ErrorDetailDTO: The created exception detail object.
         """
         status_kwargs = {}
 
@@ -57,4 +57,4 @@ class ExceptionDetailDTO(BaseDTO):
         if GRPC_AVAILABLE and grpc_status is not None:
             status_kwargs["grpc_status"] = grpc_status.value[0] if isinstance(grpc_status, StatusCode) else grpc_status
 
-        return ExceptionDetailDTO(code=code, message_en=message_en, message_fa=message_fa, **status_kwargs)
+        return ErrorDetailDTO(code=code, message_en=message_en, message_fa=message_fa, **status_kwargs)

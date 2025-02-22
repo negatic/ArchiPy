@@ -3,7 +3,7 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Any, TypeVar
 
-from archipy.models.exceptions import DeadlineExceededException
+from archipy.models.errors import DeadlineExceededError
 
 # Define a type variable for the return type of the decorated function
 F = TypeVar("F", bound=Callable[..., Any])
@@ -44,7 +44,7 @@ def timeout(seconds: int) -> Callable[[F], F]:
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             def handle_timeout(signum: int, frame: Any) -> None:
-                raise DeadlineExceededException(operation=func.__name__)
+                raise DeadlineExceededError(operation=func.__name__)
 
             # Set the signal handler and alarm
             signal.signal(signal.SIGALRM, handle_timeout)

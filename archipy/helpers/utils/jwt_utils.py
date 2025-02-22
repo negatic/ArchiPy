@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import AuthConfig
 from archipy.helpers.utils.datetime_utils import DatetimeUtils
-from archipy.models.exceptions import InvalidTokenException, TokenExpiredException
+from archipy.models.errors import InvalidTokenError, TokenExpiredError
 
 
 class JWTUtils:
@@ -182,24 +182,24 @@ class JWTUtils:
 
             # Verify token type
             if verify_type and payload.get("type") != verify_type:
-                raise InvalidTokenException(f"Invalid token type. Expected {verify_type}")
+                raise InvalidTokenError(f"Invalid token type. Expected {verify_type}")
 
             # Verify token version
             if payload.get("token_version") != configs.TOKEN_VERSION:
-                raise InvalidTokenException("Token version is outdated")
+                raise InvalidTokenError("Token version is outdated")
 
             return payload
 
         except ExpiredSignatureError as exception:
-            raise TokenExpiredException("Token has expired") from exception
+            raise TokenExpiredError("Token has expired") from exception
         except InvalidSignatureError as exception:
-            raise InvalidTokenException("Token signature is invalid") from exception
+            raise InvalidTokenError("Token signature is invalid") from exception
         except InvalidAudienceError as exception:
-            raise InvalidTokenException("Token has invalid audience") from exception
+            raise InvalidTokenError("Token has invalid audience") from exception
         except InvalidIssuerError as exception:
-            raise InvalidTokenException("Token has invalid issuer") from exception
+            raise InvalidTokenError("Token has invalid issuer") from exception
         except InvalidTokenError as exception:
-            raise InvalidTokenException(f"Invalid token: {exception!s}") from exception
+            raise InvalidTokenError(f"Invalid token: {exception!s}") from exception
 
     @classmethod
     def verify_access_token(cls, token: str, auth_config: AuthConfig | None = None) -> dict[str, Any]:
@@ -253,7 +253,7 @@ class JWTUtils:
         try:
             return UUID(payload["sub"])
         except (KeyError, ValueError) as exception:
-            raise InvalidTokenException("Invalid or missing user identifier in token") from exception
+            raise InvalidTokenError("Invalid or missing user identifier in token") from exception
 
     @classmethod
     def get_token_expiry(cls, token: str, auth_config: AuthConfig | None = None) -> int:

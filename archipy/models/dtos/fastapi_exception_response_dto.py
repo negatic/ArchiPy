@@ -1,12 +1,12 @@
 from http import HTTPStatus
 
-from archipy.models.dtos.exception_dto import ExceptionDetailDTO
+from archipy.models.dtos.error_dto import ErrorDetailDTO
 
 
-class FastAPIExceptionResponseDTO:
+class FastAPIErrorResponseDTO:
     """Standardized error response model for OpenAPI documentation"""
 
-    def __init__(self, exception: ExceptionDetailDTO, additional_properties: dict | None = None):
+    def __init__(self, exception: ErrorDetailDTO, additional_properties: dict | None = None):
         self.status_code = exception.http_status
 
         # Base properties that all errors have
@@ -55,7 +55,7 @@ class FastAPIExceptionResponseDTO:
         }
 
 
-class ValidationExceptionResponseDTO(FastAPIExceptionResponseDTO):
+class ValidationErrorResponseDTO(FastAPIErrorResponseDTO):
     """Specific response model for validation errors"""
 
     def __init__(self):

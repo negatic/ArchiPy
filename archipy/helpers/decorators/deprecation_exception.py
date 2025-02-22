@@ -2,7 +2,7 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Any, TypeVar
 
-from archipy.models.exceptions import DeprecationException
+from archipy.models.errors import DeprecationError
 
 # Define a type variable for the return type of the decorated function
 F = TypeVar("F", bound=Callable[..., Any])
@@ -47,7 +47,7 @@ def method_deprecation_error(operation: str | None = None, lang: str = "fa") -> 
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             operation_name = operation if operation is not None else func.__name__
-            raise DeprecationException(operation=operation_name, lang=lang)
+            raise DeprecationError(operation=operation_name, lang=lang)
 
         return wrapper  # type: ignore[return-value]
 
@@ -88,7 +88,7 @@ def class_deprecation_error(operation: str | None = None, lang: str = "fa") -> C
     def decorator(cls: T) -> T:
         def new_init(self: Any, *args: Any, **kwargs: Any) -> None:
             operation_name = operation if operation is not None else cls.__name__
-            raise DeprecationException(operation=operation_name, lang=lang)
+            raise DeprecationError(operation=operation_name, lang=lang)
 
         cls.__init__ = new_init
         return cls

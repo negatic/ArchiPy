@@ -13,7 +13,7 @@ class GrpcServerMetricInterceptor(BaseGrpcServerInterceptor):
     """A gRPC server interceptor for collecting and reporting metrics using Prometheus.
 
     This interceptor measures the response time of gRPC methods and records it in a Prometheus histogram.
-    It also captures exceptions and logs them for monitoring purposes.
+    It also captures errors and logs them for monitoring purposes.
     """
 
     from prometheus_client import Histogram
@@ -41,7 +41,7 @@ class GrpcServerMetricInterceptor(BaseGrpcServerInterceptor):
     )
 
     def intercept(self, method: Callable, request: Any, context: grpc.ServicerContext):
-        """Intercepts a gRPC server call to measure response time and capture exceptions.
+        """Intercepts a gRPC server call to measure response time and capture errors.
 
         Args:
             method (Callable): The gRPC method being intercepted.

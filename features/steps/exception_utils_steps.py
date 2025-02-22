@@ -6,9 +6,9 @@ from behave import given, then, when
 from fastapi.responses import JSONResponse
 from grpc import StatusCode
 
-from archipy.helpers.utils.exception_utils import ExceptionUtils
-from archipy.models.dtos.exception_dto import ExceptionDetailDTO
-from archipy.models.exceptions import CommonsBaseException, InvalidPhoneNumberException, NotFoundException
+from archipy.helpers.utils.error_utils import ErrorUtils
+from archipy.models.dtos.error_dto import ErrorDetailDTO
+from archipy.models.errors import BaseError, InvalidPhoneNumberError, NotFoundError
 
 
 @given('a raised exception "{exception_type}" with message "{message}"')
@@ -19,7 +19,7 @@ def step_given_raised_exception(context, exception_type, message):
 @when("the exception is captured")
 def step_when_exception_is_captured(context):
     with patch("logging.exception") as mock_log:
-        ExceptionUtils.capture_exception(context.exception)
+        ErrorUtils.capture_exception(context.exception)
         context.log_called = mock_log.called  # Capture whether logging.exception was called
 
 
@@ -30,7 +30,7 @@ def step_then_exception_should_be_logged(context):
 
 @given('an exception with code "{code}", English message "{message_en}", and Persian message "{message_fa}"')
 def step_given_create_exception_detail(context, code, message_en, message_fa):
-    context.exception_details = ExceptionDetailDTO.create_exception_detail(code, message_en, message_fa)
+    context.exception_details = ErrorDetailDTO.create_error_detail(code, message_en, message_fa)
 
 
 @when("an exception detail is created")
@@ -51,7 +51,7 @@ def step_given_fastapi_exception(context, exception_type):
 @when("an async FastAPI exception is handled")
 def step_when_fastapi_exception_is_handled(context):
     async def handle_exception():
-        return await ExceptionUtils.async_handle_fastapi_exception(None, context.fastapi_exception)
+        return await ErrorUtils.async_handle_fastapi_exception(None, context.fastapi_exception)
 
     with patch("fastapi.responses.JSONResponse") as mock_response:
         mock_response.return_value = JSONResponse(
@@ -73,7 +73,7 @@ def step_given_grpc_exception(context, exception_type):
 
 @when("gRPC exception is handled")
 def step_when_grpc_exception_is_handled(context):
-    context.grpc_code, _ = ExceptionUtils.handle_grpc_exception(context.grpc_exception)
+    context.grpc_code, _ = ErrorUtils.handle_grpc_exception(context.grpc_exception)
 
 
 @then('the response should have gRPC status "UNKNOWN"')
@@ -81,13 +81,13 @@ def step_then_grpc_status_should_be_unknown(context):
     assert context.grpc_code == StatusCode.UNKNOWN.value[0]
 
 
-@given("a list of FastAPI exceptions {exception_names}")
+@given("a list of FastAPI errors {exception_names}")
 def step_given_list_of_exceptions(context, exception_names):
     # Define an exception mapping from names to actual classes
     exception_mapping = {
-        "InvalidPhoneNumberException": InvalidPhoneNumberException,
-        "NotFoundException": NotFoundException,
-        "CommonsBaseException": CommonsBaseException,
+        "InvalidPhoneNumberException": InvalidPhoneNumberError,
+        "NotFoundException": NotFoundError,
+        "CommonsBaseException": BaseError,
     }
     # Convert exception names into actual class references
     context.exception_list = [
@@ -99,7 +99,7 @@ def step_given_list_of_exceptions(context, exception_names):
 
 @when("the FastAPI exception responses are generated")
 def step_when_generate_exception_responses(context):
-    context.responses = ExceptionUtils.get_fastapi_exception_responses(context.exception_list)
+    context.responses = ErrorUtils.get_fastapi_exception_responses(context.exception_list)
 
 
 @then("the responses should contain HTTP status codes")

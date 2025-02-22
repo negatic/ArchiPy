@@ -4,7 +4,7 @@ from uuid import uuid4
 from behave import given, then, when
 
 from archipy.helpers.utils.jwt_utils import JWTUtils
-from archipy.models.exceptions import InvalidTokenException, TokenExpiredException
+from archipy.models.errors import InvalidTokenError, TokenExpiredError
 
 
 @given("a valid user UUID")
@@ -72,9 +72,9 @@ def step_then_decoded_payload_valid(context):
 
 @then("a TokenExpiredException should be raised")
 def step_then_token_expired_exception_raised(context):
-    assert isinstance(context.decode_error, TokenExpiredException)
+    assert isinstance(context.decode_error, TokenExpiredError)
 
 
 @then("an InvalidTokenException should be raised")
 def step_then_invalid_token_exception_raised(context):
-    assert isinstance(context.decode_error, InvalidTokenException)
+    assert isinstance(context.decode_error, InvalidTokenError)

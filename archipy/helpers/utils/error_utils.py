@@ -3,10 +3,10 @@ from typing import Any
 
 from archipy.configs.base_config import BaseConfig
 from archipy.models.dtos.fastapi_exception_response_dto import (
-    FastAPIExceptionResponseDTO,
-    ValidationExceptionResponseDTO,
+    FastAPIErrorResponseDTO,
+    ValidationErrorResponseDTO,
 )
-from archipy.models.exceptions import CommonsBaseException
+from archipy.models.errors import BaseError
 
 try:
     from http import HTTPStatus
@@ -28,8 +28,8 @@ except ImportError:
     StatusCode = None
 
 
-class ExceptionUtils:
-    """A utility class for handling exceptions, including capturing, reporting, and generating responses."""
+class ErrorUtils:
+    """A utility class for handling errors, including capturing, reporting, and generating responses."""
 
     @staticmethod
     def capture_exception(exception: BaseException) -> None:
@@ -65,12 +65,12 @@ class ExceptionUtils:
                 logging.exception("elasticapm is not installed, cannot capture exception in Elastic APM.")
 
     @staticmethod
-    async def async_handle_fastapi_exception(request: Request, exception: CommonsBaseException) -> JSONResponse:
+    async def async_handle_fastapi_exception(request: Request, exception: BaseError) -> JSONResponse:
         """Handles a FastAPI exception and returns a JSON response.
 
         Args:
             request (Request): The incoming FastAPI request.
-            exception (CommonsBaseException): The exception to handle.
+            exception (BaseError): The exception to handle.
 
         Returns:
             JSONResponse: A JSON response containing the exception details.
@@ -86,11 +86,11 @@ class ExceptionUtils:
         )
 
     @staticmethod
-    def handle_grpc_exception(exception: CommonsBaseException) -> tuple[int, str]:
+    def handle_grpc_exception(exception: BaseError) -> tuple[int, str]:
         """Handles a gRPC exception and returns a tuple of status code and message.
 
         Args:
-            exception (CommonsBaseException): The exception to handle.
+            exception (BaseError): The exception to handle.
 
         Returns:
             tuple[int, str]: A tuple containing the gRPC status code and error message.
@@ -103,14 +103,14 @@ class ExceptionUtils:
         return (exception.grpc_status_code or StatusCode.UNKNOWN.value[0], exception.get_message())
 
     @staticmethod
-    def get_fastapi_exception_responses(exceptions: list[type[CommonsBaseException]]) -> dict[int, dict[str, Any]]:
-        """Generates OpenAPI response documentation for the given exceptions.
+    def get_fastapi_exception_responses(exceptions: list[type[BaseError]]) -> dict[int, dict[str, Any]]:
+        """Generates OpenAPI response documentation for the given errors.
 
-        This method creates OpenAPI-compatible response schemas for FastAPI exceptions,
-        including validation errors and custom exceptions.
+        This method creates OpenAPI-compatible response schemas for FastAPI errors,
+        including validation errors and custom errors.
 
         Args:
-            exceptions (list[type[CommonsBaseException]]): A list of exception types to generate responses for.
+            exceptions (list[type[BaseError]]): A list of exception types to generate responses for.
 
         Returns:
             dict[int, dict[str, Any]]: A dictionary mapping HTTP status codes to their corresponding response schemas.
@@ -118,35 +118,42 @@ class ExceptionUtils:
         responses = {}
 
         # Add validation error response by default
-        validation_response = ValidationExceptionResponseDTO()
-        responses[validation_response.status_code] = validation_response.model
+        validationـerror_response = ValidationErrorResponseDTO()
+        responses[validationـerror_response.status_code] = validationـerror_response.model
 
         exception_schemas = {
-            "InvalidPhoneNumberException": {
+            "InvalidPhoneNumberError": {
                 "phone_number": {"type": "string", "example": "1234567890", "description": "The invalid phone number"},
             },
-            "InvalidLandlineNumberException": {
+            "InvalidLandlineNumberError": {
                 "landline_number": {
                     "type": "string",
                     "example": "02112345678",
                     "description": "The invalid landline number",
                 },
             },
-            "NotFoundException": {
+            "NotFoundError": {
                 "resource_type": {
                     "type": "string",
                     "example": "user",
                     "description": "Type of resource that was not found",
                 },
             },
-            "InvalidNationalCodeException": {
+            "AlreadyExistsError": {
+                "resource_type": {
+                    "type": "string",
+                    "example": "user",
+                    "description": "Type of resource that was not found",
+                },
+            },
+            "InvalidNationalCodeError": {
                 "national_code": {
                     "type": "string",
                     "example": "1234567890",
                     "description": "The invalid national code",
                 },
             },
-            "InvalidArgumentException": {
+            "InvalidArgumentError": {
                 "argument": {
                     "type": "string",
                     "example": "mobile_number",
@@ -159,7 +166,7 @@ class ExceptionUtils:
             error = exc().error_detail
             if error.http_status:
                 additional_properties = exception_schemas.get(exc.__name__)
-                response = FastAPIExceptionResponseDTO(error, additional_properties)
+                response = FastAPIErrorResponseDTO(error, additional_properties)
                 responses[response.status_code] = response.model
 
         return responses

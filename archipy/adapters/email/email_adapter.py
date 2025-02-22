@@ -21,7 +21,7 @@ from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import EmailConfig
 from archipy.helpers.utils.base_utils import BaseUtils
 from archipy.models.dtos.email_dtos import EmailAttachmentDTO
-from archipy.models.exceptions import InvalidArgumentException
+from archipy.models.errors import InvalidArgumentError
 from archipy.models.types.email_types import EmailAttachmentDispositionType, EmailAttachmentType
 
 
@@ -118,7 +118,7 @@ class AttachmentHandler:
                 max_size=max_size,
             )
         except Exception as exception:
-            raise InvalidArgumentException(f"Failed to create attachment: {exception!s}") from exception
+            raise InvalidArgumentError(f"Failed to create attachment: {exception!s}") from exception
 
     @staticmethod
     def _process_source(source: str | bytes | BinaryIO | HttpUrl, attachment_type: EmailAttachmentType) -> bytes:

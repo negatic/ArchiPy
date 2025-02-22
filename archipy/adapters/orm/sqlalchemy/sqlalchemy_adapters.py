@@ -14,7 +14,7 @@ from archipy.configs.config_template import SqlAlchemyConfig
 from archipy.models.dtos.pagination_dto import PaginationDTO
 from archipy.models.dtos.sort_dto import SortDTO
 from archipy.models.entities import BaseEntity
-from archipy.models.exceptions import InvalidEntityTypeException
+from archipy.models.errors import InvalidEntityTypeError
 from archipy.models.types.base_types import FilterOperationType
 from archipy.models.types.sort_order_type import SortOrderType
 
@@ -120,7 +120,7 @@ class SqlAlchemyAdapter(SqlAlchemyPort, SqlAlchemyPaginationMixin, SqlAlchemySor
     @override
     def create(self, entity: BaseEntity) -> BaseEntity | None:
         if not isinstance(entity, BaseEntity):
-            raise InvalidEntityTypeException(entity, BaseEntity)
+            raise InvalidEntityTypeError(entity, BaseEntity)
         session: Session = self.get_session()
         session.add(entity)
         session.flush()
@@ -136,16 +136,16 @@ class SqlAlchemyAdapter(SqlAlchemyPort, SqlAlchemyPaginationMixin, SqlAlchemySor
     @override
     def get_by_uuid(self, entity_type: type, entity_uuid: UUID):
         if not issubclass(entity_type, BaseEntity):
-            raise InvalidEntityTypeException(entity_type, BaseEntity)
+            raise InvalidEntityTypeError(entity_type, BaseEntity)
         if not isinstance(entity_uuid, UUID):
-            raise InvalidEntityTypeException(entity_uuid, UUID)
+            raise InvalidEntityTypeError(entity_uuid, UUID)
         session = self.get_session()
         return session.get(entity_type, entity_uuid)
 
     @override
     def delete(self, entity: BaseEntity) -> None:
         if not isinstance(entity, BaseEntity):
-            raise InvalidEntityTypeException(entity, BaseEntity)
+            raise InvalidEntityTypeError(entity, BaseEntity)
         session = self.get_session()
         session.delete(entity)
 
@@ -200,7 +200,7 @@ class AsyncSqlAlchemyAdapter(AsyncSqlAlchemyPort, SqlAlchemyPaginationMixin, Sql
     @override
     async def create(self, entity: BaseEntity) -> BaseEntity | None:
         if not isinstance(entity, BaseEntity):
-            raise InvalidEntityTypeException(entity, BaseEntity)
+            raise InvalidEntityTypeError(entity, BaseEntity)
         session: AsyncSession = self.get_session()
         session.add(entity)
         await session.flush()
@@ -216,16 +216,16 @@ class AsyncSqlAlchemyAdapter(AsyncSqlAlchemyPort, SqlAlchemyPaginationMixin, Sql
     @override
     async def get_by_uuid(self, entity_type: type, entity_uuid: UUID) -> Any | None:
         if not issubclass(entity_type, BaseEntity):
-            raise InvalidEntityTypeException(entity_type, BaseEntity)
+            raise InvalidEntityTypeError(entity_type, BaseEntity)
         if not isinstance(entity_uuid, UUID):
-            raise InvalidEntityTypeException(entity_uuid, UUID)
+            raise InvalidEntityTypeError(entity_uuid, UUID)
         session = self.get_session()
         return await session.get(entity_type, entity_uuid)
 
     @override
     async def delete(self, entity: BaseEntity) -> None:
         if not isinstance(entity, BaseEntity):
-            raise InvalidEntityTypeException(entity, BaseEntity)
+            raise InvalidEntityTypeError(entity, BaseEntity)
         session = self.get_session()
         await session.delete(entity)
 

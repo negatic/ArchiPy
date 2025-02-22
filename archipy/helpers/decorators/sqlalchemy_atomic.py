@@ -7,7 +7,7 @@ from psycopg.errors import DeadlockDetected, SerializationFailure
 from sqlalchemy.exc import OperationalError
 
 from archipy.adapters.orm.sqlalchemy.session_manager_adapters import AsyncSessionManagerAdapter, SessionManagerAdapter
-from archipy.models.exceptions import AbortedException, DeadlockDetectedException, InternalException
+from archipy.models.errors import AbortedError, DeadlockDetectedError, InternalError
 
 _in_atomic_block = "in_sqlalchemy_atomic_block"
 
@@ -69,16 +69,16 @@ def _atomic(function: Callable) -> Callable:
                 return result
         except (SerializationFailure, DeadlockDetected) as exception:
             session.rollback()
-            raise AbortedException() from exception
+            raise AbortedError() from exception
         except OperationalError as exception:
             if hasattr(exception, "orig") and isinstance(exception.orig, SerializationFailure):
                 session.rollback()
-                raise DeadlockDetectedException() from exception
-            raise InternalException() from exception
+                raise DeadlockDetectedError() from exception
+            raise InternalError() from exception
         except Exception as exception:
             logging.debug(f"Exception occurred in atomic block, rollback will be initiated, ex:{exception}")
             session.rollback()
-            raise InternalException() from exception
+            raise InternalError() from exception
         finally:
             if not session.in_transaction():
                 session.close()
@@ -145,16 +145,16 @@ def _async_atomic(function: Callable) -> Callable:
                 return result
         except (SerializationFailure, DeadlockDetected) as exception:
             await session.rollback()
-            raise AbortedException() from exception
+            raise AbortedError() from exception
         except OperationalError as exception:
             if hasattr(exception, "orig") and isinstance(exception.orig, SerializationFailure):
                 await session.rollback()
-                raise DeadlockDetectedException() from exception
-            raise InternalException() from exception
+                raise DeadlockDetectedError() from exception
+            raise InternalError() from exception
         except Exception as exception:
             logging.debug(f"Exception occurred in atomic block, rollback will be initiated, ex:{exception}")
             await session.rollback()
-            raise InternalException() from exception
+            raise InternalError() from exception
         finally:
             if not session.in_transaction():
                 await session.close()

@@ -2,8 +2,8 @@
 name = "archipy"
 description = "Architecture + Python – perfect for structured design."
 authors = [
+    { name = "Hossein Nejati", email = "hosseinnejati14@gmail.com" },
     { name = "Mehdi Einali", email = "einali@gmail.com" },
-    { name = "Hossein Nejati", email = "hosseinnejati14@gmail.com" }
 ]
 readme = "README.md"
 version = "0.1.0" # This vesrion set on publish flow!
@@ -109,7 +109,6 @@ fix = true
 
 lint.select = [
     "ALL", # Enable all rules by default
-    "ANN", # flake8-annotations for type annotations
     "D", # pydocstyle for docstring linting
     "ERA", # flake8-eradicate for detecting commented-out code
     "F841", # Unused variable
@@ -138,6 +137,8 @@ lint.ignore = [
     "S101", # Ignore assert used (equivalent to bandit's B101)
     "S403", # Ignore pickle usage (equivalent to bandit's B403)
     "S301", # Ignore pickle usage (equivalent to bandit's B301)
+    "D100", # Missing docstring in public module
+    "D104", # Missing docstring in public package
 ]
 
 # Define source directories

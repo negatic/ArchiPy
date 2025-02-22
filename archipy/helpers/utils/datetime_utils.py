@@ -9,7 +9,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from archipy.configs.base_config import BaseConfig
-from archipy.models.exceptions import UnknownException
+from archipy.models.errors import UnknownError
 
 
 class DatetimeUtils:
@@ -117,7 +117,7 @@ class DatetimeUtils:
 
             return is_holiday
         except requests.RequestException as exception:
-            raise UnknownException() from exception
+            raise UnknownError() from exception
 
     @staticmethod
     def _call_holiday_api(jalali_date: jdatetime.date) -> dict:

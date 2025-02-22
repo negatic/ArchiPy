@@ -1,20 +1,20 @@
 import re
 
 from archipy.helpers.utils.datetime_utils import DatetimeUtils
-from archipy.helpers.utils.exception_utils import ExceptionUtils
+from archipy.helpers.utils.error_utils import ErrorUtils
 from archipy.helpers.utils.file_utils import FileUtils
 from archipy.helpers.utils.jwt_utils import JWTUtils
 from archipy.helpers.utils.password_utils import PasswordUtils
 from archipy.helpers.utils.string_utils import StringUtils
 from archipy.helpers.utils.totp_utils import TOTPUtils
-from archipy.models.exceptions import (
-    InvalidLandlineNumberException,
-    InvalidNationalCodeException,
-    InvalidPhoneNumberException,
+from archipy.models.errors import (
+    InvalidLandlineNumberError,
+    InvalidNationalCodeError,
+    InvalidPhoneNumberError,
 )
 
 
-class BaseUtils(ExceptionUtils, DatetimeUtils, PasswordUtils, JWTUtils, TOTPUtils, FileUtils, StringUtils):
+class BaseUtils(ErrorUtils, DatetimeUtils, PasswordUtils, JWTUtils, TOTPUtils, FileUtils, StringUtils):
     """A utility class that combines multiple utility functionalities into a single class.
 
     This class inherits from various utility classes to provide a centralized place for common utility methods.
@@ -62,7 +62,7 @@ class BaseUtils(ExceptionUtils, DatetimeUtils, PasswordUtils, JWTUtils, TOTPUtil
 
         # Check if the phone number matches either mobile or landline pattern
         if not iranian_mobile_pattern.match(sanitized_number):
-            raise InvalidPhoneNumberException(phone_number)
+            raise InvalidPhoneNumberError(phone_number)
 
     @classmethod
     def validate_iranian_landline_number(cls, landline_number: str) -> None:
@@ -80,7 +80,7 @@ class BaseUtils(ExceptionUtils, DatetimeUtils, PasswordUtils, JWTUtils, TOTPUtil
         iranian_landline_pattern = re.compile(r"^0\d{2,4}\d{7,8}$")
 
         if not iranian_landline_pattern.match(sanitized_number):
-            raise InvalidLandlineNumberException(landline_number)
+            raise InvalidLandlineNumberError(landline_number)
 
     @classmethod
     def validate_iranian_national_code_pattern(cls, national_code: str) -> str:
@@ -114,7 +114,7 @@ class BaseUtils(ExceptionUtils, DatetimeUtils, PasswordUtils, JWTUtils, TOTPUtil
                 InvalidNationalCodeException: If the length is not 10 digits.
             """
             if not len(national_code) == 10:
-                raise InvalidNationalCodeException(national_code)
+                raise InvalidNationalCodeError(national_code)
 
         def _calculate_weighted_sum(national_code: str) -> int:
             """Calculates the weighted sum of the national code digits.
@@ -147,5 +147,5 @@ class BaseUtils(ExceptionUtils, DatetimeUtils, PasswordUtils, JWTUtils, TOTPUtil
         _validate_length(national_code)
         calculated_checksum, actual_checksum = _get_checksums(national_code)
         if calculated_checksum != actual_checksum:
-            raise InvalidNationalCodeException(national_code)
+            raise InvalidNationalCodeError(national_code)
         return national_code

@@ -3,7 +3,7 @@ import time
 from collections.abc import Callable
 from typing import Any, TypeVar
 
-from archipy.models.exceptions import ResourceExhaustedException
+from archipy.models.errors import ResourceExhaustedError
 
 # Define a type variable for the return type of the decorated function
 F = TypeVar("F", bound=Callable[..., Any])
@@ -22,10 +22,10 @@ def retry_decorator(
     Args:
         max_retries (int): The maximum number of retry attempts. Defaults to 3.
         delay (float): The delay (in seconds) between retries. Defaults to 1.
-        retry_on (Optional[Tuple[Type[Exception], ...]]): A tuple of exceptions to retry on.
-            If None, retries on all exceptions. Defaults to None.
-        ignore (Optional[Tuple[Type[Exception], ...]]): A tuple of exceptions to ignore (not retry on).
-            If None, no exceptions are ignored. Defaults to None.
+        retry_on (Optional[Tuple[Type[Exception], ...]]): A tuple of errors to retry on.
+            If None, retries on all errors. Defaults to None.
+        ignore (Optional[Tuple[Type[Exception], ...]]): A tuple of errors to ignore (not retry on).
+            If None, no errors are ignored. Defaults to None.
         resource_type (Optional[str]): The type of resource being exhausted. Defaults to None.
         lang (str): The language for the error message (default: "fa").
 
@@ -73,7 +73,7 @@ def retry_decorator(
                     logging.warning(f"Attempt {retries} failed: {e}")
                     if retries < max_retries:
                         time.sleep(delay)
-            raise ResourceExhaustedException(resource_type=resource_type, lang=lang)
+            raise ResourceExhaustedError(resource_type=resource_type, lang=lang)
 
         return wrapper
 

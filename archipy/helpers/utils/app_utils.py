@@ -11,24 +11,24 @@ from starlette.middleware.cors import CORSMiddleware
 
 from archipy.configs.base_config import BaseConfig
 from archipy.helpers.utils.base_utils import BaseUtils
-from archipy.models.dtos.exception_dto import ExceptionDetailDTO
-from archipy.models.exceptions import (
-    CommonsBaseException,
-    InvalidArgumentException,
-    UnavailableException,
-    UnknownException,
+from archipy.models.dtos.error_dto import ErrorDetailDTO
+from archipy.models.errors import (
+    BaseError,
+    InvalidArgumentError,
+    UnavailableError,
+    UnknownError,
 )
 
 
 class FastAPIExceptionHandler:
-    """Handles various types of exceptions and converts them to appropriate JSON responses."""
+    """Handles various types of errors and converts them to appropriate JSON responses."""
 
     @staticmethod
-    def create_error_response(exception: CommonsBaseException) -> JSONResponse:
+    def create_error_response(exception: BaseError) -> JSONResponse:
         """Creates a standardized error response.
 
         Args:
-            exception (CommonsBaseException): The exception to be converted into a response.
+            exception (BaseError): The exception to be converted into a response.
 
         Returns:
             JSONResponse: A JSON response containing the exception details.
@@ -37,12 +37,12 @@ class FastAPIExceptionHandler:
         return JSONResponse(status_code=exception.http_status_code, content=exception.to_dict())
 
     @staticmethod
-    async def custom_exception_handler(request: Request, exception: CommonsBaseException) -> JSONResponse:
-        """Handles custom exceptions.
+    async def custom_exception_handler(request: Request, exception: BaseError) -> JSONResponse:
+        """Handles custom errors.
 
         Args:
             request (Request): The incoming request.
-            exception (CommonsBaseException): The custom exception to handle.
+            exception (BaseError): The custom exception to handle.
 
         Returns:
             JSONResponse: A JSON response containing the exception details.
@@ -52,7 +52,7 @@ class FastAPIExceptionHandler:
     # TODO Remove http_exception_handler
     @staticmethod
     async def http_exception_handler(request: Request, exception: HTTPException) -> JSONResponse:
-        """Handles HTTP exceptions.
+        """Handles HTTP errors.
 
         Args:
             request (Request): The incoming request.
@@ -61,18 +61,18 @@ class FastAPIExceptionHandler:
         Returns:
             JSONResponse: A JSON response containing the exception details.
         """
-        detail = ExceptionDetailDTO(
+        detail = ErrorDetailDTO(
             code="TODO_REMOVE_ME",
             http_status=exception.status_code,
             message_en=exception.detail,
             message_fa=exception.detail,
         )
-        exception = CommonsBaseException(detail, lang="en")
+        exception = BaseError(detail, lang="en")
         return FastAPIExceptionHandler.create_error_response(exception)
 
     @staticmethod
     async def generic_exception_handler(request: Request, exception: Exception) -> JSONResponse:
-        """Handles generic exceptions.
+        """Handles generic errors.
 
         Args:
             request (Request): The incoming request.
@@ -81,11 +81,11 @@ class FastAPIExceptionHandler:
         Returns:
             JSONResponse: A JSON response containing the exception details.
         """
-        return FastAPIExceptionHandler.create_error_response(UnknownException())
+        return FastAPIExceptionHandler.create_error_response(UnknownError())
 
     @staticmethod
     async def validation_exception_handler(request: Request, exception: ValidationError) -> JSONResponse:
-        """Handles validation exceptions.
+        """Handles validation errors.
 
         Args:
             request (Request): The incoming request.
@@ -195,7 +195,7 @@ class FastAPIUtils:
         """
         app.add_exception_handler(RequestValidationError, FastAPIExceptionHandler.validation_exception_handler)
         app.add_exception_handler(ValidationError, FastAPIExceptionHandler.validation_exception_handler)
-        app.add_exception_handler(CommonsBaseException, FastAPIExceptionHandler.custom_exception_handler)
+        app.add_exception_handler(BaseError, FastAPIExceptionHandler.custom_exception_handler)
         app.add_exception_handler(HTTPException, FastAPIExceptionHandler.http_exception_handler)
         app.add_exception_handler(Exception, FastAPIExceptionHandler.generic_exception_handler)
 
@@ -218,7 +218,7 @@ class AppUtils:
 
         # Define common responses for all endpoints
         common_responses = BaseUtils.get_fastapi_exception_responses(
-            [UnknownException, UnavailableException, InvalidArgumentException],
+            [UnknownError, UnavailableError, InvalidArgumentError],
         )
         app = FastAPI(
             title=config.FASTAPI.PROJECT_NAME,

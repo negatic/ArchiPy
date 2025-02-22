@@ -5,7 +5,7 @@ from pydantic import BaseModel, ValidationError
 from starlette.testclient import TestClient
 
 from archipy.helpers.utils.app_utils import AppUtils, FastAPIExceptionHandler, FastAPIUtils
-from archipy.models.exceptions import CommonsBaseException
+from archipy.models.errors import BaseError
 
 
 @given("a FastAPI app")
@@ -25,7 +25,7 @@ def step_then_check_app_title(context):
 
 @then("exception handlers should be registered")
 def step_then_check_exception_handlers(context):
-    assert CommonsBaseException in context.app.exception_handlers
+    assert BaseError in context.app.exception_handlers
     assert ValidationError in context.app.exception_handlers
 
 
