@@ -10,12 +10,14 @@ def step_given_password(context, password):
 
 @given("the password is hashed")
 def step_given_password_hashed(context):
-    context.hashed_password = PasswordUtils.hash_password(context.password, context.test_config.AUTH)
+    test_config = context.scenario_context.get("test_config")
+    context.hashed_password = PasswordUtils.hash_password(context.password, test_config.AUTH)
 
 
 @when("the password is hashed")
 def step_when_password_hashed(context):
-    context.hashed_password = PasswordUtils.hash_password(context.password, context.test_config.AUTH)
+    test_config = context.scenario_context.get("test_config")
+    context.hashed_password = PasswordUtils.hash_password(context.password, test_config.AUTH)
 
 
 @then("a hashed password should be returned")
@@ -26,26 +28,29 @@ def step_then_hashed_password_returned(context):
 
 @when("the password is verified")
 def step_when_password_verified(context):
+    test_config = context.scenario_context.get("test_config")
     context.is_verified = PasswordUtils.verify_password(
         context.password,
         context.hashed_password,
-        context.test_config.AUTH,
+        test_config.AUTH,
     )
 
 
 @when('a different password "{wrong_password}" is verified')
 def step_when_wrong_password_verified(context, wrong_password):
+    test_config = context.scenario_context.get("test_config")
     context.is_verified = PasswordUtils.verify_password(
         wrong_password,
         context.hashed_password,
-        context.test_config.AUTH,
+        test_config.AUTH,
     )
 
 
 @when("the password is validated")
 def step_when_password_validated(context):
     try:
-        PasswordUtils.validate_password(context.password, context.test_config.AUTH)
+        test_config = context.scenario_context.get("test_config")
+        PasswordUtils.validate_password(context.password, test_config.AUTH)
         context.validation_passed = True
     except ValueError as e:
         context.validation_passed = False
@@ -65,27 +70,31 @@ def step_then_validation_fails_with_message(context):
 
 @when("a secure password is generated")
 def step_when_secure_password_generated(context):
-    context.generated_password = PasswordUtils.generate_password(context.test_config.AUTH)
+    test_config = context.scenario_context.get("test_config")
+    context.generated_password = PasswordUtils.generate_password(test_config.AUTH)
 
 
 @then("the generated password should meet security requirements")
 def step_then_secure_password_meets_requirements(context):
-    assert len(context.generated_password) >= context.test_config.AUTH.MIN_LENGTH
+    test_config = context.scenario_context.get("test_config")
+    assert len(context.generated_password) >= test_config.AUTH.MIN_LENGTH
     assert any(char.isdigit() for char in context.generated_password)
     assert any(char.islower() for char in context.generated_password)
     assert any(char.isupper() for char in context.generated_password)
-    assert any(char in context.test_config.AUTH.SPECIAL_CHARACTERS for char in context.generated_password)
+    assert any(char in test_config.AUTH.SPECIAL_CHARACTERS for char in context.generated_password)
 
 
 @given('a password history containing "{old_password}"')
 def step_given_password_history(context, old_password):
-    context.password_history = [PasswordUtils.hash_password(old_password, context.test_config.AUTH)]
+    test_config = context.scenario_context.get("test_config")
+    context.password_history = [PasswordUtils.hash_password(old_password, test_config.AUTH)]
 
 
 @when('a user attempts to reuse "{new_password}" as a new password')
 def step_when_reuse_old_password(context, new_password):
     try:
-        PasswordUtils.validate_password_history(new_password, context.password_history, context.test_config.AUTH)
+        test_config = context.scenario_context.get("test_config")
+        PasswordUtils.validate_password_history(new_password, context.password_history, test_config.AUTH)
         context.validation_passed = True
     except ValueError as e:
         context.validation_passed = False

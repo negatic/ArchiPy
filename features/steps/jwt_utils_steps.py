@@ -14,12 +14,14 @@ def step_given_valid_user_uuid(context):
 
 @when("an access token is created")
 def step_when_access_token_created(context):
-    context.token = JWTUtils.create_access_token(context.user_uuid, auth_config=context.test_config.AUTH)
+    test_config = context.scenario_context.get("test_config")
+    context.token = JWTUtils.create_access_token(context.user_uuid, auth_config=test_config.AUTH)
 
 
 @when("a refresh token is created")
 def step_when_refresh_token_created(context):
-    context.token = JWTUtils.create_refresh_token(context.user_uuid, auth_config=context.test_config.AUTH)
+    test_config = context.scenario_context.get("test_config")
+    context.token = JWTUtils.create_refresh_token(context.user_uuid, auth_config=test_config.AUTH)
 
 
 @then("a JWT token should be returned")
@@ -30,20 +32,23 @@ def step_then_jwt_token_returned(context):
 
 @given("a valid access token")
 def step_given_valid_access_token(context):
-    context.token = JWTUtils.create_access_token(context.user_uuid, auth_config=context.test_config.AUTH)
+    test_config = context.scenario_context.get("test_config")
+    context.token = JWTUtils.create_access_token(context.user_uuid, auth_config=test_config.AUTH)
 
 
 @given("a valid refresh token")
 def step_given_valid_refresh_token(context):
-    context.token = JWTUtils.create_refresh_token(context.user_uuid, auth_config=context.test_config.AUTH)
+    test_config = context.scenario_context.get("test_config")
+    context.token = JWTUtils.create_refresh_token(context.user_uuid, auth_config=test_config.AUTH)
 
 
 @given("an expired access token")
 def step_given_expired_access_token(context):
+    test_config = context.scenario_context.get("test_config")
     context.token = JWTUtils.create_access_token(
         context.user_uuid,
         additional_claims={"exp": time.time() - 10},
-        auth_config=context.test_config.AUTH,
+        auth_config=test_config.AUTH,
     )
 
 
@@ -55,7 +60,8 @@ def step_given_invalid_token(context):
 @when("the token is decoded")
 def step_when_token_decoded(context):
     try:
-        context.decoded_payload = JWTUtils.decode_token(context.token, auth_config=context.test_config.AUTH)
+        test_config = context.scenario_context.get("test_config")
+        context.decoded_payload = JWTUtils.decode_token(context.token, auth_config=test_config.AUTH)
         context.decode_success = True
     except Exception as e:
         context.decode_success = False

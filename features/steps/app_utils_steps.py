@@ -10,12 +10,16 @@ from archipy.models.errors import BaseError
 
 @given("a FastAPI app")
 def step_given_fastapi_app(context):
-    context.app = AppUtils.create_fastapi_app(context.test_config)
+    # Get config from scenario_context instead of directly from context
+    test_config = context.scenario_context.get("test_config")
+    context.app = AppUtils.create_fastapi_app(test_config)
 
 
 @when("a FastAPI app is created")
 def step_when_fastapi_app_created(context):
-    context.app = AppUtils.create_fastapi_app(context.test_config)
+    # Get config from scenario_context instead of directly from context
+    test_config = context.scenario_context.get("test_config")
+    context.app = AppUtils.create_fastapi_app(test_config)
 
 
 @then("the app should have the correct title")
@@ -47,7 +51,9 @@ def step_then_check_unique_id(context, expected_id):
 @given("a FastAPI app with CORS configuration")
 def step_given_fastapi_app_with_cors(context):
     context.app = FastAPI()
-    FastAPIUtils.setup_cors(context.app, context.test_config)
+    # Get config from scenario_context instead of directly from context
+    test_config = context.scenario_context.get("test_config")
+    FastAPIUtils.setup_cors(context.app, test_config)
 
 
 @when("CORS middleware is setup")
@@ -57,8 +63,10 @@ def step_when_cors_is_setup(context):
 
 @then('the app should allow origins "{expected_origin}"')
 def step_then_check_cors_origin(context, expected_origin):
+    # Get config from scenario_context instead of directly from context
+    test_config = context.scenario_context.get("test_config")
     assert "CORSMiddleware" in context.middleware_stack
-    assert expected_origin in context.test_config.FASTAPI.CORS_MIDDLEWARE_ALLOW_ORIGINS
+    assert expected_origin in test_config.FASTAPI.CORS_MIDDLEWARE_ALLOW_ORIGINS
 
 
 @when('an endpoint raises a "{exception_type}"')
