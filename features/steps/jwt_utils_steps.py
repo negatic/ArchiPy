@@ -70,11 +70,11 @@ def step_then_decoded_payload_valid(context):
     assert "type" in context.decoded_payload
 
 
-@then("a TokenExpiredException should be raised")
+@then("a TokenExpiredError should be raised")
 def step_then_token_expired_exception_raised(context):
     assert isinstance(context.decode_error, TokenExpiredError)
 
 
-@then("an InvalidTokenException should be raised")
+@then("an InvalidTokenError should be raised")
 def step_then_invalid_token_exception_raised(context):
     assert isinstance(context.decode_error, InvalidTokenError)

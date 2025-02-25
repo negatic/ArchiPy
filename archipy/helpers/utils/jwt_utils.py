@@ -145,8 +145,8 @@ class JWTUtils:
             dict[str, Any]: The decoded token payload.
 
         Raises:
-            TokenExpiredException: If the token has expired.
-            InvalidTokenException: If the token is invalid (e.g., invalid signature, audience, issuer, or type).
+            TokenExpiredError: If the token has expired.
+            InvalidTokenError: If the token is invalid (e.g., invalid signature, audience, issuer, or type).
         """
         import jwt
         from jwt.exceptions import (

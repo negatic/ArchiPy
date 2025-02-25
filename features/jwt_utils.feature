@@ -26,10 +26,10 @@ Feature: JWT Utilities
     Given a valid user UUID
     And an expired access token
     When the token is decoded
-    Then a TokenExpiredException should be raised
+    Then a TokenExpiredError should be raised
 
   Scenario: Invalid token should not be accepted
     Given a valid user UUID
     And an invalid token
     When the token is decoded
-    Then an InvalidTokenException should be raised
+    Then an InvalidTokenError should be raised

@@ -85,9 +85,9 @@ def step_then_grpc_status_should_be_unknown(context):
 def step_given_list_of_exceptions(context, exception_names):
     # Define an exception mapping from names to actual classes
     exception_mapping = {
-        "InvalidPhoneNumberException": InvalidPhoneNumberError,
-        "NotFoundException": NotFoundError,
-        "CommonsBaseException": BaseError,
+        "InvalidPhoneNumberError": InvalidPhoneNumberError,
+        "NotFoundError": NotFoundError,
+        "BaseError": BaseError,
     }
     # Convert exception names into actual class references
     context.exception_list = [
