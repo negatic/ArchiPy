@@ -216,5 +216,7 @@ For questions or feedback, feel free to reach out:
 - **GitHub Repository**: [https://github.com/SyntaxArc/ArchiPy](https://github.com/SyntaxArc/ArchiPy)
 - **Documentation**: [https://archipy.readthedocs.io/](https://archipy.readthedocs.io/)
 - **Bug Tracker**: [https://github.com/SyntaxArc/ArchiPy/issues](https://github.com/SyntaxArc/ArchiPy/issues)
+- **Contributing Guidelines**: [https://github.com/SyntaxArc/ArchiPy/blob/master/CONTRIBUTING.md](https://github.com/SyntaxArc/ArchiPy/blob/master/CONTRIBUTING.md)
+- **Code of Conduct**: [https://github.com/SyntaxArc/ArchiPy/blob/master/CODE_OF_CONDUCT.md](https://github.com/SyntaxArc/ArchiPy/blob/master/CODE_OF_CONDUCT.md)
 
 ---
