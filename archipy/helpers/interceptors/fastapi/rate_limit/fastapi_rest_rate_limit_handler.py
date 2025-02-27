@@ -1,12 +1,13 @@
 from ipaddress import ip_address
 from math import ceil
 
-from fastapi import HTTPException, Request, Response
+from fastapi import HTTPException, Request
 from pydantic import StrictInt, StrictStr
 from starlette.datastructures import QueryParams
 from starlette.status import HTTP_429_TOO_MANY_REQUESTS
 
 from archipy.adapters.redis.redis_adapters import AsyncRedisAdapter
+from archipy.adapters.redis.redis_ports import RedisResponseType
 
 
 class FastAPIRestRateLimitHandler:
@@ -77,7 +78,7 @@ class FastAPIRestRateLimitHandler:
         )
         self.redis_client = AsyncRedisAdapter()
 
-    async def _check(self, key: str) -> int:
+    async def _check(self, key: str) -> RedisResponseType:
         """Checks if the request count for the given key exceeds the allowed limit.
 
         Args:
@@ -92,7 +93,7 @@ class FastAPIRestRateLimitHandler:
             await self.redis_client.set(key, 1, px=self.milliseconds)
             return 0
 
-        current_request = int(current_request)
+        current_request = int(current_request)  # type:ignore[arg-type]
         if current_request < self.calls_count:
             await self.redis_client.incrby(key)
             return 0
@@ -102,12 +103,11 @@ class FastAPIRestRateLimitHandler:
             await self.redis_client.delete(key)
         return ttl
 
-    async def __call__(self, request: Request, response: Response) -> None:
+    async def __call__(self, request: Request) -> None:
         """Handles the rate-limiting logic for incoming requests.
 
         Args:
             request (Request): The incoming FastAPI request.
-            response (Response): The outgoing FastAPI response.
 
         Raises:
             HTTPException: If the rate limit is exceeded, an HTTP 429 Too Many Requests error is raised.
@@ -116,7 +116,7 @@ class FastAPIRestRateLimitHandler:
         key = f"RateLimitHandler:{rate_key}:{request.scope['path']}:{request.method}"
         pexpire = await self._check(key)  # Awaiting the function since it is an async call
         if pexpire != 0:
-            await self._create_callback(pexpire)
+            await self._create_callback(pexpire)  # type:ignore[arg-type]
 
     @staticmethod
     async def _create_callback(pexpire: int) -> None:
@@ -168,12 +168,13 @@ class FastAPIRestRateLimitHandler:
                 return real_ip
 
             # Then check X-Forwarded-For header
-            if forwarded_ip := self._validate_forwarded_ip(request.headers.get("X-Forwarded-For")):
-                return forwarded_ip
+            if forwarded_for := self._validate_forwarded_for_header(request.headers.get("X-Forwarded-For")):
+                return forwarded_for
             # Fallback to client host
-            return request.client.host
         except ValueError:
-            return request.client.host
+            return request.client.host  # type:ignore[union-attr]
+        else:
+            return request.client.host  # type:ignore[union-attr]
 
     def _validate_ip_from_header(self, header_value: str | None) -> str | None:
         """Validates IP address from header value.
@@ -187,20 +188,23 @@ class FastAPIRestRateLimitHandler:
         if not header_value:
             return None
         try:
-            ip = header_value.split(",")[0].strip()
-            ip_address(ip)  # Validate IP format
-            return ip
+            ip_str = header_value.split(",")[0].strip()
+            ip = ip_address(ip_str)  # Validate IP format
+            if not (ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast):
+                return ip_str
         except ValueError:
             return None
+        else:
+            return None
 
-    def _validate_forwarded_ip(self, forwarded_for: str | None) -> str | None:
+    def _validate_forwarded_for_header(self, forwarded_for: str | None) -> str | None:
         """Validates IP from X-Forwarded-For header.
 
         Args:
             forwarded_for (Optional[str]): X-Forwarded-For header value.
 
         Returns:
-            Optional[str]: Valid non-private IP or None.
+            Optional[str]: Valid non-private IP, the header or None.
         """
         if not forwarded_for:
             return None
@@ -212,9 +216,9 @@ class FastAPIRestRateLimitHandler:
             if not (ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast):
                 return ip_str
         except ValueError:
-            pass
-
-        return None
+            return forwarded_for
+        else:
+            return forwarded_for
 
     def _generate_redis_key(self, request: Request, base_identifier: str) -> str:
         """Generates a Redis key for rate limiting based on the request and base identifier.
