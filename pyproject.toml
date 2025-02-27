@@ -29,6 +29,7 @@ scheduler = ["apscheduler (>=3.11.0)"]
 grpc = ["grpcio (>=1.68.1)", "grpcio-health-checking (>=1.68.1)", "protobuf (>=5.29.2)"]
 postgres = ["psycopg[binary,pool] (>=3.2.3)", "sqlalchemy (>=2.0.37)"]
 aiosqlite = ["aiosqlite (>=0.21.0)"]
+fakeredis = ["fakeredis (>=2.27.0,<3.0.0)"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"

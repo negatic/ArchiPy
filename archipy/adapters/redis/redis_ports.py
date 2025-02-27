@@ -9,9 +9,11 @@ RedisExpiryType = int | timedelta
 RedisIntegerResponseType = Awaitable[int] | int
 RedisKeyType = bytes | str
 RedisListResponseType = Awaitable[list] | list
+RedisSetResponseType = Awaitable[set] | set
 RedisPatternType = bytes | str
 RedisResponseType = Awaitable[Any] | Any
 RedisSetType = int | bytes | str | float
+RedisScoreCastType = type | Callable
 
 
 class RedisPort:
@@ -176,7 +178,7 @@ class RedisPort:
         raise NotImplementedError
 
     @abstractmethod
-    def smembers(self, name: str) -> Awaitable[set] | set:
+    def smembers(self, name: str) -> RedisSetResponseType:
         raise NotImplementedError
 
     @abstractmethod
@@ -229,7 +231,7 @@ class RedisPort:
         end: int,
         desc: bool = False,
         withscores: bool = False,
-        score_cast_func: type | Callable = float,
+        score_cast_func: RedisScoreCastType = float,
         byscore: bool = False,
         bylex: bool = False,
         offset: int | None = None,
@@ -244,7 +246,7 @@ class RedisPort:
         start: int,
         end: int,
         withscores: bool = False,
-        score_cast_func: type | Callable = float,
+        score_cast_func: RedisScoreCastType = float,
     ) -> RedisResponseType:
         raise NotImplementedError
 
@@ -257,7 +259,7 @@ class RedisPort:
         start: int | None = None,
         num: int | None = None,
         withscores: bool = False,
-        score_cast_func: type | Callable = float,
+        score_cast_func: RedisScoreCastType = float,
     ) -> RedisResponseType:
         raise NotImplementedError
 
@@ -499,7 +501,7 @@ class AsyncRedisPort:
         raise NotImplementedError
 
     @abstractmethod
-    async def smembers(self, name: str) -> Awaitable[set] | set:
+    async def smembers(self, name: str) -> RedisSetResponseType:
         raise NotImplementedError
 
     @abstractmethod
@@ -552,7 +554,7 @@ class AsyncRedisPort:
         end: int,
         desc: bool = False,
         withscores: bool = False,
-        score_cast_func: type | Callable = float,
+        score_cast_func: RedisScoreCastType = float,
         byscore: bool = False,
         bylex: bool = False,
         offset: int | None = None,
@@ -567,7 +569,7 @@ class AsyncRedisPort:
         start: int,
         end: int,
         withscores: bool = False,
-        score_cast_func: type | Callable = float,
+        score_cast_func: RedisScoreCastType = float,
     ) -> RedisResponseType:
         raise NotImplementedError
 
@@ -580,7 +582,7 @@ class AsyncRedisPort:
         start: int | None = None,
         num: int | None = None,
         withscores: bool = False,
-        score_cast_func: type | Callable = float,
+        score_cast_func: RedisScoreCastType = float,
     ) -> RedisResponseType:
         raise NotImplementedError
 

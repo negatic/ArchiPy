@@ -44,9 +44,9 @@ ArchiPy provides a robust architecture framework for building scalable and maint
 ## ✨ Features
 
 - **Modern Python Stack**: Built with Python 3.13 and leveraging tools like `pydantic`, `fastapi`, `gRPC` and  `sqlalchemy`.
-- **Modular Design**: Optional dependencies for Redis, gRPC, PostgreSQL, Prometheus, and more.
+- **Modular Design**: Optional dependencies for Redis, gRPC, PostgreSQL, Prometheus, and more, including `fakeredis` for mock Redis testing.
 - **Type Safety**: Enforced by `mypy` and `pydantic` for robust, error-resistant code.
-- **Comprehensive Testing**: Integrated with `behave` for comprehensive testing.
+- **Comprehensive Testing**: Integrated with `behave` for behavior-driven development.
 - **Code Quality Tools**: Uses `ruff` and `black` for clean and consistent code.
 - **Pre-commit Hooks**: Automates code quality checks before commits.
 - **Dependency Management**: Managed by `poetry` for reproducible builds.
@@ -121,20 +121,21 @@ For development or the latest features:
 
 ArchiPy provides modular functionality through optional dependencies:
 
-| Feature              | Installation Command            |
-|----------------------|---------------------------------|
-| Redis                | `archipy[redis]`                |
-| Elastic APM          | `archipy[elastic-apm]`          |
-| FastAPI              | `archipy[fastapi]`              |
-| JWT                  | `archipy[jwt]`                  |
-| Kavenegar            | `archipy[kavenegar]`            |
-| Prometheus           | `archipy[prometheus]`           |
-| Sentry               | `archipy[sentry]`               |
-| Dependency Injection | `archipy[dependency-injection]` |
-| Scheduler            | `archipy[scheduler]`            |
-| gRPC                 | `archipy[grpc]`                 |
-| PostgreSQL           | `archipy[postgres]`             |
-| aiosqlite            | `archipy[aiosqlite]`            |
+| Feature              | Installation Command            | Description                                      |
+|----------------------|---------------------------------|--------------------------------------------------|
+| Redis                | `archipy[redis]`                | Redis client for caching and data storage        |
+| Elastic APM          | `archipy[elastic-apm]`          | Application performance monitoring with Elastic  |
+| FastAPI              | `archipy[fastapi]`              | FastAPI framework for building APIs              |
+| JWT                  | `archipy[jwt]`                  | JSON Web Token support for authentication        |
+| Kavenegar            | `archipy[kavenegar]`            | SMS service integration via Kavenegar            |
+| Prometheus           | `archipy[prometheus]`           | Metrics and monitoring with Prometheus           |
+| Sentry               | `archipy[sentry]`               | Error tracking with Sentry                       |
+| Dependency Injection | `archipy[dependency-injection]` | Dependency injection framework                   |
+| Scheduler            | `archipy[scheduler]`            | Task scheduling with APScheduler                 |
+| gRPC                 | `archipy[grpc]`                 | gRPC support for high-performance RPC            |
+| PostgreSQL           | `archipy[postgres]`             | PostgreSQL database support with SQLAlchemy      |
+| aiosqlite            | `archipy[aiosqlite]`            | Asynchronous SQLite database support             |
+| FakeRedis            | `archipy[fakeredis]`            | Mock Redis client for testing without a server   |
 
 ### Troubleshooting Installation
 

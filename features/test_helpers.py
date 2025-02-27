@@ -42,6 +42,28 @@ def get_current_scenario_context(context):
     return current_scenario
 
 
+def get_adapter(context):
+    """Get the adapter for the current scenario."""
+    scenario_context = get_current_scenario_context(context)
+
+    adapter = scenario_context.adapter
+    if not adapter:
+        raise AttributeError("No adapter found in scenario context. Make sure the database is initialized.")
+
+    return adapter
+
+
+def get_async_adapter(context):
+    """Get the async adapter for the current scenario."""
+    scenario_context = get_current_scenario_context(context)
+
+    async_adapter = scenario_context.async_adapter
+    if not async_adapter:
+        raise AttributeError("No async adapter found in scenario context. Make sure the database is initialized.")
+
+    return async_adapter
+
+
 def safe_has_attr(obj, attr):
     """A truly safe way to check if an attribute exists on an object.
 
