@@ -45,6 +45,12 @@ validate-pyproject = "^0.18"
 mypy = "^1.14.1"
 behave = "^1.2.6"
 
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^8.2.1"
+sphinx-rtd-theme = "^3.0.2"
+sphinx-autodoc-typehints = "^3.1.0"
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = 'tests'
@@ -70,7 +76,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [project.urls]
-Homepage = "https://github.com/SyntaxArc/ArchiPy"
+Homepage = "https://syntaxarc.github.io/ArchiPy/"
 Documentation = "https://archipy.readthedocs.io/"
 "Bug Tracker" = "https://github.com/SyntaxArc/ArchiPy/issues"
 "Source Code" = "https://github.com/SyntaxArc/ArchiPy"

@@ -1,0 +1,48 @@
+# .readthedocs.yaml
+# Read the Docs configuration file optimized for thorough code extraction
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+version: 2
+
+# Set the OS and Python version
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.13"  # Using a stable Python version supported by ReadTheDocs
+  jobs:
+    pre_build:
+      # Generate API docs from source before building
+      - cd docs && sphinx-apidoc -o source/ ../archipy -f -e -M -T
+    post_create_environment:
+      # Install poetry and configure it
+      - pip install poetry
+      - poetry config virtualenvs.create false
+    post_install:
+      # Ensure we have the latest documentation tools
+      - pip install --upgrade sphinx sphinx-rtd-theme sphinx-autodoc-typehints sphinx-autoapi
+
+# Use the latest version of build system
+python:
+  install:
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs
+    - requirements: docs/requirements.txt
+
+# Build documentation with maximum extraction settings
+sphinx:
+  configuration: docs/source/conf.py
+  fail_on_warning: false  # Set to true once your docs are stable
+  builder: html
+
+
+
+# Search settings
+search:
+  ranking:
+    # These paths will be ranked higher in search results
+    api_reference/*: 2
+    usage.rst: 3
+    installation.rst: 3
+    architecture.rst: 2
