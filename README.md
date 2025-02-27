@@ -1,5 +1,5 @@
-# ArchiPy <img src="/assets/logo.jpg" width="30" height="30" alt="Archipy Logo">
-
+![Logo](./assets/logo.jpg)
+# ArchiPy
 [![Python](https://img.shields.io/badge/Python-3.13+-blue.svg)](https://www.python.org/downloads/)
 [![PyPI - Version](https://img.shields.io/pypi/v/archipy)](https://pypi.org/project/archipy/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/archipy)](https://pypi.org/project/archipy/)
