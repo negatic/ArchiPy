@@ -18,5 +18,15 @@ build:
       # Install dependencies with poetry
       - poetry install --with docs
 
+
 sphinx:
   configuration: docs/source/conf.py
+
+python:
+  install:
+    - method: pip
+      path: .
+      packages:
+        - poetry
+      extra_requirements:
+        - docs
