@@ -1,7 +1,7 @@
 import threading
 
 
-def singleton(thread_safe=True):
+def singleton_decorator(thread_safe=True):
     """A decorator to create thread-safe Singleton classes.
 
     This decorator ensures that only one instance of a class is created. It supports an optional

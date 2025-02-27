@@ -9,7 +9,7 @@ from archipy.models.errors import DeadlineExceededError
 F = TypeVar("F", bound=Callable[..., Any])
 
 
-def timeout(seconds: int) -> Callable[[F], F]:
+def timeout_decorator(seconds: int) -> Callable[[F], F]:
     """A decorator that adds a timeout to a function. If the function takes longer than the specified
     number of seconds to execute, a DeadlineExceededException is raised.
 

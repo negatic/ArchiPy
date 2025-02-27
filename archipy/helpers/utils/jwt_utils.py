@@ -145,8 +145,8 @@ class JWTUtils:
             dict[str, Any]: The decoded token payload.
 
         Raises:
-            TokenExpiredException: If the token has expired.
-            InvalidTokenException: If the token is invalid (e.g., invalid signature, audience, issuer, or type).
+            TokenExpiredError: If the token has expired.
+            InvalidTokenError: If the token is invalid (e.g., invalid signature, audience, issuer, or type).
         """
         import jwt
         from jwt.exceptions import (
@@ -154,7 +154,7 @@ class JWTUtils:
             InvalidAudienceError,
             InvalidIssuerError,
             InvalidSignatureError,
-            InvalidTokenError,
+            InvalidTokenError as JWTInvalidTokenError,
         )
 
         configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
@@ -198,7 +198,7 @@ class JWTUtils:
             raise InvalidTokenError("Token has invalid audience") from exception
         except InvalidIssuerError as exception:
             raise InvalidTokenError("Token has invalid issuer") from exception
-        except InvalidTokenError as exception:
+        except JWTInvalidTokenError as exception:
             raise InvalidTokenError(f"Invalid token: {exception!s}") from exception
 
     @classmethod

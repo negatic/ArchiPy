@@ -7,7 +7,7 @@ Feature: App Utilities
 
   Scenario: Handle a common custom exception
     Given a FastAPI app
-    When an endpoint raises a "CommonsBaseException"
+    When an endpoint raises a "BaseError"
     Then the response should have status code 500
 
   Scenario: Handle validation errors in FastAPI
