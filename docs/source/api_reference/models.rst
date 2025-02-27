@@ -8,8 +8,6 @@ Overview
 
 The models module contains data structures used throughout the application.
 
-Modules
-------
 
 DTOs (Data Transfer Objects)
 ~~~~~~~~~~~~~~~~~~~~~~~~~

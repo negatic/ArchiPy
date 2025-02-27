@@ -8,8 +8,6 @@ Overview
 
 The adapters module contains implementations of ports that connect the application to external systems.
 
-Modules
-------
 
 ORM Adapters (SQLAlchemy)
 ~~~~~~~~~~~~~~~~~~~~~~~

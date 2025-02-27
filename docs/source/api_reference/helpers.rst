@@ -8,8 +8,6 @@ Overview
 
 The helpers module contains utility classes and functions for various tasks.
 
-Modules
-------
 
 Interceptors
 ~~~~~~~~~~

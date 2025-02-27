@@ -8,9 +8,6 @@ Overview
 
 The utils module contains utility functions for various common tasks.
 
-Modules
-------
-
 Base Utils
 ~~~~~~~~
 

@@ -8,8 +8,6 @@ Overview
 
 The configs module contains configuration templates for various services used in the application.
 
-Modules
-------
 
 Base Config
 ~~~~~~~~~
