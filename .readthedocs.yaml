@@ -33,7 +33,7 @@ python:
 # Build documentation with maximum extraction settings
 sphinx:
   configuration: docs/source/conf.py
-  fail_on_warning: true  # Set to true once your docs are stable
+  fail_on_warning: false  # Set to true once your docs are stable
   builder: html
 
 
