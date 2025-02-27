@@ -58,12 +58,11 @@ autoclass_content = 'both'
 autodoc_default_options = {
     'members': True,
     'member-order': 'bysource',
-    'special-members': True,
-    'inherited-members': True,
-    'show-inheritance': True,
-    'undoc-members': True,
-    'private-members': True,  # Include private members with leading underscore
-    'ignore-module-all': True,
+    # 'special-members': True,
+    # 'inherited-members': True,
+    # 'show-inheritance': True,
+    # 'undoc-members': True,
+
 }
 
 # Enable auto-summary generation
