@@ -8,9 +8,9 @@ Feature: Custom Exceptions Handling
 
     Examples:
       | exception_enum          | expected_code      | expected_message_en                     | expected_message_fa                          |
-      | INVALID_PHONE           | INVALID_PHONE     | Invalid Iranian phone number            | شماره تلفن همراه ایران نامعتبر است          |
-      | NOT_FOUND               | NOT_FOUND        | Requested resource not found            | منبع درخواستی یافت نشد                      |
-      | TOKEN_EXPIRED           | TOKEN_EXPIRED    | Authentication token has expired        | توکن احراز هویت منقضی شده است              |
+      | INVALID_PHONE           | INVALID_PHONE     | Invalid Iranian phone number            | شماره تلفن همراه ایران نامعتبر است.          |
+      | NOT_FOUND               | NOT_FOUND        | Requested resource not found            | منبع درخواستی یافت نشد.                      |
+      | TOKEN_EXPIRED           | TOKEN_EXPIRED    | Authentication token has expired        | توکن احراز هویت منقضی شده است.              |
 
   Scenario Outline: Verify HTTP and gRPC status codes in exception messages
     Given an exception type "<exception_enum>"
