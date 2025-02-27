@@ -24,9 +24,4 @@ sphinx:
 
 python:
   install:
-    - method: pip
-      path: .
-      packages:
-        - poetry
-      extra_requirements:
-        - docs
+    - requirements: docs/requirements.txt
