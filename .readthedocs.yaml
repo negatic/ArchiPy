@@ -36,10 +36,7 @@ sphinx:
   fail_on_warning: true  # Set to true once your docs are stable
   builder: html
 
-# Additional formats for download
-formats:
-  - pdf
-  - epub
+
 
 # Search settings
 search:
