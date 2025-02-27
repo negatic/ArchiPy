@@ -11,16 +11,16 @@ Feature: Exception Utilities
     Then the response should contain code "ERR001"
 
   Scenario: Handle a FastAPI exception
-    Given a FastAPI exception "CommonsBaseException"
+    Given a FastAPI exception "BaseError"
     When an async FastAPI exception is handled
     Then the response should have an HTTP status of 500
 
   Scenario: Handle a gRPC exception
-    Given a gRPC exception "CommonsBaseException"
+    Given a gRPC exception "BaseError"
     When gRPC exception is handled
     Then the response should have gRPC status "UNKNOWN"
 
   Scenario: Generate FastAPI exception responses
-    Given a list of FastAPI exceptions ["InvalidPhoneNumberException", "NotFoundException"]
+    Given a list of FastAPI errors ["InvalidPhoneNumberError", "NotFoundError"]
     When the FastAPI exception responses are generated
     Then the responses should contain HTTP status codes

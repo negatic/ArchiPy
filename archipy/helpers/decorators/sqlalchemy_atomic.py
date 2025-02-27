@@ -6,13 +6,13 @@ from typing import Any
 from psycopg.errors import DeadlockDetected, SerializationFailure
 from sqlalchemy.exc import OperationalError
 
-from archipy.adapters.orm.sqlalchemy.session_manager_adapters import AsyncSessionManagerAdapter, SessionManagerAdapter
+from archipy.adapters.orm.sqlalchemy.session_manager_registry import SessionManagerRegistry
 from archipy.models.errors import AbortedError, DeadlockDetectedError, InternalError
 
 _in_atomic_block = "in_sqlalchemy_atomic_block"
 
 
-def sqlalchemy_atomic(function: Callable | None = None) -> Callable | partial:
+def sqlalchemy_atomic_decorator(function: Callable | None = None) -> Callable | partial:
     """Decorator for wrapping a function in a SQLAlchemy atomic transaction block.
 
     This decorator ensures that the function runs within a database transaction. If the function
@@ -53,7 +53,7 @@ def _atomic(function: Callable) -> Callable:
             DeadlockDetectedException: If an operational error occurs due to a deadlock.
             InternalException: If any other exception occurs during the function execution.
         """
-        session_manager = SessionManagerAdapter()
+        session_manager = SessionManagerRegistry.get_sync_manager()
         session = session_manager.get_session()
         is_nested_atomic_block = session.info.get(_in_atomic_block)
         if not is_nested_atomic_block:
@@ -87,7 +87,7 @@ def _atomic(function: Callable) -> Callable:
     return wrapper
 
 
-def async_sqlalchemy_atomic(function: Callable | None = None) -> Callable | partial:
+def async_sqlalchemy_atomic_decorator(function: Callable | None = None) -> Callable | partial:
     """Decorator for wrapping an asynchronous function in a SQLAlchemy atomic transaction block.
 
     This decorator ensures that the asynchronous function runs within a database transaction.
@@ -129,7 +129,7 @@ def _async_atomic(function: Callable) -> Callable:
             DeadlockDetectedException: If an operational error occurs due to a deadlock.
             InternalException: If any other exception occurs during the function execution.
         """
-        session_manager = AsyncSessionManagerAdapter()
+        session_manager = SessionManagerRegistry.get_async_manager()
         session = session_manager.get_session()
         is_nested_atomic_block = session.info.get(_in_atomic_block)
         if not is_nested_atomic_block:
