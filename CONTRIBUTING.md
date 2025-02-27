@@ -19,72 +19,88 @@ First of all, thank you for considering contributing to ArchiPy! This document p
 
 ## Code of Conduct
 
-This project and everyone participating in it are governed by our Code of Conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to the project maintainers.
+This project adheres to a [Code of Conduct](CODE_OF_CONDUCT.md) that all contributors are expected to follow. Please read the full text to understand what actions will and will not be tolerated.
 
-## How Can I Contribute?
+## Ways to Contribute
 
 ### Reporting Bugs
 
-Bug reports help us improve ArchiPy. When creating a bug report, please include as much detail as possible:
+Bug reports help us improve ArchiPy. When creating a bug report:
 
-1. **Use a clear and descriptive title** for the issue
-2. **Describe the exact steps to reproduce the problem**
-3. **Provide specific examples** to demonstrate the steps
-4. **Describe the behavior you observed and what you expected to see**
-5. **Include screenshots or animated GIFs** if possible
-6. **Include details about your environment**: Python version, ArchiPy version, operating system, etc.
+1. **Use a clear, descriptive title** that identifies the issue
+2. **Provide detailed steps to reproduce** the problem
+3. **Include specific examples** (code samples, error messages)
+4. **Describe what you expected to happen** versus what actually happened
+5. **Include screenshots or GIFs** if applicable
+6. **List your environment details**: Python version, ArchiPy version, OS, etc.
 
 ### Suggesting Enhancements
 
-Suggestions for enhancements help make ArchiPy better for everyone. When suggesting enhancements:
+Enhancement suggestions help ArchiPy evolve. When suggesting features:
 
-1. **Use a clear and descriptive title**
-2. **Provide a step-by-step description of the suggested enhancement**
-3. **Explain why this enhancement would be useful to most ArchiPy users**
+1. **Use a clear, descriptive title**
+2. **Provide a step-by-step description** of the suggested enhancement
+3. **Explain why this enhancement would benefit** most ArchiPy users
 4. **List any alternatives you've considered**
+5. **Include mockups or examples** if applicable
 
 ### Code Contributions
 
-Code contributions are always welcome! Here's how to get started:
+We love code contributions! Here's the process:
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Write your code and tests
-4. Ensure your code passes all tests and linting
-5. Commit your changes (`git commit -m 'Add some amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Write code and tests** for your feature or fix
+4. **Ensure all tests pass** and code meets quality standards
+5. **Commit your changes**: `git commit -m 'Add some amazing feature'`
+6. **Push to your branch**: `git push origin feature/amazing-feature`
+7. **Open a Pull Request** with a clear description of the changes
 
-## Development Setup
+### Documentation Improvements
+
+Documentation is crucial for user experience. You can help by:
+
+1. Fixing typos or clarifying existing documentation
+2. Adding examples or use cases
+3. Creating tutorials or how-to guides
+4. Updating documentation to reflect new features
+
+## Development Environment
 
 ### Prerequisites
 
-Before you begin, ensure you have the following installed:
+Before contributing, ensure you have:
 
-- **Python 3.13 or higher**
-- **Poetry** (for dependency management)
+- **Python 3.13+**
+- **Poetry** (dependency management)
 - **Git**
+- **make** (for running development commands)
 
-### Installation for Development
+### Setup Process
 
-1. Clone your fork of the repository:
+1. **Fork and clone** the repository:
    ```bash
    git clone https://github.com/YOUR-USERNAME/ArchiPy.git
    cd ArchiPy
    ```
 
-2. Set up the project environment:
+2. **Set up the environment**:
    ```bash
-   # Set up project pre-requisites (only needed once)
+   # Set up project pre-requisites
    make setup
 
    # Install development dependencies
    make install-dev
    ```
 
-### Development Commands
+3. **Create a branch** for your work:
+   ```bash
+   git checkout -b your-feature-branch
+   ```
 
-ArchiPy provides a comprehensive Makefile to simplify development tasks. Here are the most common commands:
+### Useful Commands
+
+ArchiPy provides commands via a Makefile to simplify development:
 
 #### Environment Management
 ```bash
@@ -100,7 +116,7 @@ make update
 
 #### Code Quality
 ```bash
-# Format code using black
+# Format code with black
 make format
 
 # Run all linters (ruff, mypy)
@@ -121,7 +137,7 @@ make behave
 
 #### Building and Versioning
 ```bash
-# Clean build artifacts
+# Clean artifacts
 make clean
 
 # Build project distribution
@@ -130,67 +146,43 @@ make build
 # Display current version
 make version
 
-# Bump patch version (for bug fixes)
-make bump-patch
-
-# Bump minor version (for new features)
-make bump-minor
-
-# Bump major version (for breaking changes)
-make bump-major
-
-# Custom version message
-make bump-patch message="Your custom message"
+# Bump versions
+make bump-patch    # Bug fixes
+make bump-minor    # New features
+make bump-major    # Breaking changes
 ```
 
-#### Docker Operations
-```bash
-# Build Docker image
-make docker-build
-
-# Run Docker container
-make docker-run
-```
-
-#### CI Pipeline
-```bash
-# Run the complete CI pipeline locally
-make ci
-```
-
-For a complete list of available commands:
+For a complete list:
 ```bash
 make help
 ```
 
 ## Pull Request Process
 
-1. Ensure your code passes all tests, linting, and type checking (`make check`)
-2. Update documentation if needed
-3. Include tests for new features or bug fixes
-4. The PR should work for Python 3.13 and above
-5. All CI checks must pass before merging
+1. **Ensure your code passes all checks**: Run `make check` locally
+2. **Update documentation** if necessary
+3. **Add tests** for new features or bug fixes
+4. **Ensure compatibility** with Python 3.13+
+5. **Verify all CI checks pass** on your PR
 
-Pull requests are usually reviewed within a few days. Maintainers may request changes or ask questions about your implementation.
+Pull requests are typically reviewed within a few days. Maintainers may request changes or clarifications about your implementation.
 
-## Versioning
+## Versioning Guidelines
 
-We follow [Semantic Versioning (SemVer)](https://semver.org/):
+ArchiPy follows [Semantic Versioning](https://semver.org/):
 
-- **Patch version** (make bump-patch): Bug fixes and minor improvements
-- **Minor version** (make bump-minor): New features, non-breaking changes
-- **Major version** (make bump-major): Breaking changes, significant refactoring
-
-Version bumping is handled through the `scripts/bump_version.py` script and can be triggered with the appropriate make commands.
+- **Patch** (`make bump-patch`): Bug fixes and minor improvements
+- **Minor** (`make bump-minor`): New features (backward compatible)
+- **Major** (`make bump-major`): Breaking changes
 
 ## Getting Help
 
-If you need help with contributing, feel free to:
+If you need assistance with contributing:
 
-- Open an issue with your question
-- Contact the maintainers directly:
+- **Open an issue** with your question
+- **Contact maintainers**:
   - Hossein Nejati: [hosseinnejati14@gmail.com](mailto:hosseinnejati14@gmail.com)
   - Mehdi Einali: [einali@gmail.com](mailto:einali@gmail.com)
-- Check the project documentation at [https://archipy.readthedocs.io/](https://archipy.readthedocs.io/)
+- **Consult documentation**: [https://archipy.readthedocs.io/](https://archipy.readthedocs.io/)
 
 Thank you for contributing to ArchiPy! Your efforts help make this project better for everyone.

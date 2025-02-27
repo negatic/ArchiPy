@@ -1,5 +1,7 @@
-![Logo](./assets/logo.jpg)
-# ArchiPy
+<img src="./assets/logo.jpg" alt="ArchiPy Logo" width="150"/>
+
+# ArchiPy - Architecture + Python
+
 [![Python](https://img.shields.io/badge/Python-3.13+-blue.svg)](https://www.python.org/downloads/)
 [![PyPI - Version](https://img.shields.io/pypi/v/archipy)](https://pypi.org/project/archipy/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/archipy)](https://pypi.org/project/archipy/)
@@ -18,11 +20,9 @@
 [![GitHub issues](https://img.shields.io/badge/issues-open-orange)](https://github.com/SyntaxArc/ArchiPy/issues)
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](https://github.com/SyntaxArc/ArchiPy/blob/master/CONTRIBUTING.md)
 
-**Architecture + Python – Perfect for Structured Design**
+**Perfect for Structured Design**
 
-ArchiPy is a Python project designed to provide a robust and structured architecture for building scalable and
-maintainable applications. It integrates modern Python tools and libraries to streamline development, testing, and
-deployment.
+ArchiPy provides a robust architecture framework for building scalable and maintainable Python applications. It integrates modern Python tools and libraries to streamline development, testing, and deployment processes.
 
 ---
 
@@ -34,6 +34,7 @@ deployment.
 - [Usage](#-usage)
 - [Development](#-development)
 - [Contributing](#-contributing)
+- [Code of Conduct](#-code-of-conduct)
 - [License](#-license)
 - [Contact](#-contact)
 - [Links](#-links)
@@ -42,12 +43,11 @@ deployment.
 
 ## ✨ Features
 
-- **Modern Python Stack**: Built with Python 3.13 and leveraging tools like `pydantic`, `fastapi`, `gRPC` and
-  `sqlalchemy`.
+- **Modern Python Stack**: Built with Python 3.13 and leveraging tools like `pydantic`, `fastapi`, `gRPC` and  `sqlalchemy`.
 - **Modular Design**: Optional dependencies for Redis, gRPC, PostgreSQL, Prometheus, and more.
-- **Type Safety**: Enforced by `mypy` and `pydantic` for robust code.
-- **Testing**: Integrated with `pytest` and `behave` for comprehensive testing.
-- **Linting and Formatting**: Uses `ruff` and `black` for clean and consistent code.
+- **Type Safety**: Enforced by `mypy` and `pydantic` for robust, error-resistant code.
+- **Comprehensive Testing**: Integrated with `behave` for comprehensive testing.
+- **Code Quality Tools**: Uses `ruff` and `black` for clean and consistent code.
 - **Pre-commit Hooks**: Automates code quality checks before commits.
 - **Dependency Management**: Managed by `poetry` for reproducible builds.
 
@@ -55,11 +55,10 @@ deployment.
 
 ## 🛠️ Prerequisites
 
-Before you begin, ensure you have the following installed:
+Before starting with ArchiPy, ensure you have:
 
 - **Python 3.13 or higher**
-  `archipy` is compatible with Python 3.13 and above but does not support Python 4 or higher.
-  To check your Python version, run:
+  ArchiPy is compatible with Python 3.13+.
   ```bash
   python --version
   ```
@@ -74,7 +73,7 @@ Before you begin, ensure you have the following installed:
 
 ### From PyPI
 
-The simplest way to install ArchiPy is from PyPI:
+The simplest way to install ArchiPy:
 
 ```bash
 # Basic installation
@@ -96,7 +95,7 @@ poetry add archipy[redis,fastapi]
 
 ### From Source
 
-To install from source:
+For development or the latest features:
 
 1. **Clone the Repository**
    ```bash
@@ -120,7 +119,7 @@ To install from source:
 
 ### Optional Dependencies
 
-The library provides optional dependencies for additional functionality. You can install them as needed:
+ArchiPy provides modular functionality through optional dependencies:
 
 | Feature              | Installation Command            |
 |----------------------|---------------------------------|
@@ -139,11 +138,11 @@ The library provides optional dependencies for additional functionality. You can
 
 ### Troubleshooting Installation
 
-If you encounter issues during installation, ensure that:
+If you encounter installation issues, check that:
 
 1. Your Python version is **3.13 or higher**
 2. Your package manager (`pip` or `poetry`) is up to date
-3. You have the necessary build tools installed (e.g., `setuptools`, `wheel`)
+3. You have the necessary build tools installed (`setuptools`, `wheel`)
 
 ---
 
@@ -184,10 +183,16 @@ For more detailed information about development processes, refer to our [contrib
 We welcome contributions to ArchiPy! Please check out our [contribution guidelines](CONTRIBUTING.md) for details on:
 
 - Setting up your development environment
-- Our development workflow
-- How to submit effective pull requests
-- Code style and quality expectations
+- Development workflow
+- Submitting effective pull requests
+- Code style expectations
 - Testing requirements
+
+---
+
+## 📜 Code of Conduct
+
+This project adheres to a [Code of Conduct](CODE_OF_CONDUCT.md) to ensure a welcoming and inclusive environment for all contributors and users. Please review it before participating.
 
 ---
 
