@@ -21,17 +21,14 @@ release = '0.1.0'
 
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
     'sphinx_autodoc_typehints',
     'sphinx.ext.intersphinx',
     'sphinx.ext.autosectionlabel',
     'sphinx.ext.coverage',
-    'sphinx.ext.inheritance_diagram',
     'sphinx.ext.todo',
     'sphinx.ext.autosummary',
-    'autoapi.extension',
-    'autodocsumm',
+
 ]
 
 # AutoAPI settings for better code extraction
