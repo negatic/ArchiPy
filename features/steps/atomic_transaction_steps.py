@@ -11,7 +11,12 @@ import uuid
 from datetime import datetime
 
 from behave import given, then, when
-from features.async_test_helpers import SafeAsyncContextManager, async_schema_setup, safe_run_async
+from features.test_helpers import (
+    SafeAsyncContextManager,
+    async_schema_setup,
+    safe_run_async,
+    get_current_scenario_context,
+)
 from features.test_entity import RelatedTestEntity, TestAdminEntity, TestEntity, TestManagerEntity
 from features.test_entity_factory import TestEntityFactory
 from sqlalchemy import select
@@ -26,10 +31,9 @@ from archipy.models.errors import InternalError
 
 def get_adapter(context):
     """Get the adapter for the current scenario."""
-    if not hasattr(context, "scenario_context"):
-        raise AttributeError("No scenario context available. Make sure the database is initialized.")
+    scenario_context = get_current_scenario_context(context)
 
-    adapter = context.scenario_context.adapter
+    adapter = scenario_context.adapter
     if not adapter:
         raise AttributeError("No adapter found in scenario context. Make sure the database is initialized.")
 
@@ -38,10 +42,9 @@ def get_adapter(context):
 
 def get_async_adapter(context):
     """Get the async adapter for the current scenario."""
-    if not hasattr(context, "scenario_context"):
-        raise AttributeError("No scenario context available. Make sure the database is initialized.")
+    scenario_context = get_current_scenario_context(context)
 
-    async_adapter = context.scenario_context.async_adapter
+    async_adapter = scenario_context.async_adapter
     if not async_adapter:
         raise AttributeError("No async adapter found in scenario context. Make sure the database is initialized.")
 
@@ -50,9 +53,7 @@ def get_async_adapter(context):
 
 def store_entity(context, entity, key=None):
     """Store an entity in the scenario context by its UUID for later retrieval."""
-    # Ensure dictionaries exist
-    if not hasattr(context, "scenario_context"):
-        raise AttributeError("No scenario context available. Make sure the database is initialized.")
+    scenario_context = get_current_scenario_context(context)
 
     # Use class name if no key provided
     if key is None:
@@ -60,8 +61,8 @@ def store_entity(context, entity, key=None):
 
     # Store entity UUID
     uuid_str = str(entity.test_uuid)
-    context.scenario_context.entities[uuid_str] = entity
-    context.scenario_context.entity_ids[key] = uuid_str
+    scenario_context.entities[uuid_str] = entity
+    scenario_context.entity_ids[key] = uuid_str
 
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
     logger.info(f"Stored entity {key} with UUID {uuid_str}")
@@ -72,13 +73,12 @@ def store_entity(context, entity, key=None):
 # Helper function to retrieve entity by key
 def get_entity_id(context, key):
     """Get an entity's UUID from the scenario context by its key."""
-    if not hasattr(context, "scenario_context"):
-        raise AttributeError("No scenario context available")
+    scenario_context = get_current_scenario_context(context)
 
-    if key not in context.scenario_context.entity_ids:
+    if key not in scenario_context.entity_ids:
         raise AttributeError(f"No entity stored with key '{key}'")
 
-    return context.scenario_context.entity_ids[key]
+    return scenario_context.entity_ids[key]
 
 
 @given("the application database is initialized")
@@ -86,9 +86,12 @@ def step_given_database_initialized(context):
     """Initialize the database for testing with a file-based SQLite database."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
 
+    # Get the current scenario context
+    scenario_context = get_current_scenario_context(context)
+
     # Create a unique temporary file for this scenario
     temp_dir = tempfile.gettempdir()
-    scenario_id = context.scenario_context.scenario_id
+    scenario_id = scenario_context.scenario_id
     db_file = os.path.join(temp_dir, f"test_db_{scenario_id}.sqlite")
 
     # If the file already exists, try to remove it
@@ -103,7 +106,7 @@ def step_given_database_initialized(context):
             logger.info(f"Using alternative database file: {db_file}")
 
     # Store the file path in the scenario context
-    context.scenario_context.db_file = db_file
+    scenario_context.db_file = db_file
 
     logger.info(f"Creating SQLAlchemy adapter with database: {db_file}")
 
@@ -118,7 +121,7 @@ def step_given_database_initialized(context):
     # Create adapter for tests and store in scenario context
     adapter = SqlAlchemyMock(orm_config=sync_config)
     SessionManagerRegistry.set_sync_manager(adapter.session_manager)
-    context.scenario_context.adapter = adapter
+    scenario_context.adapter = adapter
 
     # Set up database schema with sync adapter
     logger.info("Creating database schema with sync adapter")
@@ -141,7 +144,7 @@ def step_given_database_initialized(context):
             # Create a new async adapter
             async_adapter = AsyncSqlAlchemyMock(orm_config=async_config)
             SessionManagerRegistry.set_async_manager(async_adapter.session_manager)
-            context.scenario_context.async_adapter = async_adapter
+            scenario_context.async_adapter = async_adapter
 
             # IMPORTANT: Explicitly create schema with async adapter too
             logger.info("Creating database schema with async adapter")
@@ -233,10 +236,11 @@ def step_then_entity_should_be_retrievable(context):
 def step_when_entity_creation_fails_in_atomic(context):
     """Attempt to create an entity with a failure that causes rollback."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
 
     # Generate a UUID for the entity
     test_uuid = uuid.uuid4()
-    context.rolled_back_uuid = test_uuid
+    scenario_context.rolled_back_uuid = test_uuid
     logger.info(f"Attempting to create entity with UUID {test_uuid} (will fail)")
 
     try:
@@ -253,7 +257,7 @@ def step_when_entity_creation_fails_in_atomic(context):
             adapter.create(entity)
 
             # Store the UUID for verification
-            context.scenario_context.entity_ids["failed_entity"] = str(test_uuid)
+            scenario_context.entity_ids["failed_entity"] = str(test_uuid)
 
             # Simulate failure
             logger.info("Raising exception to trigger rollback")
@@ -271,17 +275,18 @@ def step_when_entity_creation_fails_in_atomic(context):
 def step_then_no_entity_should_exist(context):
     """Verify the entity doesn't exist after failed atomic transaction."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
 
     # Get a fresh session to verify rollback
     adapter = get_adapter(context)
     adapter.session_manager.remove_session()
-    logger.info(f"Checking entity with UUID {context.rolled_back_uuid} doesn't exist")
+    logger.info(f"Checking entity with UUID {scenario_context.rolled_back_uuid} doesn't exist")
 
     @sqlalchemy_atomic_decorator
     def check_entity_absence():
         adapter = get_adapter(context)
         session = adapter.get_session()
-        retrieved_entity = session.get(TestEntity, context.rolled_back_uuid)
+        retrieved_entity = session.get(TestEntity, scenario_context.rolled_back_uuid)
         assert retrieved_entity is None, "Entity found in database after failed atomic transaction"
         logger.info("Verified entity doesn't exist (rollback successful)")
         return retrieved_entity
@@ -331,6 +336,7 @@ def step_then_session_should_remain_usable(context):
 def step_when_nested_atomic_executed(context):
     """Execute nested atomic transactions to test proper nesting behavior."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
     logger.info("Executing nested atomic transactions")
 
     # Store entity UUIDs for verification
@@ -340,10 +346,10 @@ def step_when_nested_atomic_executed(context):
     entity4_uuid = uuid.uuid4()
 
     # Store UUIDs in context
-    context.scenario_context.entity_ids["entity1"] = str(entity1_uuid)
-    context.scenario_context.entity_ids["entity2"] = str(entity2_uuid)
-    context.scenario_context.entity_ids["entity3"] = str(entity3_uuid)
-    context.scenario_context.entity_ids["entity4"] = str(entity4_uuid)
+    scenario_context.entity_ids["entity1"] = str(entity1_uuid)
+    scenario_context.entity_ids["entity2"] = str(entity2_uuid)
+    scenario_context.entity_ids["entity3"] = str(entity3_uuid)
+    scenario_context.entity_ids["entity4"] = str(entity4_uuid)
 
     @sqlalchemy_atomic_decorator
     def outer_atomic():
@@ -411,11 +417,12 @@ def step_when_nested_atomic_executed(context):
 def step_then_successful_nested_committed(context):
     """Verify that entities from successful nested transactions exist."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
 
     # Get UUIDs for verification
-    entity1_uuid = uuid.UUID(context.scenario_context.entity_ids["entity1"])
-    entity2_uuid = uuid.UUID(context.scenario_context.entity_ids["entity2"])
-    entity4_uuid = uuid.UUID(context.scenario_context.entity_ids["entity4"])
+    entity1_uuid = uuid.UUID(scenario_context.entity_ids["entity1"])
+    entity2_uuid = uuid.UUID(scenario_context.entity_ids["entity2"])
+    entity4_uuid = uuid.UUID(scenario_context.entity_ids["entity4"])
 
     logger.info("Verifying successful nested transaction entities")
 
@@ -448,9 +455,10 @@ def step_then_successful_nested_committed(context):
 def step_then_failed_nested_rolled_back(context):
     """Verify that entities from failed nested transactions don't exist."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
 
     # Get UUID for verification
-    entity3_uuid = uuid.UUID(context.scenario_context.entity_ids["entity3"])
+    entity3_uuid = uuid.UUID(scenario_context.entity_ids["entity3"])
     logger.info(f"Verifying entity 3 with UUID {entity3_uuid} doesn't exist")
 
     # Get a fresh session for verification
@@ -476,6 +484,7 @@ def step_then_failed_nested_rolled_back(context):
 def step_given_entity_exists(context):
     """Create an entity in the database for testing updates."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
 
     # Generate a UUID for the entity
     test_uuid = uuid.uuid4()
@@ -490,8 +499,8 @@ def step_given_entity_exists(context):
         # Store the entity for later retrieval
         store_entity(context, entity, "existing_entity")
         # Store original values for comparison
-        context.original_description = entity.description
-        context.original_updated_at = getattr(entity, "updated_at", None)
+        scenario_context.store("original_description", entity.description)
+        scenario_context.store("original_updated_at", getattr(entity, "updated_at", None))
 
     create_entity()
     logger.info("Entity created successfully")
@@ -501,9 +510,10 @@ def step_given_entity_exists(context):
 def step_when_entity_updated_in_atomic(context):
     """Update an entity within an atomic transaction."""
     logger = context.__dict__.get("logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
 
     # Get the entity UUID from context
-    entity_uuid = uuid.UUID(context.scenario_context.entity_ids.get("existing_entity"))
+    entity_uuid = uuid.UUID(scenario_context.entity_ids.get("existing_entity"))
     logger.info(f"Updating entity with UUID {entity_uuid}")
 
     @sqlalchemy_atomic_decorator
@@ -518,8 +528,8 @@ def step_when_entity_updated_in_atomic(context):
             assert False, f"Entity with UUID {entity_uuid} not found for update"
 
         # Store the original description for verification
-        context.__dict__["original_description"] = entity.description
-        context.__dict__["original_updated_at"] = getattr(entity, "updated_at", None)
+        scenario_context.store("original_description", entity.description)
+        scenario_context.store("original_updated_at", getattr(entity, "updated_at", None))
 
         # Update properties
         entity.description = "Updated Description"
@@ -530,9 +540,9 @@ def step_when_entity_updated_in_atomic(context):
         session.flush()
 
         # Store the updated entity's values for verification
-        context.__dict__["updated_description"] = entity.description
-        context.__dict__["updated_at"] = entity.updated_at
-        context.__dict__["is_deleted"] = entity.is_deleted
+        scenario_context.store("updated_description", entity.description)
+        scenario_context.store("updated_at", entity.updated_at)
+        scenario_context.store("is_deleted", entity.is_deleted)
 
         return entity
 
@@ -544,9 +554,10 @@ def step_when_entity_updated_in_atomic(context):
 def step_then_entity_properties_reflect_updates(context):
     """Verify entity properties are updated correctly."""
     logger = context.__dict__.get("logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
 
     # Get the entity UUID from context
-    entity_uuid = uuid.UUID(context.scenario_context.entity_ids.get("existing_entity"))
+    entity_uuid = uuid.UUID(scenario_context.entity_ids.get("existing_entity"))
     logger.info(f"Verifying updates for entity with UUID {entity_uuid}")
 
     @sqlalchemy_atomic_decorator
@@ -568,15 +579,15 @@ def step_then_entity_properties_reflect_updates(context):
         assert entity is not None, "Updated entity not found"
 
         # Compare with stored values instead of hardcoded values
-        assert entity.description == context.__dict__.get(
+        assert entity.description == scenario_context.get(
             "updated_description",
             "Updated Description",
-        ), f"Description mismatch. Expected: {context.__dict__.get('updated_description')}, Got: {entity.description}"
-        assert entity.description != context.__dict__.get("original_description", ""), "Description unchanged"
+        ), f"Description mismatch. Expected: {scenario_context.get('updated_description')}, Got: {entity.description}"
+        assert entity.description != scenario_context.get("original_description", ""), "Description unchanged"
         assert entity.is_deleted is True, "is_deleted flag not updated"
 
         # Verify updated_at was changed
-        original_updated_at = context.__dict__.get("original_updated_at")
+        original_updated_at = scenario_context.get("original_updated_at")
         if original_updated_at:
             assert entity.updated_at != original_updated_at, "updated_at timestamp unchanged"
         else:
@@ -592,15 +603,16 @@ def step_then_entity_properties_reflect_updates(context):
 def step_when_entity_with_relationships_created(context):
     """Create an entity with relationships in an atomic transaction."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
 
     # Generate UUIDs for the entities
     main_uuid = uuid.uuid4()
     related_uuids = [uuid.uuid4() for _ in range(3)]
 
     # Store UUIDs in context for later retrieval
-    context.scenario_context.entity_ids["main_entity"] = str(main_uuid)
+    scenario_context.entity_ids["main_entity"] = str(main_uuid)
     for i, uuid_val in enumerate(related_uuids):
-        context.scenario_context.entity_ids[f"related_entity_{i}"] = str(uuid_val)
+        scenario_context.entity_ids[f"related_entity_{i}"] = str(uuid_val)
 
     logger.info(f"Creating entity with relationships, main UUID: {main_uuid}")
 
@@ -677,6 +689,7 @@ def step_then_entity_and_relationships_retrievable(context):
 def step_when_different_entities_created_in_atomic(context):
     """Create different types of entities within an atomic transaction."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
 
     # Generate UUIDs for the entities
     regular_uuid = uuid.uuid4()
@@ -684,9 +697,9 @@ def step_when_different_entities_created_in_atomic(context):
     admin_uuid = uuid.uuid4()
 
     # Store UUIDs in context for later retrieval
-    context.scenario_context.entity_ids["regular_entity"] = str(regular_uuid)
-    context.scenario_context.entity_ids["manager_entity"] = str(manager_uuid)
-    context.scenario_context.entity_ids["admin_entity"] = str(admin_uuid)
+    scenario_context.entity_ids["regular_entity"] = str(regular_uuid)
+    scenario_context.entity_ids["manager_entity"] = str(manager_uuid)
+    scenario_context.entity_ids["admin_entity"] = str(admin_uuid)
 
     logger.info("Creating different types of entities")
 
@@ -768,7 +781,9 @@ def step_then_all_entity_types_retrievable(context):
 def step_when_error_triggered_in_atomic(context):
     """Trigger different types of errors within atomic transactions to test handlers."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
     adapter = get_adapter(context)
+
     # Test normal exception handling
     logger.info("Testing normal exception handling")
     try:
@@ -782,7 +797,8 @@ def step_when_error_triggered_in_atomic(context):
 
         normal_exception()
     except Exception as e:
-        context.normal_exception = e
+        # Store in scenario context instead of directly in context
+        scenario_context.store("normal_exception", e)
         logger.info(f"Caught normal exception: {type(e).__name__}")
 
     # Get a fresh session after exception
@@ -810,7 +826,8 @@ def step_when_error_triggered_in_atomic(context):
 
         deadlock_exception()
     except Exception as e:
-        context.deadlock_exception = e
+        # Store in scenario context instead of directly in context
+        scenario_context.store("deadlock_exception", e)
         logger.info(f"Caught deadlock exception: {type(e).__name__}")
 
     # Get a fresh session after exception
@@ -833,7 +850,8 @@ def step_when_error_triggered_in_atomic(context):
 
         serialization_exception()
     except Exception as e:
-        context.serialization_exception = e
+        # Store in scenario context instead of directly in context
+        scenario_context.store("serialization_exception", e)
         logger.info(f"Caught serialization exception: {type(e).__name__}")
 
 
@@ -841,24 +859,27 @@ def step_when_error_triggered_in_atomic(context):
 def step_then_appropriate_error_raised(context):
     """Verify that appropriate errors were raised for each case."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
 
     from archipy.models.errors import AbortedError, InternalError
 
     # Check normal exception was wrapped as InternalError
     logger.info("Verifying normal exception handling")
-    assert hasattr(context, "normal_exception"), "Normal exception was not captured"
+    normal_exception = scenario_context.get("normal_exception")
+    assert normal_exception is not None, "Normal exception was not captured"
     assert isinstance(
-        context.normal_exception,
+        normal_exception,
         InternalError,
-    ), f"Normal exception not wrapped as InternalError: {type(context.normal_exception)}"
+    ), f"Normal exception not wrapped as InternalError: {type(normal_exception)}"
 
     # Check serialization exception
     logger.info("Verifying serialization failure handling")
-    assert hasattr(context, "serialization_exception"), "Serialization exception was not captured"
+    serialization_exception = scenario_context.get("serialization_exception")
+    assert serialization_exception is not None, "Serialization exception was not captured"
     assert isinstance(
-        context.serialization_exception,
+        serialization_exception,
         AbortedError,
-    ), f"Serialization failure not handled correctly: {type(context.serialization_exception)}"
+    ), f"Serialization failure not handled correctly: {type(serialization_exception)}"
 
     logger.info("All exception handling verified successfully")
 
@@ -897,6 +918,7 @@ def step_then_transaction_rolled_back(context):
 def step_when_operations_across_multiple_atomics(context):
     """Test session consistency across multiple atomic blocks."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
     logger.info("Testing operations across multiple atomic blocks")
 
     # Generate UUIDs for entities
@@ -904,7 +926,7 @@ def step_when_operations_across_multiple_atomics(context):
 
     # Store UUIDs in context
     for i, uuid_val in enumerate(entity_uuids):
-        context.scenario_context.entity_ids[f"multi_entity_{i}"] = str(uuid_val)
+        scenario_context.entity_ids[f"multi_entity_{i}"] = str(uuid_val)
 
     # Get a fresh session
     adapter = get_adapter(context)
@@ -956,7 +978,8 @@ def step_when_operations_across_multiple_atomics(context):
             db_entity = session.get(TestEntity, uuid_val)
             results.append({"uuid": uuid_val, "description": db_entity.description, "updated_at": db_entity.updated_at})
 
-        context.query_results = results
+        # Store in scenario context instead of directly in context
+        scenario_context.store("query_results", results)
         return results
 
     query_entities()
@@ -967,6 +990,7 @@ def step_when_operations_across_multiple_atomics(context):
 def step_then_session_maintains_consistency(context):
     """Verify session consistency is maintained across multiple atomic blocks."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
     logger.info("Verifying session consistency across multiple atomic blocks")
 
     # Get a fresh session for verification
@@ -977,8 +1001,11 @@ def step_then_session_maintains_consistency(context):
     def verify_consistency():
         session = adapter.get_session()
 
+        # Retrieve query results from scenario context
+        query_results = scenario_context.get("query_results")
+
         # Check that each entity has the updated description
-        for i, result in enumerate(context.query_results):
+        for i, result in enumerate(query_results):
             logger.info(f"Verifying entity {i} with UUID {result['uuid']}")
 
             expected_description = f"Updated Entity {i + 1}"
@@ -1008,10 +1035,11 @@ def step_then_session_maintains_consistency(context):
 async def step_when_entity_created_in_async_atomic(context):
     """Create a new entity within an async atomic transaction."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
 
     # Generate a UUID for the entity
     test_uuid = uuid.uuid4()
-    context.scenario_context.entity_ids["async_entity"] = str(test_uuid)
+    scenario_context.entity_ids["async_entity"] = str(test_uuid)
 
     logger.info(f"Creating async entity with UUID {test_uuid}")
     async_adapter = get_async_adapter(context)
@@ -1058,10 +1086,11 @@ async def step_then_async_entity_should_be_retrievable(context):
 async def step_when_async_entity_creation_fails(context):
     """Attempt to create an async entity with a failure that causes rollback."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
 
     # Generate a UUID for the entity
     test_uuid = uuid.uuid4()
-    context.scenario_context.entity_ids["async_failed_entity"] = str(test_uuid)
+    scenario_context.entity_ids["async_failed_entity"] = str(test_uuid)
 
     logger.info(f"Creating async entity with UUID {test_uuid} (will fail)")
 
@@ -1148,13 +1177,14 @@ async def step_then_async_session_should_remain_usable(context):
 async def step_when_multiple_async_entities_created(context):
     """Create multiple entities in a single async atomic transaction."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
 
     # Generate UUIDs for entities
     entity_uuids = [uuid.uuid4() for _ in range(5)]
 
     # Store UUIDs in context
     for i, uuid_val in enumerate(entity_uuids):
-        context.scenario_context.entity_ids[f"multi_async_entity_{i}"] = str(uuid_val)
+        scenario_context.entity_ids[f"multi_async_entity_{i}"] = str(uuid_val)
 
     logger.info("Creating multiple entities in async atomic transaction")
 
@@ -1181,6 +1211,7 @@ async def step_when_multiple_async_entities_created(context):
 async def step_then_all_async_entities_retrievable(context):
     """Verify all entities exist after async atomic transaction."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
     logger.info("Verifying all async entities are retrievable")
 
     @async_sqlalchemy_atomic_decorator
@@ -1192,8 +1223,8 @@ async def step_then_all_async_entities_retrievable(context):
         # Check that all entities were created
         for i in range(5):
             uuid_key = f"multi_async_entity_{i}"
-            if uuid_key in context.scenario_context.entity_ids:
-                entity_uuid = uuid.UUID(context.scenario_context.entity_ids[uuid_key])
+            if uuid_key in scenario_context.entity_ids:
+                entity_uuid = uuid.UUID(scenario_context.entity_ids[uuid_key])
                 logger.info(f"Verifying async entity {i} with UUID {entity_uuid}")
 
                 retrieved_entity = await session.get(TestEntity, entity_uuid)
@@ -1216,15 +1247,16 @@ async def step_then_all_async_entities_retrievable(context):
 async def step_when_complex_async_operations(context):
     """Demonstrate more complex async operations with proper session management."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
+    scenario_context = get_current_scenario_context(context)
 
     # Generate UUIDs
     parent_uuid = uuid.uuid4()
     related_uuids = [uuid.uuid4() for _ in range(3)]
 
     # Store UUIDs in context
-    context.scenario_context.entity_ids["complex_parent"] = str(parent_uuid)
+    scenario_context.entity_ids["complex_parent"] = str(parent_uuid)
     for i, uuid_val in enumerate(related_uuids):
-        context.scenario_context.entity_ids[f"complex_related_{i}"] = str(uuid_val)
+        scenario_context.entity_ids[f"complex_related_{i}"] = str(uuid_val)
 
     logger.info(f"Creating complex entity relationship with parent UUID {parent_uuid}")
 

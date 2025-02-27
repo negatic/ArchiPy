@@ -11,7 +11,7 @@ import uuid
 
 from behave.model import Scenario
 from behave.runner import Context
-from features.scenario_context import ScenarioContext
+from features.scenario_context_pool_manager import ScenarioContextPoolManager
 from pydantic_settings import SettingsConfigDict
 
 from archipy.adapters.orm.sqlalchemy.session_manager_registry import SessionManagerRegistry
@@ -40,35 +40,8 @@ def before_all(context: Context):
     context.logger = logging.getLogger("behave.tests")
     context.logger.info("Starting test suite")
 
-
-def after_all(context: Context):
-    """Cleanup performed after all tests run.
-
-    Args:
-        context: The behave context object
-    """
-    # Clean up any remaining resources
-    context.logger.info("Test suite completed")
-
-
-def before_feature(context: Context, feature):
-    """Setup performed before each feature runs.
-
-    Args:
-        context: The behave context object
-        feature: The feature about to run
-    """
-    context.logger.info(f"Starting feature: {feature.name}")
-
-
-def after_feature(context: Context, feature):
-    """Cleanup performed after each feature runs.
-
-    Args:
-        context: The behave context object
-        feature: The feature that just completed
-    """
-    context.logger.info(f"Completed feature: {feature.name}")
+    # Create the scenario context pool manager
+    context.scenario_context_pool = ScenarioContextPoolManager()
 
 
 def before_scenario(context: Context, scenario: Scenario):
@@ -77,17 +50,18 @@ def before_scenario(context: Context, scenario: Scenario):
     logger = logging.getLogger("behave.tests")
     context.logger = logger
 
-    # Create a unique ID for this scenario
-    scenario_id = getattr(scenario, "_id", uuid.uuid4().hex)
+    # Generate a unique scenario ID if not present
+    if not hasattr(scenario, "id"):
+        scenario.id = str(uuid.uuid4())
 
-    # Create a scenario-specific context
-    context.scenario_context = ScenarioContext(scenario_id)
+    # Get the scenario-specific context from the pool
+    scenario_context = context.scenario_context_pool.get_context(scenario.id)
 
-    logger.info(f"Starting scenario: {scenario.name} (ID: {scenario_id})")
+    logger.info(f"Starting scenario: {scenario.name} (ID: {scenario.id})")
 
     # Assign global config to scenario context
     try:
-        context.scenario_context.store("test_config", BaseConfig.global_config())
+        scenario_context.store("test_config", BaseConfig.global_config())
     except Exception as e:
         logger.error(f"Error setting global config: {e}")
 
@@ -98,7 +72,7 @@ def before_scenario(context: Context, scenario: Scenario):
             # Create a new event loop for this scenario
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            context.scenario_context.store("_async_test_loop", loop)
+            scenario_context.store("_async_test_loop", loop)
         except Exception as e:
             logger.error(f"Error setting up async environment: {e}")
 
@@ -108,45 +82,21 @@ def after_scenario(context: Context, scenario: Scenario):
     logger = getattr(context, "logger", logging.getLogger("behave.environment"))
 
     # Get the scenario ID
-    scenario_id = getattr(scenario, "_id", None)
+    scenario_id = getattr(scenario, "id", "unknown")
     logger.info(f"Cleaning up scenario: {scenario.name} (ID: {scenario_id})")
 
-    # Clean up the scenario context
-    if hasattr(context, "scenario_context"):
-        # Call the cleanup method
-        context.scenario_context.cleanup()
-
-        # Clean up async resources
-        if "_async_test_loop" in context.scenario_context.storage:
-            try:
-                loop = context.scenario_context.get("_async_test_loop")
-                if loop:
-                    # Cancel any pending tasks
-                    try:
-                        pending_tasks = asyncio.all_tasks(loop)
-                        if pending_tasks:
-                            for task in pending_tasks:
-                                task.cancel()
-
-                            # Use a new event loop for cleanup
-                            cleanup_loop = asyncio.new_event_loop()
-                            asyncio.set_event_loop(cleanup_loop)
-
-                            async def cleanup():
-                                pass  # Just a placeholder
-
-                            cleanup_loop.run_until_complete(cleanup())
-                            cleanup_loop.close()
-                    except Exception as e:
-                        logger.error(f"Error cleaning up tasks: {e}")
-
-                    # Close the event loop
-                    try:
-                        loop.close()
-                    except Exception as e:
-                        logger.error(f"Error closing event loop: {e}")
-            except Exception as e:
-                logger.error(f"Error in async cleanup: {e}")
+    # Clean up the scenario context and remove from pool
+    if hasattr(context, "scenario_context_pool"):
+        context.scenario_context_pool.cleanup_context(scenario_id)
 
     # Reset the registry
     SessionManagerRegistry.reset()
+
+
+def after_all(context: Context):
+    """Cleanup performed after all tests run."""
+    # Clean up any remaining resources
+    if hasattr(context, "scenario_context_pool"):
+        context.scenario_context_pool.cleanup_all()
+
+    context.logger.info("Test suite completed")

@@ -13,6 +13,35 @@ from behave.runner import Context
 from archipy.models.entities import BaseEntity
 
 
+def get_current_scenario_context(context):
+    """Get the current scenario context from the pool.
+
+    Args:
+        context: The behave context object
+
+    Returns:
+        The scenario-specific context for the current scenario
+
+    Raises:
+        AttributeError: If no scenario context pool or current scenario is available
+    """
+    if not hasattr(context, "scenario_context_pool"):
+        raise AttributeError("No scenario context pool available")
+
+    # Get the current scenario
+    current_scenario = context.scenario_context_pool.get_context(context.scenario.id)
+    if not current_scenario:
+        raise AttributeError("No current scenario available")
+
+    # Get the scenario ID
+    scenario_id = getattr(current_scenario, "scenario_id", None)
+    if not scenario_id:
+        raise AttributeError("No scenario ID available")
+
+    # Get the scenario context from the pool
+    return current_scenario
+
+
 def safe_has_attr(obj, attr):
     """A truly safe way to check if an attribute exists on an object.
 
@@ -84,7 +113,8 @@ def safe_set_attr(obj, attr, value):
 def safe_run_async(func):
     """A more robust decorator for running async functions in behave steps.
 
-    This decorator handles attribute access safely and provides better error handling.
+    This decorator handles attribute access safely, works with the scenario context pool,
+    and provides better error handling.
 
     Args:
         func: The async function to wrap
@@ -97,28 +127,33 @@ def safe_run_async(func):
     def wrapper(context, *args, **kwargs):
         logger = safe_get_attr(context, "logger", logging.getLogger("behave.async_test"))
 
+        # Get the scenario-specific context
+        try:
+            scenario_context = get_current_scenario_context(context)
+        except AttributeError as e:
+            logger.error(f"Failed to get scenario context: {e}")
+            raise
+
         # Safely get or create an event loop
-        if (
-            not safe_has_attr(context, "_async_test_loop")
-            or safe_get_attr(context, "_async_test_loop") is None
-            or safe_get_attr(safe_get_attr(context, "_async_test_loop", object()), "is_closed", lambda: True)()
-        ):
+        # First check if there's an event loop stored in the scenario context
+        event_loop = scenario_context.get("_async_test_loop")
+        if event_loop is None or getattr(event_loop, "is_closed", lambda: True)():
             logger.info("Creating new event loop for test")
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            safe_set_attr(context, "_async_test_loop", loop)
+            scenario_context.store("_async_test_loop", loop)
         else:
-            loop = safe_get_attr(context, "_async_test_loop")
+            loop = event_loop
             asyncio.set_event_loop(loop)
 
         # Run the async function
         async def run_func():
             # Set main task if it doesn't exist
-            if not safe_has_attr(context, "_main_task"):
-                safe_set_attr(context, "_main_task", asyncio.current_task())
+            if scenario_context.get("_main_task") is None:
+                scenario_context.store("_main_task", asyncio.current_task())
 
             # Make sure we have the async adapter available
-            if not hasattr(context.scenario_context, "async_adapter") or context.scenario_context.async_adapter is None:
+            if not hasattr(scenario_context, "async_adapter") or scenario_context.async_adapter is None:
                 logger.error("No async adapter available in the scenario context")
                 raise RuntimeError("Async adapter not properly configured")
 
@@ -144,7 +179,8 @@ def safe_run_async(func):
 class SafeAsyncContextManager:
     """A more robust async context manager for Behave tests.
 
-    This context manager handles attributes safely and provides better error handling.
+    This context manager handles attributes safely, works with the scenario context pool,
+    and provides better error handling.
     """
 
     def __init__(self, context: Context):
@@ -152,26 +188,30 @@ class SafeAsyncContextManager:
         self.logger = safe_get_attr(context, "logger", logging.getLogger("behave.async_context"))
         self.loop = None
 
+        # Get the scenario-specific context
+        try:
+            self.scenario_context = get_current_scenario_context(context)
+        except AttributeError as e:
+            self.logger.error(f"Failed to get scenario context: {e}")
+            raise
+
     def __enter__(self):
-        # Safely get or create an event loop
-        if (
-            not safe_has_attr(self.context, "_async_test_loop")
-            or safe_get_attr(self.context, "_async_test_loop") is None
-            or safe_get_attr(safe_get_attr(self.context, "_async_test_loop", object()), "is_closed", lambda: True)()
-        ):
+        # Safely get or create an event loop from the scenario context
+        event_loop = self.scenario_context.get("_async_test_loop")
+        if event_loop is None or getattr(event_loop, "is_closed", lambda: True)():
             self.logger.info("Creating new event loop in context manager")
             self.loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self.loop)
-            safe_set_attr(self.context, "_async_test_loop", self.loop)
+            self.scenario_context.store("_async_test_loop", self.loop)
         else:
-            self.loop = safe_get_attr(self.context, "_async_test_loop")
+            self.loop = event_loop
             asyncio.set_event_loop(self.loop)
 
         # Set up main task if needed
-        if not safe_has_attr(self.context, "_main_task"):
+        if self.scenario_context.get("_main_task") is None:
 
             async def setup_task():
-                safe_set_attr(self.context, "_main_task", asyncio.current_task())
+                self.scenario_context.store("_main_task", asyncio.current_task())
 
             try:
                 self.loop.run_until_complete(setup_task())
