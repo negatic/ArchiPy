@@ -75,7 +75,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [project.urls]
-Homepage = "https://github.com/SyntaxArc/ArchiPy"
+Homepage = "https://syntaxarc.github.io/ArchiPy/"
 Documentation = "https://archipy.readthedocs.io/"
 "Bug Tracker" = "https://github.com/SyntaxArc/ArchiPy/issues"
 "Source Code" = "https://github.com/SyntaxArc/ArchiPy"
