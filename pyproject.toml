@@ -70,6 +70,9 @@ build-backend = "poetry.core.masonry.api"
 
 [project.urls]
 Homepage = "https://github.com/SyntaxArc/ArchiPy"
+Documentation = "https://archipy.readthedocs.io/"
+"Bug Tracker" = "https://github.com/SyntaxArc/ArchiPy/issues"
+"Source Code" = "https://github.com/SyntaxArc/ArchiPy"
 
 [tool.black]
 # Enable colored output
@@ -258,8 +261,6 @@ plugins = [
     "sqlalchemy.ext.mypy.plugin", # SQLAlchemy plugin for ORM type checking
     "fastapi.mypy", # FastAPI plugin for route and dependency type checking
 ]
-
-
 
 [[tool.mypy.overrides]]
 module = [
