@@ -1,16 +1,18 @@
 .. _api_configs:
 
 Configs
-======
+=======
 
 Overview
 --------
 
-The configs module contains configuration templates for various services used in the application.
+The configs module provides tools for standardized configuration management and injection, supporting consistent setup across services like databases, Redis, and email.
 
+Configuration Classes
+---------------------
 
 Base Config
-~~~~~~~~~
+~~~~~~~~~~~
 
 .. automodule:: archipy.configs.base_config
    :members:
@@ -18,26 +20,18 @@ Base Config
    :show-inheritance:
 
 Config Templates
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 
 .. automodule:: archipy.configs.config_template
    :members:
    :undoc-members:
    :show-inheritance:
 
-Environment Type
-~~~~~~~~~~~~~
-
-.. automodule:: archipy.configs.environment_type
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Key Classes
----------
+-----------
 
 BaseConfig
-~~~~~~~~
+~~~~~~~~~~
 
 .. autoclass:: archipy.configs.base_config.BaseConfig
    :members:
@@ -45,7 +39,7 @@ BaseConfig
    :show-inheritance:
 
 SqlAlchemyConfig
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 
 .. autoclass:: archipy.configs.config_template.SqlAlchemyConfig
    :members:
@@ -53,7 +47,7 @@ SqlAlchemyConfig
    :show-inheritance:
 
 RedisConfig
-~~~~~~~~~
+~~~~~~~~~~~
 
 .. autoclass:: archipy.configs.config_template.RedisConfig
    :members:
@@ -61,7 +55,7 @@ RedisConfig
    :show-inheritance:
 
 EmailConfig
-~~~~~~~~~
+~~~~~~~~~~~
 
 .. autoclass:: archipy.configs.config_template.EmailConfig
    :members:

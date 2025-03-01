@@ -1,117 +1,53 @@
 .. _features:
 
 Features
-=======
+========
 
-Modern Python Stack
-------------------
+ArchiPy provides a robust framework for structured Python development, focusing on standardization, testability, and productivity.
 
-ArchiPy is built with modern Python technologies:
+Configuration Management
+------------------------
 
-- **Python 3.13+**: Leveraging the latest Python features
-- **Type Annotations**: Comprehensive type hinting for better IDE support
-- **Pydantic**: For data validation and settings management
-- **SQLAlchemy**: ORM for database operations
-- **FastAPI**: High-performance web framework
-- **gRPC**: For efficient microservice communication
+- **Standardized Configs**: Use `base_config` and `config_template` for consistent setup.
+- **Injection**: Seamlessly inject configurations into components.
 
-Modular Design
--------------
-
-ArchiPy is designed with modularity in mind:
-
-- **Optional Dependencies**: Install only what you need
-- **Pluggable Components**: Easy to extend and customize
-- **Clean Interfaces**: Well-defined APIs between components
-
-Database Support
---------------
-
-- **SQLAlchemy Integration**: Robust ORM support
-- **Connection Pooling**: Efficient database connection management
-- **Async Support**: Native async database operations
-- **Migration Tools**: Database schema management
-- **PostgreSQL**: First-class support for PostgreSQL
-
-Caching with Redis
+Adapters & Mocks
 ----------------
 
-- **Redis Adapter**: Easy-to-use Redis client
-- **Async Support**: Async Redis operations
-- **Connection Pooling**: Efficient connection management
-- **Serialization**: Automatic data serialization/deserialization
+- **Common Adapters**: Pre-built for Redis, SQLAlchemy, and email.
+- **Mocks**: Testable mocks (e.g., `redis_mocks`, `sqlalchemy_mocks`) for isolated testing.
+- **Async Support**: Synchronous and asynchronous implementations.
 
-API Development
--------------
+Data Standardization
+--------------------
 
-- **FastAPI Integration**: High-performance API development
-- **Request Validation**: Automatic request validation with Pydantic
-- **Rate Limiting**: Built-in rate limiting support
-- **Authentication**: JWT authentication support
-- **Swagger Documentation**: Automatic API documentation
+- **Base Entities**: Standardized SQLAlchemy entities (`base_entities.py`).
+- **DTOs**: Pydantic-based DTOs (e.g., `pagination_dto`, `error_dto`).
+- **Type Safety**: Enforced via `pydantic` and `mypy`.
 
-gRPC Support
-----------
+Helper Utilities
+----------------
 
-- **Interceptors**: Client and server interceptors
-- **Tracing**: Distributed tracing support
-- **Metrics**: Prometheus metrics integration
-- **Error Handling**: Structured error handling
+- **Utilities**: Tools like `datetime_utils`, `jwt_utils`, `password_utils`.
+- **Decorators**: `retry`, `singleton`, `sqlalchemy_atomic`, etc.
+- **Interceptors**: Rate limiting (FastAPI), tracing (gRPC).
 
-Monitoring and Observability
---------------------------
-
-- **Prometheus Integration**: Metrics collection and monitoring
-- **Elastic APM**: Application performance monitoring
-- **Sentry**: Error tracking and reporting
-- **Structured Logging**: Consistent log formatting
-
-Email Support
+BDD Testing
 -----------
 
-- **SMTP Integration**: Send emails via SMTP
-- **Template Support**: Email templating
-- **Attachment Handling**: Support for email attachments
-- **Connection Pooling**: Efficient SMTP connection management
+- **Behave Integration**: Pre-configured for sync/async scenarios.
+- **Feature Files**: Examples like `app_utils.feature`, `totp_utils.feature`.
+- **Step Definitions**: Comprehensive steps for testing (e.g., `jwt_utils_steps.py`).
 
-Type Safety
----------
+Best Practices & Tooling
+------------------------
 
-- **Mypy Integration**: Static type checking
-- **Runtime Type Checking**: With Pydantic validation
-- **Type Annotations**: Comprehensive type hints
-- **Generic Types**: Support for generic types
+- **Poetry**: Dependency management for reproducible builds.
+- **Pre-commit**: Automated checks with `ruff`, `black`, and `mypy`.
+- **Structure**: Clean architecture with `pyproject.toml` for modern Python development.
 
-Testing Support
--------------
+Modular Design
+--------------
 
-- **Unit Testing**: With pytest
-- **Integration Testing**: For testing component interactions
-- **BDD Testing**: With behave for behavior-driven development
-- **Mocking**: Mocking frameworks for external dependencies
-- **Fixtures**: Reusable test fixtures
-
-Documentation
------------
-
-- **Docstrings**: Comprehensive docstrings
-- **Type Hints**: For better IDE support
-- **Sphinx Integration**: Automatic documentation generation
-- **API Documentation**: Detailed API documentation
-- **Usage Examples**: Code examples for common use cases
-
-Code Quality
-----------
-
-- **Linting**: With ruff for code quality checks
-- **Formatting**: With black for consistent code formatting
-- **Type Checking**: With mypy for static type checking
-- **Pre-commit Hooks**: Automated code quality checks
-- **CI/CD Integration**: Continuous integration and deployment
-
-Dependency Management
--------------------
-
-- **Poetry**: Modern dependency management
-- **Versioning**: Semantic versioning
-- **Virtual Environments**: Isolated development environments
+- **Optional Dependencies**: Install only what you need (e.g., `archipy[redis]`).
+- **Extensible**: Add custom adapters and helpers easily.

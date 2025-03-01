@@ -20,14 +20,15 @@
 [![Repo Size](https://img.shields.io/github/repo-size/SyntaxArc/ArchiPy)](https://github.com/SyntaxArc/ArchiPy)
 [![Code Size](https://img.shields.io/github/languages/code-size/SyntaxArc/ArchiPy)](https://github.com/SyntaxArc/ArchiPy)
 
-## **Perfect for Structured Design**
+## **Structured Python Development Made Simple**
 
-ArchiPy provides a robust architecture framework for building scalable and maintainable Python applications. It integrates modern Python tools and libraries to streamline development, testing, and deployment processes.
+ArchiPy is a Python framework designed to provide a standardized, scalable, and maintainable architecture for modern applications. Built with Python 3.13+, it offers a suite of tools, utilities, and best practices to streamline configuration management, testing, and development workflows while adhering to clean architecture principles.
 
 ---
 
 ## 📋 Table of Contents
 
+- [Goals](#-goals)
 - [Features](#-features)
 - [Prerequisites](#-prerequisites)
 - [Installation](#-installation)
@@ -41,31 +42,55 @@ ArchiPy provides a robust architecture framework for building scalable and maint
 
 ---
 
+## 🎯 Goals
+
+ArchiPy is built with the following objectives in mind:
+
+1. **Configuration Management & Injection**
+   Simplify and standardize configuration handling with tools like `base_config.py` and dependency injection, ensuring consistent and reusable setups across projects.
+
+2. **Common Adapters & Mocks**
+   Provide ready-to-use adapters (e.g., Redis, SQLAlchemy, email) with corresponding mocks for seamless delegation and testing without external dependencies.
+
+3. **Standardized Entities & DTOs**
+   Offer base entities, data transfer objects (DTOs), and type definitions to enforce consistency and reduce boilerplate in data modeling.
+
+4. **Common Helpers for Everyday Tasks**
+   Include a rich set of utilities, decorators (e.g., retry, singleton), and interceptors (e.g., FastAPI rate limiting, gRPC tracing) to simplify routine development work.
+
+5. **Behavior-Driven Development (BDD) Support**
+   Integrate `behave` with pre-configured examples for synchronous and asynchronous scenario testing, enabling robust feature validation.
+
+6. **Best Practices & Development Structure**
+   Leverage `poetry`, `pre-commit`, `pyproject.toml`, and tools like `ruff` and `black` to enforce coding standards and provide an optimal Python development structure.
+
+---
+
 ## ✨ Features
 
-- **Modern Python Stack**: Built with Python 3.13 and leveraging tools like `pydantic`, `fastapi`, `gRPC` and  `sqlalchemy`.
-- **Modular Design**: Optional dependencies for Redis, gRPC, PostgreSQL, Prometheus, and more, including `fakeredis` for mock Redis testing.
-- **Type Safety**: Enforced by `mypy` and `pydantic` for robust, error-resistant code.
-- **Comprehensive Testing**: Integrated with `behave` for behavior-driven development.
-- **Code Quality Tools**: Uses `ruff` and `black` for clean and consistent code.
-- **Pre-commit Hooks**: Automates code quality checks before commits.
-- **Dependency Management**: Managed by `poetry` for reproducible builds.
+- **Config Standardization**: Tools for managing and injecting configurations effortlessly (`base_config`, `config_template`).
+- **Adapters & Mocks**: Pre-built adapters for Redis, SQLAlchemy, and email, with mocks like `redis_mocks` and `sqlalchemy_mocks` for testing.
+- **Data Standardization**: Base entities (`base_entities.py`), DTOs (e.g., `pagination_dto`, `error_dto`), and type safety with `pydantic` and `mypy`.
+- **Helper Utilities**: A collection of reusable tools including `datetime_utils`, `jwt_utils`, `password_utils`, and decorators like `sqlalchemy_atomic` and `timing_decorator`.
+- **BDD Testing**: Fully integrated `behave` setup with feature files (e.g., `app_utils.feature`) and step definitions for sync/async testing.
+- **Modern Tooling**: Dependency management with `poetry`, code quality with `ruff` and `black`, and pre-commit hooks for automated checks.
+- **Modular Design**: Optional dependencies for Redis, FastAPI, gRPC, PostgreSQL, and more, installable via `archipy[feature]`.
 
 ---
 
 ## 🛠️ Prerequisites
 
-Before starting with ArchiPy, ensure you have:
+Before using ArchiPy, ensure you have:
 
 - **Python 3.13 or higher**
-  ArchiPy is compatible with Python 3.13+.
+  Check your version with:
   ```bash
   python --version
   ```
-  If your Python version is lower than 3.13, [download and install the latest version of Python](https://www.python.org/downloads/).
+  [Download Python 3.13+](https://www.python.org/downloads/) if needed.
 
-- **Poetry** (for dependency management)
-  Poetry is required to manage dependencies and install the project. If you don't have Poetry installed, follow the [official installation guide](https://python-poetry.org/docs/).
+- **Poetry**
+  Install Poetry for dependency management: [Poetry Installation Guide](https://python-poetry.org/docs/).
 
 ---
 
@@ -73,20 +98,18 @@ Before starting with ArchiPy, ensure you have:
 
 ### From PyPI
 
-The simplest way to install ArchiPy:
+Install ArchiPy easily with `pip` or `poetry`:
 
 ```bash
 # Basic installation
 pip install archipy
 
-# With optional dependencies
+# With optional dependencies (e.g., Redis and FastAPI)
 pip install archipy[redis,fastapi]
 ```
 
-Or using Poetry:
-
+Using Poetry:
 ```bash
-# Basic installation
 poetry add archipy
 
 # With optional dependencies
@@ -95,20 +118,17 @@ poetry add archipy[redis,fastapi]
 
 ### From Source
 
-For development or the latest features:
-
-1. **Clone the Repository**
+For development or cutting-edge features:
+1. Clone the repository:
    ```bash
    git clone https://github.com/SyntaxArc/ArchiPy.git
    cd ArchiPy
    ```
-
-2. **Set Up the Project**
+2. Set up the project:
    ```bash
    make setup
    ```
-
-3. **Install Dependencies**
+3. Install dependencies:
    ```bash
    make install
    ```
@@ -119,7 +139,7 @@ For development or the latest features:
 
 ### Optional Dependencies
 
-ArchiPy provides modular functionality through optional dependencies:
+ArchiPy’s modular design lets you install only what you need:
 
 | Feature              | Installation Command            | Description                                      |
 |----------------------|---------------------------------|--------------------------------------------------|
@@ -137,32 +157,20 @@ ArchiPy provides modular functionality through optional dependencies:
 | aiosqlite            | `archipy[aiosqlite]`            | Asynchronous SQLite database support             |
 | FakeRedis            | `archipy[fakeredis]`            | Mock Redis client for testing without a server   |
 
-### Troubleshooting Installation
-
-If you encounter installation issues, check that:
-
-1. Your Python version is **3.13 or higher**
-2. Your package manager (`pip` or `poetry`) is up to date
-3. You have the necessary build tools installed (`setuptools`, `wheel`)
-
 ---
 
 ## 🛠️ Development
 
 ### Common Commands
 
-Run `make help` to see all available commands. Here are some frequently used ones:
+Run `make help` for all commands. Key ones include:
+- **Format Code**: `make format`
+- **Run Tests**: `make behave`
+- **Lint Code**: `make lint`
+- **Build Project**: `make build`
+- **Update Dependencies**: `make update`
 
-- **Format Code** 🧹 `make format`
-- **Run Linters** 🔍 `make lint`
-- **Run Tests** 🧪 `make behave`
-- **Build the Project** 🏗️ `make build`
-- **Clean Build Artifacts** 🧽 `make clean`
-- **Run All Checks** `make check`
-- **Run CI Pipeline Locally** `make ci`
-- **Update Dependencies** `make update`
-
-### Version Management
+### Versioning
 
 We follow [Semantic Versioning (SemVer)](https://semver.org/) principles:
 
@@ -181,13 +189,7 @@ For more detailed information about development processes, refer to our [contrib
 
 ## 🤝 Contributing
 
-We welcome contributions to ArchiPy! Please check out our [contribution guidelines](CONTRIBUTING.md) for details on:
-
-- Setting up your development environment
-- Development workflow
-- Submitting effective pull requests
-- Code style expectations
-- Testing requirements
+Contributions are welcome! See our [contribution guidelines](CONTRIBUTING.md) for details on setup, workflow, and standards.
 
 ---
 
@@ -214,10 +216,8 @@ For questions or feedback, feel free to reach out:
 
 ## 🔗 Links
 
-- **GitHub Repository**: [https://github.com/SyntaxArc/ArchiPy](https://github.com/SyntaxArc/ArchiPy)
-- **Documentation**: [https://archipy.readthedocs.io/](https://archipy.readthedocs.io/)
-- **Bug Tracker**: [https://github.com/SyntaxArc/ArchiPy/issues](https://github.com/SyntaxArc/ArchiPy/issues)
-- **Contributing Guidelines**: [https://github.com/SyntaxArc/ArchiPy/blob/master/CONTRIBUTING.md](https://github.com/SyntaxArc/ArchiPy/blob/master/CONTRIBUTING.md)
-- **Code of Conduct**: [https://github.com/SyntaxArc/ArchiPy/blob/master/CODE_OF_CONDUCT.md](https://github.com/SyntaxArc/ArchiPy/blob/master/CODE_OF_CONDUCT.md)
-
----
+- [GitHub](https://github.com/SyntaxArc/ArchiPy)
+- [Documentation](https://archipy.readthedocs.io/)
+- [Issues](https://github.com/SyntaxArc/ArchiPy/issues)
+- [Contributing](https://github.com/SyntaxArc/ArchiPy/blob/master/CONTRIBUTING.md)
+- [Code of Conduct](https://github.com/SyntaxArc/ArchiPy/blob/master/CODE_OF_CONDUCT.md)

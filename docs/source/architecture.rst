@@ -6,16 +6,16 @@ Architecture
 Overview
 --------
 
-ArchiPy follows a clean, hexagonal architecture pattern that separates concerns and promotes testability. The architecture is designed around the following key components:
+ArchiPy follows a hexagonal (Ports and Adapters) architecture, promoting separation of concerns and testability.
 
 .. image:: https://img.shields.io/badge/Architecture-Hexagonal-brightgreen
    :alt: Hexagonal Architecture
 
 Key Components
--------------
+--------------
 
 Adapters
-~~~~~~~
+~~~~~~~~
 
 Adapters are implementations of ports that connect the application to external systems:
 
@@ -35,9 +35,9 @@ Ports define interfaces that adapters must implement:
 - **EmailPort**: Interface for email operations
 
 Models
-~~~~~
+~~~~~~
 
-Models represent data structures:
+Standardize data:
 
 - **Entities**: Database models (e.g., SQLAlchemy models)
 - **DTOs**: Data Transfer Objects (using Pydantic)
@@ -45,93 +45,42 @@ Models represent data structures:
 - **Errors**: Custom error classes
 
 Helpers
-~~~~~~
+~~~~~~~
 
-Utility classes and functions:
+Enhance productivity:
 
 - **Utils**: Various utility functions
+- **Decorators**: Various decorators for methods and classes
 - **Interceptors**: Middleware for gRPC, FastAPI, etc.
 - **Metaclasses**: Special classes like Singleton
 
 Configs
-~~~~~~
+~~~~~~~
 
-Configuration templates for various services:
+Standardize setup:
 
-- **BaseConfig**: Base configuration class
-- **SqlAlchemyConfig**: Database configuration
-- **RedisConfig**: Redis configuration
-- **EmailConfig**: Email service configuration
-- **FastAPIConfig**: FastAPI configuration
-- **GrpcConfig**: gRPC configuration
+- **BaseConfig**: `base_config.py`
+- **Templates**: `config_template.py`
 
-Class Diagram
-------------
+Hexagonal Design
+----------------
 
-Below is a simplified class diagram of the main components:
+- **Core**: Business logic (models, helpers).
+- **Ports**: Interfaces for external interaction.
+- **Adapters**: Implementations for external systems.
 
-.. code-block::
-
-   +-----------------+     +------------------+     +----------------+
-   |     Ports       |<----+     Adapters     +---->|    Models      |
-   +-----------------+     +------------------+     +----------------+
-            ^                       ^                      ^
-            |                       |                      |
-            |                       |                      |
-            v                       v                      v
-   +-----------------+     +------------------+     +----------------+
-   |    Helpers      |     |     Configs      |     |    Utils       |
-   +-----------------+     +------------------+     +----------------+
-
-Hexagonal Architecture
---------------------
-
-ArchiPy follows the Hexagonal Architecture (also known as Ports and Adapters) pattern:
-
-- **Core Domain**: The central part of the application containing business logic
-- **Ports**: Interfaces that define how to interact with the domain
-- **Adapters**: Implementations of the ports connecting to external systems
-
-Benefits of this architecture:
-
-1. **Separation of Concerns**: Business logic is separate from external systems
-2. **Testability**: Easy to mock external dependencies
-3. **Flexibility**: Easy to swap out adapters without changing the core domain
-4. **Maintainability**: Clean boundaries between components
+Benefits:
+1. Testability with mocks.
+2. Flexibility in swapping adapters.
+3. Clear boundaries.
 
 Dependency Injection
-------------------
+--------------------
 
-ArchiPy uses dependency injection to manage dependencies:
+Example:
 
 .. code-block:: python
 
-   # Example of dependency injection
-
-   class UserService:
-       def __init__(self, user_repository):
-           self.user_repository = user_repository
-
-   # Adapter implementation
-   user_repository = SqlAlchemyAdapter(session_manager, UserEntity)
-
-   # Inject the adapter
-   user_service = UserService(user_repository)
-
-Error Handling Strategy
----------------------
-
-ArchiPy provides a comprehensive set of custom errors, all inheriting from a base ``BaseError`` class:
-
-- **Domain Errors**: Errors related to business logic
-- **Infrastructure Errors**: Errors related to external systems
-- **Validation Errors**: Errors related to data validation
-
-Key Design Principles
--------------------
-
-1. **Explicit is better than implicit**
-2. **Composition over inheritance**
-3. **Single Responsibility Principle**
-4. **Interface Segregation Principle**
-5. **Dependency Inversion Principle**
+   from archipy.adapters.orm.sqlalchemy.sqlalchemy_adapters import SqlAlchemyAdapter
+   service_repository = MyServiceRepository(sqlalchemy_adapter=SqlAlchemyAdapter())  # Inject adapter
+   service = MyService(repository=service_repository)
