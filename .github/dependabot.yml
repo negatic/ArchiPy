@@ -1,21 +1,33 @@
 version: 2
+
+registries:
+  pypi-python-org:
+    type: python-index
+    url: https://pypi.org/simple/
+    replaces-base: true
 updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
-    versioning-strategy: "auto"
+    versioning-strategy: "lockfile-only"
     open-pull-requests-limit: 10
     allow:
-      - dependency-type: "direct"
+      - dependency-type: "all"
     labels:
       - "dependencies"
       - "python"
     commit-message:
       prefix: "deps"
       include: "scope"
+    registries:
+      - pypi-python-org
+    parser-opts:
+      poetry-lock: true
+    ignore:
+ 
     
-
+  
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -26,3 +38,4 @@ updates:
     commit-message:
       prefix: "ci"
       include: "scope"
+ 
