@@ -21,10 +21,7 @@ updates:
       prefix: "deps"
       include: "scope"
     registries:
-      - pypi-python-org
-    parser-opts:
-      poetry-lock: true
- 
+      - pypi-python-org 
     
   
   - package-ecosystem: "github-actions"
