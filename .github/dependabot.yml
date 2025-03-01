@@ -24,7 +24,6 @@ updates:
       - pypi-python-org
     parser-opts:
       poetry-lock: true
-    ignore:
  
     
   
