@@ -22,7 +22,7 @@ updates:
       include: "scope"
     registries:
       - pypi-python-org 
-    
+    insecure-external-code-execution: allow
   
   - package-ecosystem: "github-actions"
     directory: "/"
