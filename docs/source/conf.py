@@ -107,6 +107,30 @@ html_favicon = None
 html_title = f"{project} {version} Documentation"
 html_short_title = project
 
+# Add search functionality
+html_theme_options = {
+    "navigation_depth": 4,
+    "titles_only": False,
+    "logo_only": False,
+    "display_version": True,
+    "prev_next_buttons_location": "bottom",
+    "style_external_links": False,
+    "style_nav_header_background": "#2980B9",
+}
+
+# Add GitHub links
+html_context = {
+    "display_github": True,
+    "github_user": "SyntaxArc",
+    "github_repo": "ArchiPy",
+    "github_version": "main",
+    "conf_py_path": "/docs/source/",
+}
+
+# Enable search functionality
+html_use_index = True
+html_domain_indices = True
+
 # -- Options for intersphinx -------------------------------------------------
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),

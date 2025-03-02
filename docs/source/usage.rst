@@ -1,16 +1,155 @@
 .. _usage:
 
-Usage
-=====
-
 Getting Started
---------------
+==============
 
-After installing ArchiPy, import its components to leverage its structured architecture:
+This guide will help you start building applications with ArchiPy.
+
+Basic Setup
+----------
+
+1. First, initialize your application with a configuration:
+
+   .. code-block:: python
+
+       from archipy.configs.base_config import BaseConfig
+
+       class AppConfig(BaseConfig):
+           # Custom configuration
+           pass
+
+       # Set as global config
+       config = AppConfig()
+       BaseConfig.set_global(config)
+
+2. Define your domain models:
+
+   .. code-block:: python
+
+       from uuid import uuid4
+       from sqlalchemy import Column, String, ForeignKey
+       from sqlalchemy.orm import relationship
+       from archipy.models.entities import BaseEntity
+
+       class User(BaseEntity):
+           __tablename__ = "users"
+
+           username = Column(String(100), unique=True)
+           email = Column(String(255), unique=True)
+
+           # Relationships
+           posts = relationship("Post", back_populates="author")
+
+       class Post(BaseEntity):
+           __tablename__ = "posts"
+
+           title = Column(String(255))
+           content = Column(String(1000))
+
+           # Foreign keys
+           author_id = Column(UUID, ForeignKey("users.test_uuid"))
+
+           # Relationships
+           author = relationship("User", back_populates="posts")
+
+3. Set up your database adapter:
+
+   .. code-block:: python
+
+       from archipy.adapters.orm.sqlalchemy.session_manager_adapters import SessionManagerAdapter
+       from archipy.adapters.orm.sqlalchemy.sqlalchemy_adapters import SqlAlchemyAdapter
+
+       # Create session manager
+       session_manager = SessionManagerAdapter()
+
+       # Create adapter
+       db_adapter = SqlAlchemyAdapter(session_manager)
+
+       # Create tables (development only)
+       BaseEntity.metadata.create_all(session_manager.engine)
+
+4. Implement your repositories:
+
+   .. code-block:: python
+
+       from sqlalchemy import select
+
+       class UserRepository:
+           def __init__(self, db_adapter):
+               self.db_adapter = db_adapter
+
+           def create(self, username, email):
+               user = User(test_uuid=uuid4(), username=username, email=email)
+               return self.db_adapter.create(user)
+
+           def get_by_username(self, username):
+               query = select(User).where(User.username == username)
+               users, _ = self.db_adapter.execute_search_query(User, query)
+               return users[0] if users else None
+
+5. Implement your business logic:
+
+   .. code-block:: python
+
+       class UserService:
+           def __init__(self, user_repository):
+               self.user_repository = user_repository
+
+           def register_user(self, username, email):
+               # Business logic here (validation, etc.)
+               return self.user_repository.create(username, email)
+
+Working with Redis
+----------------
+
+For caching or other Redis operations:
 
 .. code-block:: python
 
-   import archipy
+    from archipy.adapters.redis.redis_adapters import RedisAdapter
+
+    # Create Redis adapter
+    redis_adapter = RedisAdapter()
+
+    # Cache user data
+    def cache_user(user):
+        user_data = {
+            "username": user.username,
+            "email": user.email
+        }
+        redis_adapter.set(f"user:{user.test_uuid}", json.dumps(user_data), ex=3600)
+
+    # Get cached user
+    def get_cached_user(user_id):
+        data = redis_adapter.get(f"user:{user_id}")
+        return json.loads(data) if data else None
+
+Working with FastAPI
+------------------
+
+Integrate with FastAPI:
+
+.. code-block:: python
+
+    from fastapi import FastAPI, Depends, HTTPException
+    from archipy.helpers.utils.app_utils import AppUtils
+
+    # Create FastAPI app
+    app = AppUtils.create_fastapi_app(BaseConfig.global_config())
+
+    # Create dependencies
+    def get_user_service():
+        user_repo = UserRepository(db_adapter)
+        return UserService(user_repo)
+
+    # Define routes
+    @app.post("/users/")
+    def create_user(username: str, email: str, service: UserService = Depends(get_user_service)):
+        try:
+            user = service.register_user(username, email)
+            return {"id": str(user.test_uuid), "username": user.username}
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
 
 Examples
 --------
