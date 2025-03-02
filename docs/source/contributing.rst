@@ -71,7 +71,7 @@ Run the tests to ensure your changes don't break existing functionality:
    make behave
 
 Documentation
-~~~~~~~~~~~
+~~~~~~~~~~~~~
 
 All new features or changes should be documented:
 
@@ -87,7 +87,7 @@ Building the documentation locally:
    make html
 
 Commit Messages
-~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
 
 ArchiPy follows the `Conventional Commits <https://www.conventionalcommits.org/>`_ specification for commit messages:
 
@@ -106,7 +106,7 @@ Common types:
 - ``chore``: Maintenance tasks
 
 Pull Request Process
------------------
+--------------------
 
 1. **Update Your Branch**
 
@@ -145,7 +145,7 @@ Pull Request Process
    Once your pull request is approved, it will be merged into the main branch.
 
 Bug Reports and Feature Requests
-------------------------------
+--------------------------------
 
 If you find a bug or have a feature request, please create an issue on the `GitHub issues page <https://github.com/SyntaxArc/ArchiPy/issues>`_.
 
@@ -166,11 +166,11 @@ When submitting a feature request, please include:
 - If possible, a sketch of how the feature might be implemented
 
 Code of Conduct
--------------
+---------------
 
 Please note that ArchiPy has a code of conduct. By participating in this project, you agree to abide by its terms.
 
 Thank You
---------
+---------
 
 Thank you for contributing to ArchiPy! Your efforts help make the project better for everyone.

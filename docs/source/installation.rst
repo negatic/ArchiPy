@@ -4,62 +4,61 @@ Installation
 ===========
 
 Prerequisites
-------------
+-------------
 
-Before you begin, ensure you have the following installed:
+Before starting, ensure you have:
 
 - **Python 3.13 or higher**
 
-  ArchiPy is compatible with Python 3.13 and above but does not support Python 4 or higher.
-  To check your Python version, run:
+  ArchiPy requires Python 3.13+. Check your version with:
 
   .. code-block:: bash
 
      python --version
 
-  If your Python version is lower than 3.13, `download and install the latest version of Python <https://www.python.org/downloads/>`_.
+  If needed, `download Python 3.13+ <https://www.python.org/downloads/>`_.
 
 - **Poetry** (for dependency management)
 
-  Poetry is required to manage dependencies and install the project. If you don't have Poetry installed, follow the `official installation guide <https://python-poetry.org/docs/>`_.
+  Poetry manages dependencies and project setup. Install it via the `official guide <https://python-poetry.org/docs/>`_.
 
 Installation Methods
--------------------
+--------------------
 
 Using pip
 ~~~~~~~~~
 
-To install the core library:
+Install the core library:
 
 .. code-block:: bash
 
    pip install archipy
 
-To install the library with optional dependencies (e.g., ``redis``, ``fastapi``, etc.):
+With optional dependencies (e.g., Redis, FastAPI):
 
 .. code-block:: bash
 
    pip install archipy[redis,fastapi]
 
-Using poetry
-~~~~~~~~~~~
+Using Poetry
+~~~~~~~~~~~~
 
-To add the core library to your project:
+Add the core library:
 
 .. code-block:: bash
 
    poetry add archipy
 
-To add the library with optional dependencies (e.g., ``redis``, ``fastapi``, etc.):
+With optional dependencies:
 
 .. code-block:: bash
 
    poetry add archipy[redis,fastapi]
 
 Optional Dependencies
--------------------
+---------------------
 
-The library provides optional dependencies for additional functionality. You can install them as needed:
+ArchiPy supports modular features:
 
 .. list-table::
    :header-rows: 1
@@ -69,8 +68,6 @@ The library provides optional dependencies for additional functionality. You can
      - Installation Command
    * - Redis
      - ``archipy[redis]``
-   * - Elastic APM
-     - ``archipy[elastic-apm]``
    * - FastAPI
      - ``archipy[fastapi]``
    * - JWT
@@ -89,13 +86,17 @@ The library provides optional dependencies for additional functionality. You can
      - ``archipy[grpc]``
    * - PostgreSQL
      - ``archipy[postgres]``
-   * - aiosqlite
-     - ``archipy[aiosqlite]``
+   * - FakeRedis
+     - ``archipy[fakeredis]``
+   * - JWT
+     - ``archipy[jwt]``
+   * - Full list
+     - See `Usage <usage>`_ section
 
 Development Installation
------------------------
+------------------------
 
-For contributors and developers:
+For contributors:
 
 .. code-block:: bash
 
@@ -109,20 +110,14 @@ For contributors and developers:
    # Install dependencies
    make install
 
-   # Install development dependencies (optional)
+   # Optional: Install dev tools
    make install-dev
 
-Troubleshooting Installation Issues
-----------------------------------
+Troubleshooting
+---------------
 
-If you encounter issues during installation, ensure that:
+If issues arise, verify:
 
-1. Your Python version is **3.13 or higher**.
-2. Your package manager (``pip`` or ``poetry``) is up to date.
-3. You have the necessary build tools installed (e.g., ``setuptools``, ``wheel``).
-
-For example, to upgrade ``pip``, run:
-
-.. code-block:: bash
-
-   pip install --upgrade pip
+1. Python version is 3.13+.
+2. ``pip`` or ``poetry`` is updated (e.g., ``pip install --upgrade pip``).
+3. Build tools (``setuptools``, ``wheel``) are installed.

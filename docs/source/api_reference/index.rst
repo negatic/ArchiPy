@@ -1,9 +1,16 @@
 .. _api_reference:
 
 API Reference
-============
+=============
 
-This section provides detailed API documentation for ArchiPy's modules and components.
+This section documents ArchiPy’s modules and classes, designed to support a standardized, testable, and scalable Python architecture. The API reflects the project’s core goals:
+
+- **Configuration Management**: Standardized config handling and injection.
+- **Adapters & Mocks**: Interfaces and implementations for external systems with testing mocks.
+- **Data Standardization**: Base entities, DTOs, and types for consistency.
+- **Helper Utilities**: Tools, decorators, and interceptors for productivity.
+- **BDD Support**: Integrated with testing utilities (see `features/` for examples).
+- **Best Practices**: Structured for modern Python development.
 
 .. toctree::
    :maxdepth: 2

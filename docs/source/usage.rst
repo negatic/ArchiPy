@@ -1,167 +1,290 @@
 .. _usage:
 
-Usage
-=====
-
 Getting Started
---------------
+==============
 
-After installing ArchiPy, you can import it in your Python code:
+This guide will help you start building applications with ArchiPy.
+
+Basic Setup
+----------
+
+1. First, initialize your application with a configuration:
+
+   .. code-block:: python
+
+       from archipy.configs.base_config import BaseConfig
+
+       class AppConfig(BaseConfig):
+           # Custom configuration
+           pass
+
+       # Set as global config
+       config = AppConfig()
+       BaseConfig.set_global(config)
+
+2. Define your domain models:
+
+   .. code-block:: python
+
+       from uuid import uuid4
+       from sqlalchemy import Column, String, ForeignKey
+       from sqlalchemy.orm import relationship
+       from archipy.models.entities import BaseEntity
+
+       class User(BaseEntity):
+           __tablename__ = "users"
+
+           username = Column(String(100), unique=True)
+           email = Column(String(255), unique=True)
+
+           # Relationships
+           posts = relationship("Post", back_populates="author")
+
+       class Post(BaseEntity):
+           __tablename__ = "posts"
+
+           title = Column(String(255))
+           content = Column(String(1000))
+
+           # Foreign keys
+           author_id = Column(UUID, ForeignKey("users.test_uuid"))
+
+           # Relationships
+           author = relationship("User", back_populates="posts")
+
+3. Set up your database adapter:
+
+   .. code-block:: python
+
+       from archipy.adapters.orm.sqlalchemy.session_manager_adapters import SessionManagerAdapter
+       from archipy.adapters.orm.sqlalchemy.sqlalchemy_adapters import SqlAlchemyAdapter
+
+       # Create session manager
+       session_manager = SessionManagerAdapter()
+
+       # Create adapter
+       db_adapter = SqlAlchemyAdapter(session_manager)
+
+       # Create tables (development only)
+       BaseEntity.metadata.create_all(session_manager.engine)
+
+4. Implement your repositories:
+
+   .. code-block:: python
+
+       from sqlalchemy import select
+
+       class UserRepository:
+           def __init__(self, db_adapter):
+               self.db_adapter = db_adapter
+
+           def create(self, username, email):
+               user = User(test_uuid=uuid4(), username=username, email=email)
+               return self.db_adapter.create(user)
+
+           def get_by_username(self, username):
+               query = select(User).where(User.username == username)
+               users, _ = self.db_adapter.execute_search_query(User, query)
+               return users[0] if users else None
+
+5. Implement your business logic:
+
+   .. code-block:: python
+
+       class UserService:
+           def __init__(self, user_repository):
+               self.user_repository = user_repository
+
+           def register_user(self, username, email):
+               # Business logic here (validation, etc.)
+               return self.user_repository.create(username, email)
+
+Working with Redis
+----------------
+
+For caching or other Redis operations:
 
 .. code-block:: python
 
-   import archipy
+    from archipy.adapters.redis.redis_adapters import RedisAdapter
 
-Basic Examples
--------------
+    # Create Redis adapter
+    redis_adapter = RedisAdapter()
 
-Configuration
-~~~~~~~~~~~~
+    # Cache user data
+    def cache_user(user):
+        user_data = {
+            "username": user.username,
+            "email": user.email
+        }
+        redis_adapter.set(f"user:{user.test_uuid}", json.dumps(user_data), ex=3600)
 
-ArchiPy provides configuration templates for various services:
+    # Get cached user
+    def get_cached_user(user_id):
+        data = redis_adapter.get(f"user:{user_id}")
+        return json.loads(data) if data else None
 
-.. code-block:: python
+Working with FastAPI
+------------------
 
-   from archipy.configs.config_template import SqlAlchemyConfig, RedisConfig
-
-   # Set up database configuration
-   db_config = SqlAlchemyConfig(
-       url="postgresql://user:password@localhost:5432/db_name",
-       pool_size=5,
-       max_overflow=10
-   )
-
-   # Set up Redis configuration
-   redis_config = RedisConfig(
-       host="localhost",
-       port=6379,
-       db=0
-   )
-
-Using SQLAlchemy Adapters
-~~~~~~~~~~~~~~~~~~~~~~~
+Integrate with FastAPI:
 
 .. code-block:: python
 
-   from archipy.adapters.orm.sqlalchemy.sqlalchemy_adapters import SqlAlchemyAdapter
-   from archipy.adapters.orm.sqlalchemy.session_manager_adapters import SessionManagerAdapter
+    from fastapi import FastAPI, Depends, HTTPException
+    from archipy.helpers.utils.app_utils import AppUtils
 
-   # Create a session manager
-   session_manager = SessionManagerAdapter(db_config)
+    # Create FastAPI app
+    app = AppUtils.create_fastapi_app(BaseConfig.global_config())
 
-   # Create a SQLAlchemy adapter
-   adapter = SqlAlchemyAdapter(session_manager, YourEntity)
+    # Create dependencies
+    def get_user_service():
+        user_repo = UserRepository(db_adapter)
+        return UserService(user_repo)
 
-   # Use the adapter
-   results = adapter.find_all()
+    # Define routes
+    @app.post("/users/")
+    def create_user(username: str, email: str, service: UserService = Depends(get_user_service)):
+        try:
+            user = service.register_user(username, email)
+            return {"id": str(user.test_uuid), "username": user.username}
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
 
-Working with Entities
-~~~~~~~~~~~~~~~~~~~
+Examples
+--------
 
-ArchiPy provides base entity classes for your database models:
+Configuration Management
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Standardize and inject configurations:
+
+.. code-block:: python
+
+   from archipy.configs.base_config import BaseConfig
+
+   # Define a custom config
+   class MyAppConfig(BaseConfig):
+       database_url: str = "sqlite:///example.db"
+       redis_host: str = "localhost"
+
+   config = MyAppConfig()
+   print(config.database_url)  # "sqlite:///example.db"
+
+Adapters & Mocks
+~~~~~~~~~~~~~~~~
+
+Use adapters for external systems with mocks for testing:
+
+.. code-block:: python
+
+   from archipy.adapters.redis.redis_adapters import AsyncRedisAdapter
+   from archipy.adapters.redis.redis_mocks import AsyncRedisMock
+
+   # Production use
+   redis = AsyncRedisAdapter()
+   await redis.set("key", "value", ex=3600)
+   print(await redis.get("key"))  # "value"
+
+   # Testing with mock
+   mock_redis = AsyncRedisMock()
+   await mock_redis.set("key", "test")
+   print(await mock_redis.get("key"))  # "test"
+
+Entities & DTOs
+~~~~~~~~~~~~~~~
+
+Standardize data models:
 
 .. code-block:: python
 
    from sqlalchemy import Column, Integer, String
    from archipy.models.entities.sqlalchemy.base_entities import BaseEntity
-
-   class User(BaseEntity):
-       __tablename__ = "users"
-
-       id = Column(Integer, primary_key=True)
-       name = Column(String(100))
-       email = Column(String(100))
-
-Using DTOs (Data Transfer Objects)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-   from pydantic import Field
    from archipy.models.dtos.base_dtos import BaseDTO
 
+   # Entity
+   class User(BaseEntity):
+       __tablename__ = "users"
+       id = Column(Integer, primary_key=True)
+       name = Column(String(100))
+
+   # DTO
    class UserDTO(BaseDTO):
        id: int
        name: str
-       email: str
-       age: int = Field(gt=0)
 
-Making Async Requests
-~~~~~~~~~~~~~~~~~~~
+   user = UserDTO(id=1, name="Alice")
+   print(user.model_dump())  # {'id': 1, 'name': 'Alice'}
 
-ArchiPy supports async operations for database and Redis:
+Helper Utilities
+~~~~~~~~~~~~~~~~
+
+Simplify tasks with utilities and decorators:
+
+.. code-block:: python
+
+   from archipy.helpers.utils.datetime_utils import get_utc_now
+   from archipy.helpers.decorators.retry import retry
+
+   # Utility
+   now = get_utc_now()
+   print(now)  # Current UTC time
+
+   # Decorator
+   @retry(max_attempts=3, delay=1)
+   def risky_operation():
+       # Simulated failure
+       raise ValueError("Try again")
+
+   try:
+       risky_operation()
+   except ValueError as e:
+       print(f"Failed after retries: {e}")
+
+BDD Testing
+~~~~~~~~~~~
+
+Validate features with `behave`:
+
+.. code-block:: bash
+
+   # Run BDD tests
+   make behave
+
+Example feature file (`features/app_utils.feature`):
+
+.. code-block:: gherkin
+
+   Feature: Application Utilities
+     Scenario: Get UTC time
+       When I get the current UTC time
+       Then the result should be a valid datetime
+
+Async Operations
+~~~~~~~~~~~~~~~~
+
+Support for asynchronous workflows:
 
 .. code-block:: python
 
    import asyncio
    from archipy.adapters.orm.sqlalchemy.sqlalchemy_adapters import AsyncSqlAlchemyAdapter
 
-   async def fetch_data():
-       adapter = AsyncSqlAlchemyAdapter(async_session_manager, YourEntity)
-       results = await adapter.find_all()
-       return results
+   async def fetch_users():
+       adapter = AsyncSqlAlchemyAdapter(session_manager, User)
+       users = await adapter.execute_search_query(User, pagination=None, sort_info=None)
+       return users
 
-   # Run the async function
-   asyncio.run(fetch_data())
-
-Error Handling
-~~~~~~~~~~~~
-
-ArchiPy provides a comprehensive set of custom errors:
-
-.. code-block:: python
-
-   from archipy.models.errors.custom_errors import NotFoundError, InvalidArgumentError
-
-   try:
-       # Your code here
-       if not valid_input:
-           raise InvalidArgumentError("Invalid input provided")
-   except NotFoundError as e:
-       # Handle not found error
-       print(f"Resource not found: {str(e)}")
-   except InvalidArgumentError as e:
-       # Handle invalid argument error
-       print(f"Invalid argument: {str(e)}")
+   users, total = asyncio.run(fetch_users())
+   print(users)  # List of User entities
 
 Available Commands
-----------------
+------------------
 
-Run ``make help`` to see all available commands:
+Run ``make help`` for all commands. Common ones:
 
-.. code-block:: bash
-
-   make help
-
-Common Commands
-~~~~~~~~~~~~~
-
-Format Code:
-
-.. code-block:: bash
-
-   make format
-
-Run Linters:
-
-.. code-block:: bash
-
-   make lint
-
-Run Tests:
-
-.. code-block:: bash
-
-   make behave
-
-Build the Project:
-
-.. code-block:: bash
-
-   make build
-
-Clean Build Artifacts:
-
-.. code-block:: bash
-
-   make clean
+- **Format Code**: ``make format``
+- **Lint Code**: ``make lint``
+- **Run BDD Tests**: ``make behave``
+- **Build Project**: ``make build``
+- **Clean Artifacts**: ``make clean``

@@ -5,81 +5,80 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../..'))
+
+sys.path.insert(0, os.path.abspath("../.."))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'ArchiPy'
-copyright = '2024, Mehdi Einali, Hossein Nejati'
-author = 'Mehdi Einali, Hossein Nejati'
-version = '0.1.0'
-release = '0.1.0'
+project = "ArchiPy"
+copyright = "2025, Mehdi Einali, Hossein Nejati"
+author = "Mehdi Einali, Hossein Nejati"
+version = "0.1.0"
+release = "0.1.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon',
-    'sphinx_autodoc_typehints',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.autosectionlabel',
-    'sphinx.ext.coverage',
-    'sphinx.ext.todo',
-    'sphinx.ext.autosummary',
-
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx_autodoc_typehints",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.autosectionlabel",
+    "sphinx.ext.coverage",
+    "sphinx.ext.todo",
+    "sphinx.ext.autosummary",
 ]
 
 # AutoAPI settings for better code extraction
-autoapi_type = 'python'
-autoapi_dirs = ['../../archipy']
+autoapi_type = "python"
+autoapi_dirs = ["../../archipy"]
 autoapi_options = [
-    'members',
-    'undoc-members',
-    'private-members',
-    'special-members',
-    'inherited-members',
-    'show-inheritance',
-    'show-module-summary',
-    'imported-members',
+    "members",
+    "undoc-members",
+    "private-members",
+    "special-members",
+    "inherited-members",
+    "show-inheritance",
+    "show-module-summary",
+    "imported-members",
 ]
-autoapi_python_class_content = 'both'
-autoapi_member_order = 'groupwise'
+autoapi_python_class_content = "both"
+autoapi_member_order = "groupwise"
 autoapi_add_toctree_entry = False  # We'll handle this in our own index
 
-templates_path = ['_templates']
+templates_path = ["_templates"]
 exclude_patterns = []
 
 # -- Options for autodoc -----------------------------------------------------
-autodoc_member_order = 'bysource'
-autodoc_typehints = 'description'
-autoclass_content = 'both'
+autodoc_member_order = "bysource"
+autodoc_typehints = "description"
+autoclass_content = "both"
 autodoc_default_options = {
-    'members': True,
-    'member-order': 'bysource',
+    "members": True,
+    "member-order": "bysource",
     # 'special-members': True,
     # 'inherited-members': True,
     # 'show-inheritance': True,
     # 'undoc-members': True,
-
 }
 
 # Enable auto-summary generation
 autosummary_generate = True
 
 # Include __init__ method docstring in class docstring
-autoclass_content = 'both'
+autoclass_content = "both"
 
 # Enable todos
 todo_include_todos = True
 
 # Inheritance diagrams
-inheritance_graph_attrs = dict(rankdir="TB", size='"12.0, 12.0"', fontsize=14, ratio='compress')
-inheritance_node_attrs = dict(shape='rect', fontsize=14, height=0.75, margin='"0.08, 0.05"')
+inheritance_graph_attrs = dict(rankdir="TB", size='"12.0, 12.0"', fontsize=14, ratio="compress")
+inheritance_node_attrs = dict(shape="rect", fontsize=14, height=0.75, margin='"0.08, 0.05"')
 
 # Enable documenting typehints
-autodoc_typehints = 'description'
+autodoc_typehints = "description"
 typehints_fully_qualified = False
 always_document_param_types = True
 
@@ -101,18 +100,42 @@ napoleon_custom_sections = None
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'
-html_static_path = ['_static']
+html_theme = "sphinx_rtd_theme"
+html_static_path = []
 html_logo = None
 html_favicon = None
 html_title = f"{project} {version} Documentation"
 html_short_title = project
 
+# Add search functionality
+html_theme_options = {
+    "navigation_depth": 4,
+    "titles_only": False,
+    "logo_only": False,
+    "display_version": True,
+    "prev_next_buttons_location": "bottom",
+    "style_external_links": False,
+    "style_nav_header_background": "#2980B9",
+}
+
+# Add GitHub links
+html_context = {
+    "display_github": True,
+    "github_user": "SyntaxArc",
+    "github_repo": "ArchiPy",
+    "github_version": "main",
+    "conf_py_path": "/docs/source/",
+}
+
+# Enable search functionality
+html_use_index = True
+html_domain_indices = True
+
 # -- Options for intersphinx -------------------------------------------------
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None),
-    'sqlalchemy': ('https://docs.sqlalchemy.org/en/14/', None),
-    'pydantic': ('https://docs.pydantic.dev/', None),
+    "python": ("https://docs.python.org/3", None),
+    "sqlalchemy": ("https://docs.sqlalchemy.org/en/20/", None),
+    "pydantic": ("https://docs.pydantic.dev/latest/", None),
 }
 
 # -- Options for autosectionlabel --------------------------------------------
@@ -123,16 +146,15 @@ viewcode_enable_epub = False
 
 # -- Options for LaTeX output ------------------------------------------------
 latex_elements = {
-    'papersize': 'a4paper',
-    'pointsize': '11pt',
-    'preamble': '',
-    'figure_align': 'htbp',
+    "papersize": "a4paper",
+    "pointsize": "11pt",
+    "preamble": "",
+    "figure_align": "htbp",
 }
 
 # Define master_doc (the main document)
-master_doc = 'index'
+master_doc = "index"
 
 latex_documents = [
-    (master_doc, 'ArchiPy.tex', 'ArchiPy Documentation',
-     author, 'manual'),
+    (master_doc, "ArchiPy.tex", "ArchiPy Documentation", author, "manual"),
 ]
