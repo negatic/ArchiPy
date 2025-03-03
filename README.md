@@ -6,7 +6,7 @@
 [![Stars](https://img.shields.io/github/stars/SyntaxArc/ArchiPy)](https://github.com/SyntaxArc/ArchiPy/stargazers)
 [![Python](https://img.shields.io/badge/Python-3.13+-blue.svg)](https://www.python.org/downloads/)
 [![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)](https://python-poetry.org/)
-[![Documentation](https://readthedocs.org/projects/archipy/badge/?version=latest)](https://archipy.readthedocs.io/)
+[![Documentation](https://img.shields.io/badge/docs-MkDocs-blue.svg)](https://syntaxarc.github.io/ArchiPy/)
 [![License](https://img.shields.io/github/license/SyntaxArc/ArchiPy)](https://github.com/SyntaxArc/ArchiPy/blob/master/LICENSE)
 [![Maintained](https://img.shields.io/badge/Maintained-yes-brightgreen)](https://github.com/SyntaxArc/ArchiPy)
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](https://github.com/SyntaxArc/ArchiPy/blob/master/CONTRIBUTING.md)
@@ -52,7 +52,7 @@ ArchiPy is built with the following objectives in mind:
 5. **Behavior-Driven Development (BDD) Support** - Enable robust feature validation
 6. **Best Practices & Development Structure** - Enforce coding standards
 
-[Read more about ArchiPy's architecture and design](https://archipy.readthedocs.io/en/latest/architecture.html)
+[Read more about ArchiPy's architecture and design](https://syntaxarc.github.io/ArchiPy/architecture)
 
 ---
 
@@ -65,7 +65,7 @@ ArchiPy is built with the following objectives in mind:
 - **BDD Testing**: Fully integrated Behave setup
 - **Modern Tooling**: Dependency management and code quality tools
 
-[Explore the complete feature set](https://archipy.readthedocs.io/en/latest/features.html)
+[Explore the complete feature set](https://syntaxarc.github.io/ArchiPy/features)
 
 ---
 
@@ -94,7 +94,7 @@ poetry add archipy
 poetry add archipy[redis,fastapi]
 ```
 
-[View installation documentation](https://archipy.readthedocs.io/en/latest/installation.html)
+[View installation documentation](https://syntaxarc.github.io/ArchiPy/installation)
 
 ---
 
@@ -111,7 +111,7 @@ pip install archipy[fastapi]      # FastAPI framework
 pip install archipy[postgres]     # PostgreSQL support
 ```
 
-[See the documentation for all available options and examples](https://archipy.readthedocs.io/en/latest/usage.html)
+[See the documentation for all available options and examples](https://syntaxarc.github.io/ArchiPy/usage)
 
 ---
 
@@ -130,7 +130,7 @@ make behave
 make lint
 ```
 
-[View the complete development guide](https://archipy.readthedocs.io/en/latest/development.html)
+[View the complete development guide](https://syntaxarc.github.io/ArchiPy/development)
 
 ---
 
@@ -155,6 +155,33 @@ This project is licensed under the terms of the [LICENSE](LICENSE) file.
 
 ## 🔗 Links
 
-- [Documentation](https://archipy.readthedocs.io/)
+- [Documentation](https://syntaxarc.github.io/ArchiPy/)
 - [GitHub Repository](https://github.com/SyntaxArc/ArchiPy)
 - [PyPI Package](https://pypi.org/project/archipy/)
+
+## 📚 Documentation
+
+ArchiPy's documentation has been migrated from Sphinx to MkDocs for improved readability and organization:
+
+- **Modern Interface**: Material theme with responsive design
+- **Improved Navigation**: Intuitive organization and search
+- **Clearer Examples**: Expanded code samples with explanations
+- **API Reference**: Auto-generated from source code docstrings
+
+To run the documentation locally:
+
+```bash
+# Install documentation dependencies
+poetry install --with docs
+
+# Serve documentation locally
+make docs-serve
+
+# Build documentation
+make docs-build
+
+# Deploy to GitHub Pages
+make docs-deploy
+```
+
+[View the latest documentation](https://syntaxarc.github.io/ArchiPy/)
