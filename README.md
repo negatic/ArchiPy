@@ -1,4 +1,4 @@
-<img src="./assets/logo.jpg" alt="ArchiPy Logo" width="150"/>
+<img src="docs/assets/logo.jpg" alt="ArchiPy Logo" width="150"/>
 
 # ArchiPy - Architecture + Python
 

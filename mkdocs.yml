@@ -1,13 +1,13 @@
 site_name: ArchiPy
 site_url: https://syntaxarc.github.io/ArchiPy/
 site_description: Architecture + Python – Structured Development Simplified
-site_author: Mehdi Einali, Hossein Nejati
+site_author:  Hossein Nejati, Mehdi Einali
 repo_url: https://github.com/SyntaxArc/ArchiPy
 repo_name: SyntaxArc/ArchiPy
 edit_uri: edit/master/docs/
 
 # Copyright
-copyright: Copyright &copy; 2025 Mehdi Einali, Hossein Nejati
+copyright: Copyright &copy; 2025 Hossein Nejati, Mehdi Einali
 
 # Theme configuration
 theme:
