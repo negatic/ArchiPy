@@ -1,28 +1,85 @@
 # API Reference
 
-This section contains detailed documentation for all ArchiPy modules and components.
-
-ArchiPy is organized into several primary modules:
+Welcome to the ArchiPy API reference documentation. This section provides detailed information about all modules, classes, and functions in ArchiPy.
 
 ## Core Modules
 
-- [**Adapters**](adapters.md): Interfaces to external systems and services (databases, Redis, email, etc.)
-- [**Configs**](configs.md): Configuration management with type safety and environment integration
-- [**Helpers**](helpers.md): Utilities, decorators, and metaclasses for development support
-- [**Models**](models.md): Domain objects, entities, DTOs, and type definitions
-- [**Utils**](utils.md): General-purpose utility functions
+### Adapters
 
-## Using the API Reference
+The adapters module provides standardized interfaces to external systems:
 
-Each module's documentation includes:
+- [Adapters Documentation](adapters.md)
+- [ORM Adapters](adapters.md#orm)
+- [Redis Adapters](adapters.md#redis)
+- [Email Adapters](adapters.md#email)
 
-- **Class and function signatures** with parameter details
-- **Type annotations** for all inputs and outputs
-- **Usage examples** showing practical implementations
-- **Cross-references** to related components
+### Configs
 
-## Auto-Generated Documentation
+Configuration management and injection tools:
 
-This API reference is automatically generated from source code docstrings, ensuring it stays current with the latest codebase changes.
+- [Configs Documentation](configs.md)
+- [Base Config](configs.md#base-config)
+- [Config Templates](configs.md#config-templates)
 
-For example usage patterns, see the [Examples](../examples/adapters/index.md) section.
+### Helpers
+
+Utility functions and support classes:
+
+- [Helpers Documentation](helpers.md)
+- [Decorators](../examples/helpers/decorators.md)
+- [Utils](../examples/helpers/utils.md)
+- [Metaclasses](../examples/helpers/metaclasses.md)
+- [Interceptors](../examples/helpers/interceptors.md)
+
+### Models
+
+Core data structures and types:
+
+- [Models Documentation](models.md)
+- [Entities](models.md#entities)
+- [Data Transfer Objects](models.md#data-transfer-objects-dtos)
+- [Errors](models.md#errors)
+- [Types](models.md#types)
+
+## Source Code Organization
+
+The ArchiPy source code is organized into the following structure:
+
+```
+archipy/
+├── adapters/           # External system integrations
+│   ├── email/         # Email service adapters
+│   ├── orm/           # Database ORM adapters
+│   └── redis/         # Redis adapters
+├── configs/           # Configuration management
+│   ├── base_config.py
+│   └── templates/
+├── helpers/           # Utility functions
+│   ├── decorators/
+│   ├── interceptors/
+│   ├── metaclasses/
+│   └── utils/
+└── models/            # Core data structures
+    ├── dtos/
+    ├── entities/
+    ├── errors/
+    └── types/
+```
+
+## API Stability
+
+ArchiPy follows semantic versioning and marks API stability as follows:
+
+- 🟢 **Stable**: Production-ready APIs, covered by semantic versioning
+- 🟡 **Beta**: APIs that are stabilizing but may have breaking changes
+- 🔴 **Alpha**: Experimental APIs that may change significantly
+
+See the [Changelog](../changelog.md) for version history and breaking changes.
+
+## Contributing
+
+For information about contributing to ArchiPy's development, please see:
+
+- [Contributing Guide](../contributing.md)
+- [Development Guide](../development.md)
+- [Documentation Guide](../contributing-docs.md)

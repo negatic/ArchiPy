@@ -10,16 +10,12 @@ build:
   tools:
     python: "3.13"  # Using a stable Python version supported by ReadTheDocs
   jobs:
-    pre_build:
-      # Generate API docs from source before building
-      - cd docs && sphinx-apidoc -o source/ ../archipy -f -e -M -T
     post_create_environment:
       # Install poetry and configure it
       - pip install poetry
       - poetry config virtualenvs.create false
     post_install:
-      # Ensure we have the latest documentation tools
-      - pip install --upgrade sphinx sphinx-rtd-theme sphinx-autodoc-typehints sphinx-autoapi
+      - poetry install --with docs
 
 # Use the latest version of build system
 python:
@@ -36,13 +32,14 @@ sphinx:
   fail_on_warning: false  # Set to true once your docs are stable
   builder: html
 
-
+mkdocs:
+  configuration: mkdocs.yml
+  fail_on_warning: false
 
 # Search settings
 search:
   ranking:
     # These paths will be ranked higher in search results
     api_reference/*: 2
-    usage.rst: 3
-    installation.rst: 3
-    architecture.rst: 2
+    installation.md: 3
+    architecture.md: 2
