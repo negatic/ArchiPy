@@ -5,6 +5,11 @@ Helper Utilities
 
 ArchiPy provides various helper utilities organized by module:
 
+.. admonition:: API Reference
+   :class: note
+
+   For complete API details, see: :ref:`api_helpers`
+
 .. toctree::
    :maxdepth: 1
    :caption: Helper Modules:

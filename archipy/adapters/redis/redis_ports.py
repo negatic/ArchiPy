@@ -17,6 +17,32 @@ RedisScoreCastType = type | Callable
 
 
 class RedisPort:
+    """Interface for Redis operations providing a standardized access pattern.
+
+    This interface defines the contract for Redis adapters, ensuring consistent
+    implementation of Redis operations across different adapters. It covers all
+    essential Redis functionality including key-value operations, collections
+    (lists, sets, sorted sets, hashes), and pub/sub capabilities.
+
+    Implementing classes should provide concrete implementations for all
+    methods, typically by wrapping a Redis client library.
+
+    Examples:
+        >>> from archipy.adapters.redis.redis_ports import RedisPort
+        >>>
+        >>> class CustomRedisAdapter(RedisPort):
+        ...     def __init__(self, connection_params):
+        ...         self.client = redis.Redis(**connection_params)
+        ...
+        ...     def get(self, key: str) -> Any:
+        ...         return self.client.get(key)
+        ...
+        ...     def set(self, name, value, ex=None, px=None, nx=False, xx=False, ...):
+        ...         return self.client.set(name, value, ex, px, nx, xx, ...)
+        ...
+        ...     # Implement other required methods...
+    """
+
     @abstractmethod
     def ping(self) -> RedisResponseType:
         raise NotImplementedError

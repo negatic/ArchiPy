@@ -1,7 +1,76 @@
 .. _architecture:
 
-Architecture
-===========
+ArchiPy Architecture
+===================
+
+Overview
+--------
+
+ArchiPy is organized into four main modules, each serving a specific purpose in creating structured, maintainable Python applications:
+
+1. **Adapters**: External service integrations
+2. **Configs**: Configuration management
+3. **Helpers**: Utility functions and support classes
+4. **Models**: Core data structures
+
+This architecture follows clean architecture principles, separating concerns and ensuring that dependencies point inward toward the domain core.
+
+Modules
+-------
+
+Adapters
+~~~~~~~~
+
+The ``adapters`` module provides implementations for external service integrations, following the Ports and Adapters pattern (Hexagonal Architecture). This module includes:
+
+- Database adapters (SQLAlchemy, Redis)
+- Email service adapters
+- External API clients
+- File storage adapters
+
+Each adapter includes both concrete implementations and corresponding mocks for testing.
+
+Configs
+~~~~~~~
+
+The ``configs`` module manages configuration loading, validation, and injection. It provides:
+
+- Environment-based configuration
+- Type-safe configuration through Pydantic models
+- Centralized access to configuration values
+- Support for various configuration sources (environment variables, files, etc.)
+
+Helpers
+~~~~~~~
+
+The ``helpers`` module contains utility functions and classes to simplify common development tasks. It includes several subgroups:
+
+- **Utils**: General utility functions for dates, strings, errors, files, etc.
+- **Decorators**: Function and class decorators for aspects like logging, timing, and deprecation
+- **Interceptors**: Classes for cross-cutting concerns like logging, tracing, and validation
+- **Validators**: Data validation utilities
+
+Models
+~~~~~~
+
+The ``models`` module defines the core data structures used throughout the application:
+
+- **Entities**: Domain model objects
+- **DTOs**: Data Transfer Objects for API input/output
+- **Errors**: Custom exception classes
+- **Types**: Type definitions and enumerations
+
+Architectural Flow
+-----------------
+
+ArchiPy applications follow a clean architecture approach where:
+
+1. The Models module forms the core domain layer
+2. The Helpers module provides supporting functionality
+3. The Configs module manages application configuration
+4. The Adapters module interfaces with external systems
+
+This modular organization promotes separation of concerns, making ArchiPy applications easier to test, maintain, and extend over time.
 
 Design Philosophy
 ----------------
@@ -16,11 +85,6 @@ ArchiPy is designed to standardize and simplify Python application development b
 * And more...
 
 These building blocks help maintain consistency, testability, and maintainability regardless of the specific architectural style chosen for your project.
-
-.. image:: ../assets/architecture_overview.png
-   :alt: ArchiPy Architecture Overview
-   :align: center
-   :width: 600px
 
 Core Building Blocks
 ------------------

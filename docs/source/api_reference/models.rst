@@ -11,6 +11,11 @@ The models module standardizes data structures with base entities, DTOs, errors,
 DTOs (Data Transfer Objects)
 ---------------------------
 
+.. admonition:: Example Usage
+   :class: tip
+
+   See the :ref:`examples_helpers_utils` section for examples of using DTOs with utilities.
+
 .. automodule:: archipy.models.dtos.base_dtos
    :members:
    :undoc-members:

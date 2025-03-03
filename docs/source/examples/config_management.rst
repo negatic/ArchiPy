@@ -3,6 +3,11 @@
 Configuration Management Examples
 ================================
 
+.. admonition:: API Reference
+   :class: note
+
+   For complete API details, see: :ref:`api_configs`
+
 Basic Configuration
 ------------------
 

@@ -23,6 +23,34 @@ from archipy.configs.config_template import RedisConfig
 
 
 class RedisAdapter(RedisPort):
+    """Adapter for Redis operations providing a standardized interface.
+
+    This adapter implements the RedisPort interface to provide a consistent
+    way to interact with Redis, abstracting the underlying Redis client
+    implementation. It supports all common Redis operations including key-value
+    operations, lists, sets, sorted sets, hashes, and pub/sub functionality.
+
+    The adapter maintains separate connections for read and write operations,
+    which can be used to implement read replicas for better performance.
+
+    Args:
+        redis_config (RedisConfig, optional): Configuration settings for Redis.
+            If None, retrieves from global config. Defaults to None.
+
+    Examples:
+        >>> from archipy.adapters.redis.redis_adapters import RedisAdapter
+        >>> from archipy.configs.config_template import RedisConfig
+        >>>
+        >>> # Using global configuration
+        >>> redis = RedisAdapter()
+        >>> redis.set("key", "value", ex=60)  # Set with 60 second expiry
+        >>> value = redis.get("key")
+        >>>
+        >>> # Using custom configuration
+        >>> config = RedisConfig(MASTER_HOST="redis.example.com", PORT=6380)
+        >>> custom_redis = RedisAdapter(config)
+    """
+
     def __init__(self, redis_config: RedisConfig | None = None) -> None:
         configs: RedisConfig = BaseConfig.global_config().REDIS if redis_config is None else redis_config
         self._set_clients(configs)

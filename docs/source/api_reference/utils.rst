@@ -8,6 +8,8 @@ Overview
 
 The utils module provides helper functions for common tasks, enhancing productivity in areas like datetime handling, JWT management, and password processing.
 
+**See Examples**: :ref:`examples_helpers_utils`
+
 Utilities
 ---------
 

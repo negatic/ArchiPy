@@ -8,6 +8,8 @@ Overview
 
 The configs module provides tools for standardized configuration management and injection, supporting consistent setup across services like databases, Redis, and email.
 
+**See Examples**: :ref:`examples_config`
+
 Configuration Classes
 ---------------------
 
