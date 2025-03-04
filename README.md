@@ -36,6 +36,7 @@ ArchiPy is a Python framework designed to provide a standardized, scalable, and 
 - [Development](#-development)
 - [Contributing](#-contributing)
 - [License](#-license)
+- [Sponsors](#-sponsors)
 - [Contact](#-contact)
 - [Links](#-links)
 
@@ -143,6 +144,12 @@ Contributions are welcome! See our [contribution guidelines](CONTRIBUTING.md) fo
 ## 📄 License
 
 This project is licensed under the terms of the [LICENSE](LICENSE) file.
+
+---
+
+## 🙌 Sponsors
+
+Support ArchiPy by checking out our amazing sponsors! [View Sponsors](SPONSORS.md)
 
 ---
 
