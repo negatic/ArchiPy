@@ -11,8 +11,12 @@ F = TypeVar("F", bound=Callable[..., Any])
 T = TypeVar("T", bound=type[Any])
 
 
-def method_deprecation_error(operation: str | None = None, lang: str = "fa") -> Callable[[F], F]:
-    """A decorator that raises a DeprecationException when the decorated method is called.
+def method_deprecation_error(operation: str = None, lang: str = "en"):
+    """Decorator that raises a DeprecationError when the decorated method is called.
+
+    This decorator is used to mark methods as deprecated and immediately prevent
+    their use by raising a DeprecationError when they are called. This is stricter
+    than a warning and ensures deprecated methods cannot be used.
 
     Args:
         operation (str, optional): The name of the operation that is deprecated.

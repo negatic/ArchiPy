@@ -140,4 +140,19 @@ ci: ## Run CI pipeline locally
 	$(MAKE) test
 	$(MAKE) build
 
+.PHONY: docs-serve
+docs-serve: ## Serve MkDocs documentation locally
+	@echo "${BLUE}Serving documentation...${NC}"
+	$(POETRY) run mkdocs serve
+
+.PHONY: docs-build
+docs-build: ## Build MkDocs documentation
+	@echo "${BLUE}Building documentation...${NC}"
+	$(POETRY) run mkdocs build
+
+.PHONY: docs-deploy
+docs-deploy: ## Deploy MkDocs to GitHub Pages
+	@echo "${BLUE}Deploying documentation...${NC}"
+	$(POETRY) run mkdocs gh-deploy --force
+
 .DEFAULT_GOAL := help

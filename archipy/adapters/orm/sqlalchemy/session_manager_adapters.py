@@ -18,6 +18,29 @@ from archipy.helpers.metaclasses.singleton import Singleton
 
 
 class SessionManagerAdapter(SessionManagerPort, metaclass=Singleton):
+    """Manages SQLAlchemy database sessions for synchronous operations.
+
+    This adapter creates and manages database sessions using SQLAlchemy's
+    session management system. It implements the Singleton pattern to ensure
+    a single instance exists throughout the application lifecycle.
+
+    Args:
+        orm_config (SqlAlchemyConfig, optional): Configuration for the ORM.
+            If None, retrieves from global config. Defaults to None.
+
+    Examples:
+        >>> from archipy.adapters.orm.sqlalchemy.session_manager_adapters import SessionManagerAdapter
+        >>> from archipy.configs.config_template import SqlAlchemyConfig
+        >>>
+        >>> # Using default global configuration
+        >>> manager = SessionManagerAdapter()
+        >>> session = manager.get_session()
+        >>>
+        >>> # Using custom configuration
+        >>> custom_config = SqlAlchemyConfig(DATABASE="custom_db", HOST="localhost")
+        >>> custom_manager = SessionManagerAdapter(custom_config)
+    """
+
     def __init__(self, orm_config: SqlAlchemyConfig | None = None) -> None:
         configs: SqlAlchemyConfig = orm_config or BaseConfig().global_config().SQLALCHEMY
         self.engine = self._create_engine(configs)
@@ -25,10 +48,32 @@ class SessionManagerAdapter(SessionManagerPort, metaclass=Singleton):
 
     @override
     def get_session(self) -> Session:
+        """Retrieves a SQLAlchemy session from the session factory.
+
+        The session is scoped to the current context to ensure thread safety.
+
+        Returns:
+            Session: A SQLAlchemy session instance that can be used for
+                database operations.
+
+        Examples:
+            >>> session = session_manager.get_session()
+            >>> user = session.query(User).filter_by(id=1).first()
+        """
         return self._session_generator()
 
     @override
     def remove_session(self) -> None:
+        """Removes the current session from the registry.
+
+        This should be called when you're done with a session to prevent
+        resource leaks, particularly at the end of web requests.
+
+        Examples:
+            >>> session = session_manager.get_session()
+            >>> # Use session for operations
+            >>> session_manager.remove_session()
+        """
         self._session_generator.remove()
 
     def _get_session_generator(self, configs: SqlAlchemyConfig) -> scoped_session:
