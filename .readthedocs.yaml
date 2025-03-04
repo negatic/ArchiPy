@@ -24,7 +24,7 @@ python:
       path: .
       extra_requirements:
         - docs
-    - requirements: docs/requirements.txt
+    - requirements: docs/source/requirements.txt
 
 # Build documentation with maximum extraction settings
 #sphinx:
