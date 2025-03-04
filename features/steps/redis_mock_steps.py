@@ -9,7 +9,7 @@ import logging
 from behave import given, then, when
 from features.test_helpers import get_current_scenario_context, safe_run_async
 
-from archipy.adapters.redis.redis_mocks import AsyncRedisMock, RedisMock
+from archipy.adapters.redis.mocks import AsyncRedisMock, RedisMock
 from archipy.configs.config_template import RedisConfig
 
 

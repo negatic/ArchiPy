@@ -16,24 +16,24 @@ class AppConfig(BaseConfig):
     # Application settings
     APP_NAME: str = "MyService"
     DEBUG: bool = False
-    
+
     # Database settings
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
     DB_NAME: str = "myapp"
     DB_USER: str = "postgres"
     DB_PASSWORD: str = "password"
-    
+
     # Redis settings
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
-    
+
     # Environment
     ENVIRONMENT: EnvironmentType = EnvironmentType.DEVELOPMENT
-    
+
     # API settings
     API_PREFIX: str = "/api/v1"
-    
+
     # Logging
     LOG_LEVEL: str = "INFO"
 ```
@@ -121,7 +121,7 @@ class DatabaseConfig(BaseModel):
     NAME: str = "myapp"
     USER: str = "postgres"
     PASSWORD: str = "password"
-    
+
     def connection_string(self) -> str:
         return f"postgresql://{self.USER}:{self.PASSWORD}@{self.HOST}:{self.PORT}/{self.NAME}"
 
@@ -129,7 +129,7 @@ class RedisConfig(BaseModel):
     HOST: str = "localhost"
     PORT: int = 6379
     DB: int = 0
-    
+
 class AppConfig(BaseConfig):
     APP_NAME: str = "MyService"
     DEBUG: bool = False
@@ -152,7 +152,7 @@ from archipy.configs.environment_type import EnvironmentType
 class AppConfig(ConfigTemplate):
     # Override only what you need
     APP_NAME: str = "MyCustomApp"
-    
+
     # Use all the defaults from ConfigTemplate for the rest
 
 config = AppConfig()
@@ -200,7 +200,7 @@ session_manager = SessionManagerAdapter(
 ### With Redis Adapters
 
 ```python
-from archipy.adapters.redis.redis_adapters import RedisAdapter
+from archipy.adapters.redis.adapters import RedisAdapter
 from archipy.configs.base_config import BaseConfig
 
 config = BaseConfig.global_config()

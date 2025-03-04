@@ -264,8 +264,9 @@ Here's how you might structure a FastAPI application using ArchiPy:
 
 ```python
 # adapters/db/user_repository.py
-from archipy.adapters.orm.sqlalchemy.sqlalchemy_adapters import SqlAlchemyAdapter
+from archipy.adapters.orm.sqlalchemy.adapters import SqlAlchemyAdapter
 from core.models.user import User
+
 
 class UserRepository:
     def __init__(self, db_adapter: SqlAlchemyAdapter):
@@ -277,9 +278,11 @@ class UserRepository:
     def create_user(self, user: User) -> User:
         return self.db_adapter.create(user)
 
+
 # core/services/user_service.py
 from core.models.user import User
 from adapters.db.user_repository import UserRepository
+
 
 class UserService:
     def __init__(self, user_repository: UserRepository):
@@ -290,6 +293,7 @@ class UserService:
         user = User(name=name, email=email)
         return self.user_repository.create_user(user)
 
+
 # api/users.py
 from fastapi import APIRouter, Depends
 from core.services.user_service import UserService
@@ -297,17 +301,20 @@ from archipy.models.dtos import BaseDTO
 
 router = APIRouter()
 
+
 class UserCreateDTO(BaseDTO):
     name: str
     email: str
 
+
 @router.post("/users/")
 def create_user(
-    data: UserCreateDTO,
-    user_service: UserService = Depends(get_user_service)
+        data: UserCreateDTO,
+        user_service: UserService = Depends(get_user_service)
 ):
     user = user_service.register_user(data.name, data.email)
     return {"id": str(user.test_uuid), "name": user.name, "email": user.email}
+
 
 # main.py
 from fastapi import FastAPI

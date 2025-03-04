@@ -7,7 +7,7 @@ from typing import Any, TypeVar
 F = TypeVar("F", bound=Callable[..., Any])
 
 
-def timing(func: F) -> F:
+def timing_decorator(func: F) -> F:
     """A decorator that measures the execution time of a function and logs it if the logging level is DEBUG.
 
     Args:

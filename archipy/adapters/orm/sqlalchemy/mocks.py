@@ -1,5 +1,5 @@
 from archipy.adapters.orm.sqlalchemy.session_manager_mocks import AsyncSessionManagerMock, SessionManagerMock
-from archipy.adapters.orm.sqlalchemy.sqlalchemy_adapters import AsyncSqlAlchemyAdapter, SqlAlchemyAdapter
+from archipy.adapters.orm.sqlalchemy.adapters import AsyncSqlAlchemyAdapter, SqlAlchemyAdapter
 from archipy.configs.config_template import SqlAlchemyConfig
 
 

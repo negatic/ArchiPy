@@ -4,7 +4,7 @@ from typing import Any, override
 from redis.asyncio.client import Pipeline as AsyncPipeline, PubSub as AsyncPubSub, Redis as AsyncRedis
 from redis.client import Pipeline, PubSub, Redis
 
-from archipy.adapters.redis.redis_ports import (
+from archipy.adapters.redis.ports import (
     AsyncRedisPort,
     RedisAbsExpiryType,
     RedisExpiryType,

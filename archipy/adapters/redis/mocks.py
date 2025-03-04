@@ -4,8 +4,8 @@ import fakeredis
 from redis.asyncio.client import Redis as AsyncRedis
 from redis.client import Redis
 
-from archipy.adapters.redis.redis_adapters import AsyncRedisAdapter, RedisAdapter
-from archipy.adapters.redis.redis_ports import (
+from archipy.adapters.redis.adapters import AsyncRedisAdapter, RedisAdapter
+from archipy.adapters.redis.ports import (
     AsyncRedisPort,
 )
 from archipy.configs.config_template import RedisConfig

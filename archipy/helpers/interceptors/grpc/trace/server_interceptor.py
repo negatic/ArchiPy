@@ -5,7 +5,7 @@ import elasticapm
 import grpc
 
 from archipy.configs.base_config import BaseConfig
-from archipy.helpers.interceptors.grpc.base.base_grpc_server_interceptor import BaseGrpcServerInterceptor
+from archipy.helpers.interceptors.grpc.base.server_interceptor import BaseGrpcServerInterceptor
 from archipy.helpers.utils.base_utils import BaseUtils
 
 

@@ -4,7 +4,7 @@ from fastapi import HTTPException, Request, Response
 from pydantic import StrictInt
 from starlette.status import HTTP_429_TOO_MANY_REQUESTS
 
-from archipy.adapters.redis.redis_adapters import AsyncRedisAdapter
+from archipy.adapters.redis.adapters import AsyncRedisAdapter
 
 
 class FastAPIRestRateLimitHandler:

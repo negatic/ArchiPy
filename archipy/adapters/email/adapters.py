@@ -16,7 +16,7 @@ import requests
 from jinja2 import Template
 from pydantic import EmailStr, HttpUrl
 
-from archipy.adapters.email.email_port import EmailPort
+from archipy.adapters.email.ports import EmailPort
 from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import EmailConfig
 from archipy.helpers.utils.base_utils import BaseUtils

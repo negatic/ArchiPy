@@ -6,7 +6,7 @@ import grpc
 from elasticapm.conf.constants import TRACEPARENT_HEADER_NAME
 
 from archipy.configs.base_config import BaseConfig
-from archipy.helpers.interceptors.grpc.base.base_grpc_client_interceptor import (
+from archipy.helpers.interceptors.grpc.base.client_interceptor import (
     AsyncClientCallDetails,
     BaseAsyncGrpcClientInterceptor,
     BaseGrpcClientInterceptor,

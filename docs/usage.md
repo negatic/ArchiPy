@@ -52,7 +52,7 @@ class Post(BaseEntity):
 
 ```python
 from archipy.adapters.orm.sqlalchemy.session_manager_adapters import SessionManagerAdapter
-from archipy.adapters.orm.sqlalchemy.sqlalchemy_adapters import SqlAlchemyAdapter
+from archipy.adapters.orm.sqlalchemy.adapters import SqlAlchemyAdapter
 
 # Create session manager
 session_manager = SessionManagerAdapter()
@@ -100,10 +100,11 @@ class UserService:
 For caching or other Redis operations:
 
 ```python
-from archipy.adapters.redis.redis_adapters import RedisAdapter
+from archipy.adapters.redis.adapters import RedisAdapter
 
 # Create Redis adapter
 redis_adapter = RedisAdapter()
+
 
 # Cache user data
 def cache_user(user):
@@ -112,6 +113,7 @@ def cache_user(user):
         "email": user.email
     }
     redis_adapter.set(f"user:{user.test_uuid}", json.dumps(user_data), ex=3600)
+
 
 # Get cached user
 def get_cached_user(user_id):
@@ -168,8 +170,8 @@ print(config.database_url)  # "sqlite:///example.db"
 Use adapters for external systems with mocks for testing:
 
 ```python
-from archipy.adapters.redis.redis_adapters import AsyncRedisAdapter
-from archipy.adapters.redis.redis_mocks import AsyncRedisMock
+from archipy.adapters.redis.adapters import AsyncRedisAdapter
+from archipy.adapters.redis.mocks import AsyncRedisMock
 
 # Production use
 redis = AsyncRedisAdapter()
@@ -254,12 +256,14 @@ Support for asynchronous workflows:
 
 ```python
 import asyncio
-from archipy.adapters.orm.sqlalchemy.sqlalchemy_adapters import AsyncSqlAlchemyAdapter
+from archipy.adapters.orm.sqlalchemy.adapters import AsyncSqlAlchemyAdapter
+
 
 async def fetch_users():
     adapter = AsyncSqlAlchemyAdapter(session_manager, User)
     users = await adapter.execute_search_query(User, pagination=None, sort_info=None)
     return users
+
 
 users, total = asyncio.run(fetch_users())
 print(users)  # List of User entities
