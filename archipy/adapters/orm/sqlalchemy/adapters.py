@@ -34,7 +34,7 @@ class SqlAlchemyFilterMixin:
 
     Examples:
         >>> from sqlalchemy import select
-        >>> from archipy.adapters.orm.sqlalchemy.sqlalchemy_adapters import SqlAlchemyFilterMixin
+        >>> from archipy.adapters.orm.sqlalchemy.adapters import SqlAlchemyFilterMixin
         >>> from archipy.models.types.base_types import FilterOperationType
         >>>
         >>> class UserRepository(SqlAlchemyFilterMixin):
@@ -175,7 +175,7 @@ class SqlAlchemyAdapter(SqlAlchemyPort, SqlAlchemyPaginationMixin, SqlAlchemySor
             If None, retrieves from global config. Defaults to None.
 
     Examples:
-        >>> from archipy.adapters.orm.sqlalchemy.sqlalchemy_adapters import SqlAlchemyAdapter
+        >>> from archipy.adapters.orm.sqlalchemy.adapters import SqlAlchemyAdapter
         >>> from archipy.models.entities import BaseEntity
         >>>
         >>> # Create adapter with default configuration
@@ -324,7 +324,7 @@ class AsyncSqlAlchemyAdapter(AsyncSqlAlchemyPort, SqlAlchemyPaginationMixin, Sql
             If None, retrieves from global config. Defaults to None.
 
     Examples:
-        >>> from archipy.adapters.orm.sqlalchemy.sqlalchemy_adapters import AsyncSqlAlchemyAdapter
+        >>> from archipy.adapters.orm.sqlalchemy.adapters import AsyncSqlAlchemyAdapter
         >>> from sqlalchemy import select
         >>> from archipy.models.dtos.pagination_dto import PaginationDTO
         >>>

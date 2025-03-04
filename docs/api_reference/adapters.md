@@ -29,12 +29,12 @@ email_adapter.send_email(
 )
 ```
 
-::: archipy.adapters.email.email_adapter
+::: archipy.adapters.email.adapters
     options:
       show_root_heading: true
       show_source: true
 
-::: archipy.adapters.email.email_port
+::: archipy.adapters.email.ports
     options:
       show_root_heading: true
       show_source: true
@@ -58,7 +58,7 @@ users = orm_adapter.query(User).filter(User.active == True).all()
 
 #### SQLAlchemy Components
 
-::: archipy.adapters.orm.sqlalchemy.sqlalchemy_adapters
+::: archipy.adapters.orm.sqlalchemy.adapters
     options:
       show_root_heading: true
       show_source: true
@@ -68,7 +68,7 @@ users = orm_adapter.query(User).filter(User.active == True).all()
       show_root_heading: true
       show_source: true
 
-::: archipy.adapters.orm.sqlalchemy.sqlalchemy_ports
+::: archipy.adapters.orm.sqlalchemy.ports
     options:
       show_root_heading: true
       show_source: true
@@ -90,17 +90,17 @@ redis.set("key", "value", ex=3600)  # expires in 1 hour
 value = redis.get("key")
 ```
 
-::: archipy.adapters.redis.redis_adapters
+::: archipy.adapters.redis.adapters
     options:
       show_root_heading: true
       show_source: true
 
-::: archipy.adapters.redis.redis_ports
+::: archipy.adapters.redis.ports
     options:
       show_root_heading: true
       show_source: true
 
-::: archipy.adapters.redis.redis_mocks
+::: archipy.adapters.redis.mocks
     options:
       show_root_heading: true
       show_source: true
