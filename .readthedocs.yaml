@@ -27,10 +27,10 @@ python:
     - requirements: docs/requirements.txt
 
 # Build documentation with maximum extraction settings
-sphinx:
-  configuration: docs/source/conf.py
-  fail_on_warning: false  # Set to true once your docs are stable
-  builder: html
+#sphinx:
+#  configuration: docs/source/conf.py
+#  fail_on_warning: false  # Set to true once your docs are stable
+#  builder: html
 
 mkdocs:
   configuration: mkdocs.yml
