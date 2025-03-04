@@ -7,22 +7,22 @@ Examples of ArchiPy's utility functions:
 Work with dates and times consistently:
 
 ```python
-from archipy.helpers.utils.datetime_utils import DateTimeUtils
+from archipy.helpers.utils.datetime_utils import DatetimeUtils
 
 # Get current UTC time
-now = DateTimeUtils.get_utc_now()
+now = DatetimeUtils.get_datetime_utc_now()
 
 # Format for storage/transmission
-date_str = DateTimeUtils.convert_datetime_to_string(now)
+date_str = DatetimeUtils.get_string_datetime_from_datetime(now)
 
 # Parse date string
-parsed = DateTimeUtils.convert_string_to_datetime(date_str)
+parsed = DatetimeUtils.get_datetime_from_string_datetime(date_str)
 
 # Convert to Jalali (Persian) calendar
-jalali_date = DateTimeUtils.get_jalali_date(now)
+jalali_date = DatetimeUtils.convert_to_jalali(now)
 
 # Check if date is a holiday in Iran
-is_holiday = DateTimeUtils.is_holiday_in_iran(now)
+is_holiday = DatetimeUtils.is_holiday_in_iran(now)
 ```
 
 ## jwt_utils
@@ -35,14 +35,14 @@ from uuid import uuid4
 
 # Generate a user access token
 user_id = uuid4()
-access_token = JWTUtils.generate_access_token(user_id)
+access_token = JWTUtils.create_access_token(user_id)
 
 # Generate a refresh token
-refresh_token = JWTUtils.generate_refresh_token(user_id)
+refresh_token = JWTUtils.create_refresh_token(user_id)
 
 # Verify a token
 try:
-    payload = JWTUtils.verify_jwt(access_token)
+    payload = JWTUtils.verify_access_token(access_token)
     print(f"Token valid for user: {payload['sub']}")
 except Exception as e:
     print(f"Invalid token: {e}")
