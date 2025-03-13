@@ -215,10 +215,10 @@ class FastAPIRestRateLimitHandler:
 
             if not (ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast):
                 return ip_str
+
         except ValueError:
-            return forwarded_for
-        else:
-            return forwarded_for
+            pass
+        return forwarded_for
 
     def _generate_redis_key(self, request: Request, base_identifier: str) -> str:
         """Generates a Redis key for rate limiting based on the request and base identifier.
