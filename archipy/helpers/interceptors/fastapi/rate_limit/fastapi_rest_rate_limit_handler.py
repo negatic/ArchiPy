@@ -7,7 +7,7 @@ from starlette.datastructures import QueryParams
 from starlette.status import HTTP_429_TOO_MANY_REQUESTS
 
 from archipy.adapters.redis.adapters import AsyncRedisAdapter
-from archipy.adapters.redis.redis_ports import RedisResponseType
+from archipy.adapters.redis.ports import RedisResponseType
 
 
 class FastAPIRestRateLimitHandler:
