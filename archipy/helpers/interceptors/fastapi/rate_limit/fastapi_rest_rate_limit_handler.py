@@ -6,7 +6,7 @@ from pydantic import StrictInt, StrictStr
 from starlette.datastructures import QueryParams
 from starlette.status import HTTP_429_TOO_MANY_REQUESTS
 
-from archipy.adapters.redis.redis_adapters import AsyncRedisAdapter
+from archipy.adapters.redis.adapters import AsyncRedisAdapter
 from archipy.adapters.redis.redis_ports import RedisResponseType
 
 
