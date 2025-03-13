@@ -66,8 +66,7 @@ class StringUtils(StringUtilsConstants):
         text = text.translate(cls.alphabet_nun_translate_table)
         text = text.translate(cls.alphabet_vav_translate_table)
         text = text.translate(cls.alphabet_ha_translate_table)
-        text = text.translate(cls.alphabet_ye_translate_table)
-        return text
+        return text.translate(cls.alphabet_ye_translate_table)
 
     @classmethod
     def normalize_punctuation(cls, text: str) -> str:
@@ -91,8 +90,7 @@ class StringUtils(StringUtilsConstants):
         text = text.translate(cls.punctuation_translate_table10)
         text = text.translate(cls.punctuation_translate_table11)
         text = text.translate(cls.punctuation_translate_table12)
-        text = text.translate(cls.punctuation_translate_table13)
-        return text
+        return text.translate(cls.punctuation_translate_table13)
 
     @classmethod
     def normalize_numbers(cls, text: str) -> str:
@@ -282,21 +280,19 @@ class StringUtils(StringUtilsConstants):
         Returns:
             str: The text with emojis removed.
         """
-        emoji_pattern = compile(
-            pattern="["
-            "\U0001F600-\U0001F64F"  # emoticons
-            "\U0001F300-\U0001F5FF"  # symbols & pictographs
-            "\U0001F680-\U0001F6FF"  # transport & map symbols
-            "\U0001F1E0-\U0001F1FF"  # flags (iOS)
-            "\U00002702-\U000027B0"
-            "\U000024C2-\U0001F251"
-            "\U0001f926-\U0001f937"
-            "\U00010000-\U0010ffff"
-            "\u2640-\u2642"
-            "\u2600-\u2B55"
-            "\u23cf\u23e9\u231a\u3030\ufe0f\u2069\u2066\u2068\u2067"
-            "]+",
-            flags=re.UNICODE,
+        emoji_pattern = re.compile(
+            r"["
+            r"\U0001F600-\U0001F64F"  # emoticons
+            r"\U0001F300-\U0001F5FF"  # symbols & pictographs
+            r"\U0001F680-\U0001F6FF"  # transport & map symbols
+            r"\U0001F1E0-\U0001F1FF"  # flags
+            r"\U0001F900-\U0001F9FF"  # supplemental symbols and pictographs
+            r"\U0001FA00-\U0001FA6F"  # symbols and pictographs extended-A
+            r"\U00002600-\U000026FF"  # miscellaneous symbols (some are emojis)
+            r"\U00002700-\U000027BF"  # dingbats (some are emojis)
+            r"\U00002190-\U000021FF"  # arrows (some are emojis)
+            r"]+",
+            re.UNICODE,
         )
         return emoji_pattern.sub(r"", text)
 
