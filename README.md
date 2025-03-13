@@ -1,4 +1,4 @@
-<img src="./assets/logo.jpg" alt="ArchiPy Logo" width="150"/>
+<img src="docs/assets/logo.jpg" alt="ArchiPy Logo" width="150"/>
 
 # ArchiPy - Architecture + Python
 
@@ -6,7 +6,7 @@
 [![Stars](https://img.shields.io/github/stars/SyntaxArc/ArchiPy)](https://github.com/SyntaxArc/ArchiPy/stargazers)
 [![Python](https://img.shields.io/badge/Python-3.13+-blue.svg)](https://www.python.org/downloads/)
 [![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)](https://python-poetry.org/)
-[![Documentation](https://readthedocs.org/projects/archipy/badge/?version=latest)](https://archipy.readthedocs.io/)
+[![Documentation](https://img.shields.io/badge/docs-MkDocs-blue.svg)](https://syntaxarc.github.io/ArchiPy/)
 [![License](https://img.shields.io/github/license/SyntaxArc/ArchiPy)](https://github.com/SyntaxArc/ArchiPy/blob/master/LICENSE)
 [![Maintained](https://img.shields.io/badge/Maintained-yes-brightgreen)](https://github.com/SyntaxArc/ArchiPy)
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](https://github.com/SyntaxArc/ArchiPy/blob/master/CONTRIBUTING.md)
@@ -20,98 +20,82 @@
 [![Repo Size](https://img.shields.io/github/repo-size/SyntaxArc/ArchiPy)](https://github.com/SyntaxArc/ArchiPy)
 [![Code Size](https://img.shields.io/github/languages/code-size/SyntaxArc/ArchiPy)](https://github.com/SyntaxArc/ArchiPy)
 
-## **Perfect for Structured Design**
+## **Structured Python Development Made Simple**
 
-ArchiPy provides a robust architecture framework for building scalable and maintainable Python applications. It integrates modern Python tools and libraries to streamline development, testing, and deployment processes.
+ArchiPy is a Python framework designed to provide a standardized, scalable, and maintainable architecture for modern applications. Built with Python 3.13+, it offers a suite of tools, utilities, and best practices to streamline configuration management, testing, and development workflows while adhering to clean architecture principles.
 
 ---
 
 ## 📋 Table of Contents
 
+- [Goals](#-goals)
 - [Features](#-features)
 - [Prerequisites](#-prerequisites)
 - [Installation](#-installation)
 - [Usage](#-usage)
 - [Development](#-development)
 - [Contributing](#-contributing)
-- [Code of Conduct](#-code-of-conduct)
 - [License](#-license)
+- [Sponsors](#-sponsors)
 - [Contact](#-contact)
 - [Links](#-links)
 
 ---
 
+## 🎯 Goals
+
+ArchiPy is built with the following objectives in mind:
+
+1. **Configuration Management & Injection** - Simplify and standardize configuration handling
+2. **Common Adapters & Mocks** - Provide ready-to-use adapters with testing mocks
+3. **Standardized Entities & DTOs** - Enforce consistency in data modeling
+4. **Common Helpers for Everyday Tasks** - Simplify routine development work
+5. **Behavior-Driven Development (BDD) Support** - Enable robust feature validation
+6. **Best Practices & Development Structure** - Enforce coding standards
+
+[Read more about ArchiPy's architecture and design](https://syntaxarc.github.io/ArchiPy/architecture)
+
+---
+
 ## ✨ Features
 
-- **Modern Python Stack**: Built with Python 3.13 and leveraging tools like `pydantic`, `fastapi`, `gRPC` and  `sqlalchemy`.
-- **Modular Design**: Optional dependencies for Redis, gRPC, PostgreSQL, Prometheus, and more.
-- **Type Safety**: Enforced by `mypy` and `pydantic` for robust, error-resistant code.
-- **Comprehensive Testing**: Integrated with `behave` for comprehensive testing.
-- **Code Quality Tools**: Uses `ruff` and `black` for clean and consistent code.
-- **Pre-commit Hooks**: Automates code quality checks before commits.
-- **Dependency Management**: Managed by `poetry` for reproducible builds.
+- **Config Standardization**: Tools for managing and injecting configurations
+- **Adapters & Mocks**: Pre-built adapters for Redis, SQLAlchemy, and email with testing mocks
+- **Data Standardization**: Base entities, DTOs, and type safety
+- **Helper Utilities**: Reusable tools for common tasks
+- **BDD Testing**: Fully integrated Behave setup
+- **Modern Tooling**: Dependency management and code quality tools
+
+[Explore the complete feature set](https://syntaxarc.github.io/ArchiPy/features)
 
 ---
 
 ## 🛠️ Prerequisites
 
-Before starting with ArchiPy, ensure you have:
-
 - **Python 3.13 or higher**
-  ArchiPy is compatible with Python 3.13+.
-  ```bash
-  python --version
-  ```
-  If your Python version is lower than 3.13, [download and install the latest version of Python](https://www.python.org/downloads/).
-
-- **Poetry** (for dependency management)
-  Poetry is required to manage dependencies and install the project. If you don't have Poetry installed, follow the [official installation guide](https://python-poetry.org/docs/).
+- **Poetry** (recommended for development)
 
 ---
 
-## 🚀 Installation
-
-### From PyPI
-
-The simplest way to install ArchiPy:
-
+## 📥 Installation
+ Install using pip
 ```bash
 # Basic installation
 pip install archipy
 
-# With optional dependencies
+# With optional dependencies (e.g., Redis and FastAPI)
 pip install archipy[redis,fastapi]
 ```
 
-Or using Poetry:
-
+Using Poetry:
 ```bash
-# Basic installation
 poetry add archipy
 
 # With optional dependencies
 poetry add archipy[redis,fastapi]
 ```
 
-### From Source
-
-For development or the latest features:
-
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/SyntaxArc/ArchiPy.git
-   cd ArchiPy
-   ```
-
-2. **Set Up the Project**
-   ```bash
-   make setup
-   ```
-
-3. **Install Dependencies**
-   ```bash
-   make install
-   ```
+[View installation documentation](https://syntaxarc.github.io/ArchiPy/installation)
 
 ---
 
@@ -119,80 +103,41 @@ For development or the latest features:
 
 ### Optional Dependencies
 
-ArchiPy provides modular functionality through optional dependencies:
+ArchiPy's modular design lets you install only what you need:
 
-| Feature              | Installation Command            |
-|----------------------|---------------------------------|
-| Redis                | `archipy[redis]`                |
-| Elastic APM          | `archipy[elastic-apm]`          |
-| FastAPI              | `archipy[fastapi]`              |
-| JWT                  | `archipy[jwt]`                  |
-| Kavenegar            | `archipy[kavenegar]`            |
-| Prometheus           | `archipy[prometheus]`           |
-| Sentry               | `archipy[sentry]`               |
-| Dependency Injection | `archipy[dependency-injection]` |
-| Scheduler            | `archipy[scheduler]`            |
-| gRPC                 | `archipy[grpc]`                 |
-| PostgreSQL           | `archipy[postgres]`             |
-| aiosqlite            | `archipy[aiosqlite]`            |
+```bash
+# Examples
+pip install archipy[redis]        # Redis support
+pip install archipy[fastapi]      # FastAPI framework
+pip install archipy[postgres]     # PostgreSQL support
+```
 
-### Troubleshooting Installation
-
-If you encounter installation issues, check that:
-
-1. Your Python version is **3.13 or higher**
-2. Your package manager (`pip` or `poetry`) is up to date
-3. You have the necessary build tools installed (`setuptools`, `wheel`)
+[See the documentation for all available options and examples](https://syntaxarc.github.io/ArchiPy/usage)
 
 ---
 
 ## 🛠️ Development
 
-### Common Commands
+### Quick Commands
 
-Run `make help` to see all available commands. Here are some frequently used ones:
-
-- **Format Code** 🧹 `make format`
-- **Run Linters** 🔍 `make lint`
-- **Run Tests** 🧪 `make behave`
-- **Build the Project** 🏗️ `make build`
-- **Clean Build Artifacts** 🧽 `make clean`
-- **Run All Checks** `make check`
-- **Run CI Pipeline Locally** `make ci`
-- **Update Dependencies** `make update`
-
-### Version Management
-
-We follow [Semantic Versioning (SemVer)](https://semver.org/) principles:
-
-- **Bump Patch Version** (Bug fixes): `make bump-patch`
-- **Bump Minor Version** (New features): `make bump-minor`
-- **Bump Major Version** (Breaking changes): `make bump-major`
-
-Add a custom message to your version bump:
 ```bash
-make bump-patch message="Your custom message"
+# Format code
+make format
+
+# Run tests
+make behave
+
+# Lint code
+make lint
 ```
 
-For more detailed information about development processes, refer to our [contribution guidelines](CONTRIBUTING.md).
+[View the complete development guide](https://syntaxarc.github.io/ArchiPy/development)
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions to ArchiPy! Please check out our [contribution guidelines](CONTRIBUTING.md) for details on:
-
-- Setting up your development environment
-- Development workflow
-- Submitting effective pull requests
-- Code style expectations
-- Testing requirements
-
----
-
-## 📜 Code of Conduct
-
-This project adheres to a [Code of Conduct](CODE_OF_CONDUCT.md) to ensure a welcoming and inclusive environment for all contributors and users. Please review it before participating.
+Contributions are welcome! See our [contribution guidelines](CONTRIBUTING.md) for details.
 
 ---
 
@@ -202,9 +147,13 @@ This project is licensed under the terms of the [LICENSE](LICENSE) file.
 
 ---
 
-## 📞 Contact
+## 🙌 Sponsors
 
-For questions or feedback, feel free to reach out:
+Support ArchiPy by checking out our amazing sponsors! [View Sponsors](SPONSORS.md)
+
+---
+
+## 📞 Contact
 
 - **Mehdi Einali**: [einali@gmail.com](mailto:einali@gmail.com)
 - **Hossein Nejati**: [hosseinnejati14@gmail.com](mailto:hosseinnejati14@gmail.com)
@@ -213,10 +162,33 @@ For questions or feedback, feel free to reach out:
 
 ## 🔗 Links
 
-- **GitHub Repository**: [https://github.com/SyntaxArc/ArchiPy](https://github.com/SyntaxArc/ArchiPy)
-- **Documentation**: [https://archipy.readthedocs.io/](https://archipy.readthedocs.io/)
-- **Bug Tracker**: [https://github.com/SyntaxArc/ArchiPy/issues](https://github.com/SyntaxArc/ArchiPy/issues)
-- **Contributing Guidelines**: [https://github.com/SyntaxArc/ArchiPy/blob/master/CONTRIBUTING.md](https://github.com/SyntaxArc/ArchiPy/blob/master/CONTRIBUTING.md)
-- **Code of Conduct**: [https://github.com/SyntaxArc/ArchiPy/blob/master/CODE_OF_CONDUCT.md](https://github.com/SyntaxArc/ArchiPy/blob/master/CODE_OF_CONDUCT.md)
+- [Documentation](https://syntaxarc.github.io/ArchiPy/)
+- [GitHub Repository](https://github.com/SyntaxArc/ArchiPy)
+- [PyPI Package](https://pypi.org/project/archipy/)
 
----
+## 📚 Documentation
+
+ArchiPy's documentation has been migrated from Sphinx to MkDocs for improved readability and organization:
+
+- **Modern Interface**: Material theme with responsive design
+- **Improved Navigation**: Intuitive organization and search
+- **Clearer Examples**: Expanded code samples with explanations
+- **API Reference**: Auto-generated from source code docstrings
+
+To run the documentation locally:
+
+```bash
+# Install documentation dependencies
+poetry install --with docs
+
+# Serve documentation locally
+make docs-serve
+
+# Build documentation
+make docs-build
+
+# Deploy to GitHub Pages
+make docs-deploy
+```
+
+[View the latest documentation](https://syntaxarc.github.io/ArchiPy/)

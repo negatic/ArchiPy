@@ -18,7 +18,8 @@ try:
 except ImportError:
     HTTP_AVAILABLE = False
     HTTPStatus = None
-
+    Request = None
+    JSONResponse = None
 try:
     from grpc import StatusCode
 

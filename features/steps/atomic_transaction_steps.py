@@ -11,44 +11,24 @@ import uuid
 from datetime import datetime
 
 from behave import given, then, when
+from features.test_entity import RelatedTestEntity, TestAdminEntity, TestEntity, TestManagerEntity
+from features.test_entity_factory import TestEntityFactory
 from features.test_helpers import (
     SafeAsyncContextManager,
     async_schema_setup,
-    safe_run_async,
+    get_adapter,
+    get_async_adapter,
     get_current_scenario_context,
+    safe_run_async,
 )
-from features.test_entity import RelatedTestEntity, TestAdminEntity, TestEntity, TestManagerEntity
-from features.test_entity_factory import TestEntityFactory
 from sqlalchemy import select
 
+from archipy.adapters.orm.sqlalchemy.mocks import AsyncSqlAlchemyMock, SqlAlchemyMock
 from archipy.adapters.orm.sqlalchemy.session_manager_registry import SessionManagerRegistry
-from archipy.adapters.orm.sqlalchemy.sqlalchemy_mocks import AsyncSqlAlchemyMock, SqlAlchemyMock
 from archipy.configs.config_template import SqlAlchemyConfig
 from archipy.helpers.decorators.sqlalchemy_atomic import async_sqlalchemy_atomic_decorator, sqlalchemy_atomic_decorator
 from archipy.models.entities.sqlalchemy.base_entities import BaseEntity
 from archipy.models.errors import InternalError
-
-
-def get_adapter(context):
-    """Get the adapter for the current scenario."""
-    scenario_context = get_current_scenario_context(context)
-
-    adapter = scenario_context.adapter
-    if not adapter:
-        raise AttributeError("No adapter found in scenario context. Make sure the database is initialized.")
-
-    return adapter
-
-
-def get_async_adapter(context):
-    """Get the async adapter for the current scenario."""
-    scenario_context = get_current_scenario_context(context)
-
-    async_adapter = scenario_context.async_adapter
-    if not async_adapter:
-        raise AttributeError("No async adapter found in scenario context. Make sure the database is initialized.")
-
-    return async_adapter
 
 
 def store_entity(context, entity, key=None):
