@@ -41,7 +41,7 @@ ArchiPy is a comprehensive framework designed to streamline Python application d
 ```
 archipy/
 │
-├── adapters/          # Interfaces to external systems 
+├── adapters/          # Interfaces to external systems
 ├── configs/           # Configuration management
 ├── helpers/           # Development utilities
 │   ├── decorators/    # Function/method decorators

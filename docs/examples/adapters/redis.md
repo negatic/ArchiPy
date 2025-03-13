@@ -58,13 +58,13 @@ async def main():
         port=6379,
         db=0
     )
-    
+
     # Async operations
     await redis.set("counter", "1")
     await redis.incr("counter")  # Increment
     count = await redis.get("counter")
     print(f"Counter: {count}")  # Output: Counter: 2
-    
+
     # Cleanup
     await redis.close()
 
@@ -89,12 +89,12 @@ def cache_result(key, ttl=300):
         def wrapper(*args, **kwargs):
             # Create a cache key with function name and arguments
             cache_key = f"{key}:{func.__name__}:{hash(str(args) + str(kwargs))}"
-            
+
             # Try to get from cache
             cached = redis.get(cache_key)
             if cached:
                 return json.loads(cached)
-            
+
             # Execute function and cache result
             result = func(*args, **kwargs)
             redis.set(cache_key, json.dumps(result), ex=ttl)
@@ -129,12 +129,12 @@ from archipy.adapters.redis import RedisMock, RedisAdapter
 class UserService:
     def __init__(self, redis_adapter):
         self.redis = redis_adapter
-        
+
     def get_user(self, user_id):
         cached = self.redis.get(f"user:{user_id}")
         if cached:
             return cached
-        
+
         # In real code, we'd fetch from database if not in cache
         user_data = f"User {user_id} data"
         self.redis.set(f"user:{user_id}", user_data, ex=300)
@@ -145,18 +145,18 @@ class TestUserService(unittest.TestCase):
         # Use the RedisMock instead of a real Redis connection
         self.redis_mock = RedisMock()
         self.user_service = UserService(self.redis_mock)
-    
+
     def test_get_user(self):
         # Test first fetch (not cached)
         user_data = self.user_service.get_user(123)
         self.assertEqual(user_data, "User 123 data")
-        
+
         # Test that it was cached
         self.assertEqual(self.redis_mock.get("user:123"), "User 123 data")
-        
+
         # Change the cached value to test cache hit
         self.redis_mock.set("user:123", "Modified data")
-        
+
         # Test cached fetch
         user_data = self.user_service.get_user(123)
         self.assertEqual(user_data, "Modified data")
@@ -181,14 +181,14 @@ redis = RedisAdapter(host="localhost", port=6379, db=0)
 def subscribe_thread():
     subscriber = RedisAdapter(host="localhost", port=6379, db=0)
     pubsub = subscriber.pubsub()
-    
+
     def message_handler(message):
         if message["type"] == "message":
             print(f"Received message: {message['data']}")
-    
+
     pubsub.subscribe(**{"channel:notifications": message_handler})
     pubsub.run_in_thread(sleep_time=0.5)
-    
+
     # Keep thread running for demo
     time.sleep(10)
     pubsub.close()

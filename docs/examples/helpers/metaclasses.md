@@ -12,7 +12,7 @@ class Database(metaclass=Singleton):
     def __init__(self, connection_string=None):
         self.connection_string = connection_string
         # Initialize connection
-        
+
     def query(self, sql):
         # Execute query
         pass

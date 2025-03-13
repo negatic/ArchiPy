@@ -27,7 +27,7 @@ from archipy.configs.config_template import (
 )
 from archipy.configs.environment_type import EnvironmentType
 
-"""
+'''
 
 Priority :
             1. pypoject.toml [tool.configs]
@@ -35,7 +35,7 @@ Priority :
             3. .env file
             4. os level environment variable
             5. class field value
-"""
+'''
 R = TypeVar("R")  # Runtime Config
 
 
