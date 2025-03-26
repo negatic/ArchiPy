@@ -31,6 +31,8 @@ postgres = ["psycopg[binary,pool] (>=3.2.5)"]
 sqlalchemy = ["sqlalchemy (>=2.0.38)"]
 aiosqlite = ["aiosqlite (>=0.21.0)"]
 fakeredis = ["fakeredis (>=2.27.0,<3.0.0)"]
+cache = ["cachetools (>=5.5.2,<6.0.0)"]
+keycloak = ["python-keycloak (>=5.3.1,<6.0.0)", "cachetools (>=5.5.2,<6.0.0)"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"

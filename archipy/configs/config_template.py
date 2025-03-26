@@ -133,12 +133,11 @@ class KafkaConfig(BaseModel):
 
 class KeycloakConfig(BaseModel):
     SERVER_URL: str | None = None
-    CLIENT_NAME: str | None = None
-    REALM_NAME: str = "services"
+    CLIENT_ID: str | None = None
+    REALM_NAME: str = "master"
     CLIENT_SECRET_KEY: str | None = None
-    DATA_REFRESH_INTERVAL: int = 5
-    LRU_CACHE_MAX_SIZE: int = 100
-    ENABLE_SECURE_CONNECTION: bool = True
+    VERIFY_SSL: bool = True
+    TIMEOUT: int = 10
 
 
 class SqlAlchemyConfig(BaseModel):
