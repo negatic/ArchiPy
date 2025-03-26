@@ -374,17 +374,16 @@ class KeycloakAdapter(KeycloakPort):
             return False
 
     @override
-    def has_any_role(self, token: str, role_names: list[str]) -> bool:
+    def has_any_of_roles(self, token: str, role_names: set[str]) -> bool:
         """Check if a user has any of the specified roles.
 
         Args:
             token: Access token
-            role_names: List of role names to check
+            role_names: Set of role names to check
 
         Returns:
             True if user has any of the roles, False otherwise
         """
-        # Not caching this result as token validation is time-sensitive
         try:
             token_info = self.openid_adapter.decode_token(
                 token,
@@ -393,23 +392,55 @@ class KeycloakAdapter(KeycloakPort):
 
             # Check realm roles
             realm_access = token_info.get("realm_access", {})
-            roles = realm_access.get("roles", [])
-
-            for role in role_names:
-                if role in roles:
-                    return True
+            roles = set(realm_access.get("roles", []))
+            if role_names.intersection(roles):
+                return True
 
             # Check client roles
             resource_access = token_info.get("resource_access", {})
             for client in resource_access.values():
-                client_roles = client.get("roles", [])
-                for role in role_names:
-                    if role in client_roles:
-                        return True
+                client_roles = set(client.get("roles", []))
+                if role_names.intersection(client_roles):
+                    return True
 
             return False
         except Exception as e:
             logger.debug(f"Role check failed: {e!s}")
+            return False
+
+    @override
+    def has_all_roles(self, token: str, role_names: set[str]) -> bool:
+        """Check if a user has all of the specified roles.
+
+        Args:
+            token: Access token
+            role_names: Set of role names to check
+
+        Returns:
+            True if user has all of the roles, False otherwise
+        """
+        try:
+            token_info = self.openid_adapter.decode_token(
+                token,
+                key=self.get_public_key(),
+            )
+
+            # Get all user roles
+            all_roles = set()
+
+            # Add realm roles
+            realm_access = token_info.get("realm_access", {})
+            all_roles.update(realm_access.get("roles", []))
+
+            # Add client roles
+            resource_access = token_info.get("resource_access", {})
+            for client in resource_access.values():
+                all_roles.update(client.get("roles", []))
+
+            # Check if all required roles are present
+            return role_names.issubset(all_roles)
+        except Exception as e:
+            logger.debug(f"All roles check failed: {e!s}")
             return False
 
     @override

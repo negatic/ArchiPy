@@ -118,8 +118,13 @@ class KeycloakPort:
         raise NotImplementedError
 
     @abstractmethod
-    def has_any_role(self, token: str, role_names: list[str]) -> bool:
+    def has_any_of_roles(self, token: str, role_names: list[str]) -> bool:
         """Check if a user has any of the specified roles."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def has_all_roles(self, token: str, role_names: set[str]) -> bool:
+        """Check if a user has all of the specified roles."""
         raise NotImplementedError
 
     @abstractmethod
