@@ -12,6 +12,7 @@ The adapters module provides standardized interfaces to external systems:
 - [ORM Adapters](adapters.md#orm)
 - [Redis Adapters](adapters.md#redis)
 - [Email Adapters](adapters.md#email)
+- [Keycloak Adapters](adapters.md#keycloak)
 
 ### Configs
 
@@ -49,6 +50,7 @@ The ArchiPy source code is organized into the following structure:
 archipy/
 ├── adapters/           # External system integrations
 │   ├── email/         # Email service adapters
+│   ├── keycloak/      # Keycloak authentication adapters
 │   ├── orm/           # Database ORM adapters
 │   └── redis/         # Redis adapters
 ├── configs/           # Configuration management

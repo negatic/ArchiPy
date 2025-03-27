@@ -2,6 +2,8 @@
 
 The Keycloak adapter provides an interface for interacting with Keycloak's API to manage authentication and authorization. ArchiPy offers both synchronous and asynchronous implementations.
 
+For full API reference, see the [Keycloak Adapters API Documentation](../../api_reference/adapters.md#keycloak).
+
 ## Configuration
 
 First, configure your Keycloak settings in your application config:

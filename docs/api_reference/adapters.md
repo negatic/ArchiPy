@@ -46,7 +46,7 @@ Keycloak integration for authentication and authorization services.
 ```python
 from archipy.adapters.keycloak import KeycloakAdapter, AsyncKeycloakAdapter
 
-# Create a Keycloak adapter
+# Create a Keycloak adapter (synchronous)
 keycloak = KeycloakAdapter()  # Uses global config by default
 
 # Authenticate a user
@@ -57,7 +57,26 @@ is_valid = keycloak.validate_token(token["access_token"])
 
 # Check user roles
 has_admin = keycloak.has_role(token["access_token"], "admin")
+
+# Async usage example
+import asyncio
+
+async def auth_example():
+    # Create async Keycloak adapter
+    async_keycloak = AsyncKeycloakAdapter()
+
+    # Get token asynchronously
+    token = await async_keycloak.get_token("username", "password")
+
+    # Get user info
+    user_info = await async_keycloak.get_userinfo(token["access_token"])
+    return user_info
+
+# Run the async example
+user_info = asyncio.run(auth_example())
 ```
+
+For detailed examples and usage guidelines, see the [Keycloak Adapter Examples](../examples/adapters/keycloak.md).
 
 ::: archipy.adapters.keycloak.adapters
     options:
