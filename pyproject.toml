@@ -65,10 +65,6 @@ filterwarnings = [
     'ignore::DeprecationWarning'
 ]
 
-[[tool.poetry.source]]
-name = "arad"
-url = "https://repo-arad.darkube.app"
-priority = "supplemental"
 
 [[tool.poetry.source]]
 name = "PyPI"

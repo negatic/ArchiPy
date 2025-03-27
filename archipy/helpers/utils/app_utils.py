@@ -6,12 +6,10 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 from pydantic import ValidationError
-from starlette.exceptions import HTTPException
 from starlette.middleware.cors import CORSMiddleware
 
 from archipy.configs.base_config import BaseConfig
 from archipy.helpers.utils.base_utils import BaseUtils
-from archipy.models.dtos.error_dto import ErrorDetailDTO
 from archipy.models.errors import (
     BaseError,
     InvalidArgumentError,
@@ -47,27 +45,6 @@ class FastAPIExceptionHandler:
         Returns:
             JSONResponse: A JSON response containing the exception details.
         """
-        return FastAPIExceptionHandler.create_error_response(exception)
-
-    # TODO Remove http_exception_handler
-    @staticmethod
-    async def http_exception_handler(request: Request, exception: HTTPException) -> JSONResponse:
-        """Handles HTTP errors.
-
-        Args:
-            request (Request): The incoming request.
-            exception (HTTPException): The HTTP exception to handle.
-
-        Returns:
-            JSONResponse: A JSON response containing the exception details.
-        """
-        detail = ErrorDetailDTO(
-            code="TODO_REMOVE_ME",
-            http_status=exception.status_code,
-            message_en=exception.detail,
-            message_fa=exception.detail,
-        )
-        exception = BaseError(detail, lang="en")
         return FastAPIExceptionHandler.create_error_response(exception)
 
     @staticmethod
@@ -196,7 +173,6 @@ class FastAPIUtils:
         app.add_exception_handler(RequestValidationError, FastAPIExceptionHandler.validation_exception_handler)
         app.add_exception_handler(ValidationError, FastAPIExceptionHandler.validation_exception_handler)
         app.add_exception_handler(BaseError, FastAPIExceptionHandler.custom_exception_handler)
-        app.add_exception_handler(HTTPException, FastAPIExceptionHandler.http_exception_handler)
         app.add_exception_handler(Exception, FastAPIExceptionHandler.generic_exception_handler)
 
 
