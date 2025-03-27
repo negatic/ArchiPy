@@ -112,6 +112,19 @@ twisted = ["twisted"]
 zookeeper = ["kazoo"]
 
 [[package]]
+name = "async-lru"
+version = "2.0.5"
+description = "Simple LRU cache for asyncio"
+optional = true
+python-versions = ">=3.9"
+groups = ["main"]
+markers = "extra == \"cache\" or extra == \"keycloak\""
+files = [
+    {file = "async_lru-2.0.5-py3-none-any.whl", hash = "sha256:ab95404d8d2605310d345932697371a5f40def0487c03d6d0ad9138de52c9943"},
+    {file = "async_lru-2.0.5.tar.gz", hash = "sha256:481d52ccdd27275f42c43a928b4a50c3bfb2d67af4e78b170e3e0bb39c66e5bb"},
+]
+
+[[package]]
 name = "async-property"
 version = "0.2.2"
 description = "Python decorator for async properties."
@@ -3493,7 +3506,7 @@ files = [
 
 [extras]
 aiosqlite = ["aiosqlite"]
-cache = ["cachetools"]
+cache = ["async-lru", "cachetools"]
 dependency-injection = ["dependency-injector"]
 elastic-apm = ["elastic-apm"]
 fakeredis = ["fakeredis"]
@@ -3501,7 +3514,7 @@ fastapi = ["fastapi"]
 grpc = ["grpcio", "grpcio-health-checking", "protobuf"]
 jwt = ["pyjwt"]
 kavenegar = ["kavenegar"]
-keycloak = ["cachetools", "python-keycloak"]
+keycloak = ["async-lru", "cachetools", "python-keycloak"]
 postgres = ["psycopg"]
 prometheus = ["prometheus-client"]
 redis = ["redis"]
@@ -3512,4 +3525,4 @@ sqlalchemy = ["sqlalchemy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<4"
-content-hash = "417cf78bd1f608315cddf4d1ed3f8cf10bc5483b3af0b3c7e86cbca57a0eadbd"
+content-hash = "781422823b1a493b2534930c56fa815a4ec291980075e4d866f70c9d6701fe07"

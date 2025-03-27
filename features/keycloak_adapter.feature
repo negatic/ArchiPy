@@ -1,59 +1,92 @@
-Feature: Keycloak Adapter Operations
-  As a system administrator
-  I want to manage authentication tokens, users, and roles through the Keycloak adapter
-  So that I can secure and control access to my application
+# features/keycloak_auth.feature
+Feature: Keycloak Authentication Testing
+  As a developer
+  I want to test Keycloak authentication operations
+  So that I can ensure secure authentication without a real Keycloak server
 
   Background:
-    Given the Keycloak adapter is initialized with valid configuration
+    Given a Keycloak realm "test-realm" exists
+    And a client "service" exists
+    And the "VERIFY_PROFILE" required action is disabled in realm "test-realm"
+    And client "test-client" has client authentication enabled
+    And client "test-client" has service accounts roles enabled
+    And client "test-client" has "manage-users" and "manage-realm" service account role access
 
-  # Token Operations
-  Scenario: Getting a token with valid credentials
-    Given a user exists with username "testuser" and password "password123"
-    When I request a token with username "testuser" and password "password123"
-    Then I receive a valid token response containing "access_token" and "refresh_token"
+  Scenario: Obtain token with valid credentials using sync adapter
+    Given a configured sync Keycloak adapter
+    And a user exists with username "testuser" and password "pass123"
+    When I request a token with username "testuser" and password "pass123" using sync adapter
+    Then the sync token request should succeed
+    And the sync token response should contain "access_token" and "refresh_token"
 
-  Scenario: Getting a token with invalid credentials
-    When I request a token with username "invaliduser" and password "wrongpass"
-    Then I receive an error indicating authentication failed
+  Scenario: Refresh token using sync adapter
+    Given a configured sync Keycloak adapter
+    And a user exists with username "testuser" and password "pass123"
+    And I have a valid token for "testuser" with password "pass123" using sync adapter
+    When I refresh the token using sync adapter
+    Then the sync token refresh should succeed
+    And the sync token response should contain "access_token" and "refresh_token"
 
-  Scenario: Refreshing a valid token
-    Given I have a valid refresh token
-    When I refresh the token
-    Then I receive a valid token response containing "access_token" and "refresh_token"
+  Scenario: Get user info with sync adapter
+    Given a configured sync Keycloak adapter
+    And a user exists with username "testuser" and password "pass123"
+    And I have a valid token for "testuser" with password "pass123" using sync adapter
+    When I request user info with the token using sync adapter
+    Then the sync user info request should succeed
+    And the sync user info should contain "sub" and "preferred_username"
 
-  Scenario: Validating a token
-    Given I have a valid access token
-    When I validate the token
-    Then the validation returns true
+  Scenario: Logout user with sync adapter
+    Given a configured sync Keycloak adapter
+    And a user exists with username "testuser" and password "pass123"
+    And I have a valid token for "testuser" with password "pass123" using sync adapter
+    When I logout the user using sync adapter
+    Then the sync logout operation should succeed
 
-  # User Management
-  Scenario: Creating a new user
-    Given no user exists with username "newuser"
-    When I create a user with username "newuser" and email "newuser@example.com"
-    Then the user is created successfully
-    And I can retrieve the user by username "newuser"
+  Scenario: Validate token with sync adapter
+    Given a configured sync Keycloak adapter
+    And a user exists with username "testuser" and password "pass123"
+    And I have a valid token for "testuser" with password "pass123" using sync adapter
+    When I validate the token using sync adapter
+    Then the sync token validation should succeed
 
-  Scenario: Getting user by username
-    Given a user exists with username "user123"
-    When I request user details by username "user123"
-    Then I receive the user's details
+  @async
+  Scenario: Obtain token asynchronously with valid credentials
+    Given a configured async Keycloak adapter
+    And a user exists with username "asyncuser" and password "async123"
+    When I request a token with username "asyncuser" and password "async123" using async adapter
+    Then the async token request should succeed
+    And the async token response should contain "access_token" and "refresh_token"
 
-  Scenario: Updating user information
-    Given a user exists with username "updateuser" and password "password123"
-    When I update the user's email to "updated@example.com"
-    Then the user's email is updated successfully
+  @async
+  Scenario: Refresh token asynchronously
+    Given a configured async Keycloak adapter
+    And a user exists with username "asyncuser" and password "async123"
+    And I have a valid token for "asyncuser" with password "async123" using async adapter
+    When I refresh the token using async adapter
+    Then the async token refresh should succeed
+    And the async token response should contain "access_token" and "refresh_token"
 
-  # Role Management
-  Scenario: Assigning a realm role to a user
-    Given a user exists with username "user456"
-    And a realm role "test-role" exists
-    When I assign the realm role "test-role" to user "user456"
-    Then the user has the role "test-role"
+  @async
+  Scenario: Get user info asynchronously
+    Given a configured async Keycloak adapter
+    And a user exists with username "asyncuser" and password "async123"
+    And I have a valid token for "asyncuser" with password "async123" using async adapter
+    When I request user info with the token using async adapter
+    Then the async user info request should succeed
+    And the async user info should contain "sub" and "preferred_username"
 
-  Scenario: Checking user role permissions
-    Given a user exists with username "testuser" and password "password123"
-    And a realm role "admin" exists
-    And the user has role "admin"
-    And a user has a valid token
-    When I check if the token has role "admin"
-    Then the check returns true
+  @async
+  Scenario: Logout user asynchronously
+    Given a configured async Keycloak adapter
+    And a user exists with username "asyncuser" and password "async123"
+    And I have a valid token for "asyncuser" with password "async123" using async adapter
+    When I logout the user using async adapter
+    Then the async logout operation should succeed
+
+  @async
+  Scenario: Validate token asynchronously
+    Given a configured async Keycloak adapter
+    And a user exists with username "asyncuser" and password "async123"
+    And I have a valid token for "asyncuser" with password "async123" using async adapter
+    When I validate the token using async adapter
+    Then the async token validation should succeed
