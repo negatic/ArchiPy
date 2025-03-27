@@ -7,6 +7,7 @@ ArchiPy provides a variety of adapters to help interface with external systems, 
 | Adapter | Purpose | Example |
 |---------|---------|---------|
 | [Email](email.md) | Email sending interface | Connect to SMTP servers for sending emails |
+| [Keycloak](keycloak.md) | Authentication & authorization | User management and access control with Keycloak |
 | [ORM](orm.md) | Database access | SQLAlchemy integration for database operations |
 | [Redis](redis.md) | Key-value store | Caching, pub/sub, and data storage with Redis |
 

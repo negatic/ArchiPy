@@ -39,6 +39,36 @@ email_adapter.send_email(
       show_root_heading: true
       show_source: true
 
+### Keycloak
+
+Keycloak integration for authentication and authorization services.
+
+```python
+from archipy.adapters.keycloak import KeycloakAdapter, AsyncKeycloakAdapter
+
+# Create a Keycloak adapter
+keycloak = KeycloakAdapter()  # Uses global config by default
+
+# Authenticate a user
+token = keycloak.get_token("username", "password")
+
+# Validate token
+is_valid = keycloak.validate_token(token["access_token"])
+
+# Check user roles
+has_admin = keycloak.has_role(token["access_token"], "admin")
+```
+
+::: archipy.adapters.keycloak.adapters
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.keycloak.ports
+    options:
+      show_root_heading: true
+      show_source: true
+
 ### ORM
 
 Object-Relational Mapping adapters, primarily for SQLAlchemy integration.
