@@ -7,7 +7,7 @@ from psycopg.errors import DeadlockDetected, SerializationFailure
 from sqlalchemy.exc import OperationalError
 
 from archipy.adapters.orm.sqlalchemy.session_manager_registry import SessionManagerRegistry
-from archipy.models.errors import AbortedError, DeadlockDetectedError, InternalError
+from archipy.models.errors import AbortedError, BaseError, DeadlockDetectedError, InternalError
 
 _in_atomic_block = "in_sqlalchemy_atomic_block"
 
@@ -75,6 +75,10 @@ def _atomic(function: Callable) -> Callable:
                 session.rollback()
                 raise DeadlockDetectedError() from exception
             raise InternalError() from exception
+        except BaseError as exception:
+            logging.debug(f"Exception occurred in atomic block, rollback will be initiated, ex:{exception}")
+            session.rollback()
+            raise exception
         except Exception as exception:
             logging.debug(f"Exception occurred in atomic block, rollback will be initiated, ex:{exception}")
             session.rollback()
@@ -151,6 +155,10 @@ def _async_atomic(function: Callable) -> Callable:
                 await session.rollback()
                 raise DeadlockDetectedError() from exception
             raise InternalError() from exception
+        except BaseError as exception:
+            logging.debug(f"Exception occurred in atomic block, rollback will be initiated, ex:{exception}")
+            session.rollback()
+            raise exception
         except Exception as exception:
             logging.debug(f"Exception occurred in atomic block, rollback will be initiated, ex:{exception}")
             await session.rollback()
