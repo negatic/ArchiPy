@@ -352,19 +352,16 @@ class KeycloakAdapter(KeycloakPort):
         """
         # Not caching this result as token validation is time-sensitive
         try:
-            token_info = self.openid_adapter.decode_token(
-                token,
-                key=self.get_public_key(),
-            )
+            user_info = self.get_userinfo(token)
 
             # Check realm roles
-            realm_access = token_info.get("realm_access", {})
+            realm_access = user_info.get("realm_access", {})
             roles = realm_access.get("roles", [])
             if role_name in roles:
                 return True
 
             # Check client roles
-            resource_access = token_info.get("resource_access", {})
+            resource_access = user_info.get("resource_access", {})
             for client in resource_access.values():
                 client_roles = client.get("roles", [])
                 if role_name in client_roles:
@@ -387,19 +384,16 @@ class KeycloakAdapter(KeycloakPort):
             True if user has any of the roles, False otherwise
         """
         try:
-            token_info = self.openid_adapter.decode_token(
-                token,
-                key=self.get_public_key(),
-            )
+            user_info = self.get_userinfo(token)
 
             # Check realm roles
-            realm_access = token_info.get("realm_access", {})
+            realm_access = user_info.get("realm_access", {})
             roles = set(realm_access.get("roles", []))
             if role_names.intersection(roles):
                 return True
 
             # Check client roles
-            resource_access = token_info.get("resource_access", {})
+            resource_access = user_info.get("resource_access", {})
             for client in resource_access.values():
                 client_roles = set(client.get("roles", []))
                 if role_names.intersection(client_roles):
@@ -422,20 +416,17 @@ class KeycloakAdapter(KeycloakPort):
             True if user has all of the roles, False otherwise
         """
         try:
-            token_info = self.openid_adapter.decode_token(
-                token,
-                key=self.get_public_key(),
-            )
+            user_info = self.get_userinfo(token)
 
             # Get all user roles
             all_roles = set()
 
             # Add realm roles
-            realm_access = token_info.get("realm_access", {})
+            realm_access = user_info.get("realm_access", {})
             all_roles.update(realm_access.get("roles", []))
 
             # Add client roles
-            resource_access = token_info.get("resource_access", {})
+            resource_access = user_info.get("resource_access", {})
             for client in resource_access.values():
                 all_roles.update(client.get("roles", []))
 
@@ -1349,19 +1340,16 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         """
         # Not caching this result as token validation is time-sensitive
         try:
-            token_info = await self.openid_adapter.a_decode_token(
-                token,
-                key=await self.get_public_key(),
-            )
+            user_info = await self.get_userinfo(token)
 
             # Check realm roles
-            realm_access = token_info.get("realm_access", {})
+            realm_access = user_info.get("realm_access", {})
             roles = realm_access.get("roles", [])
             if role_name in roles:
                 return True
 
             # Check client roles
-            resource_access = token_info.get("resource_access", {})
+            resource_access = user_info.get("resource_access", {})
             for client in resource_access.values():
                 client_roles = client.get("roles", [])
                 if role_name in client_roles:
@@ -1384,19 +1372,16 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             True if user has any of the roles, False otherwise
         """
         try:
-            token_info = await self.openid_adapter.a_decode_token(
-                token,
-                key=await self.get_public_key(),
-            )
+            user_info = await self.get_userinfo(token)
 
             # Check realm roles
-            realm_access = token_info.get("realm_access", {})
+            realm_access = user_info.get("realm_access", {})
             roles = set(realm_access.get("roles", []))
             if role_names.intersection(roles):
                 return True
 
             # Check client roles
-            resource_access = token_info.get("resource_access", {})
+            resource_access = user_info.get("resource_access", {})
             for client in resource_access.values():
                 client_roles = set(client.get("roles", []))
                 if role_names.intersection(client_roles):
@@ -1419,20 +1404,17 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             True if user has all of the roles, False otherwise
         """
         try:
-            token_info = await self.openid_adapter.a_decode_token(
-                token,
-                key=await self.get_public_key(),
-            )
+            user_info = await self.get_userinfo(token)
 
             # Get all user roles
             all_roles = set()
 
             # Add realm roles
-            realm_access = token_info.get("realm_access", {})
+            realm_access = user_info.get("realm_access", {})
             all_roles.update(realm_access.get("roles", []))
 
             # Add client roles
-            resource_access = token_info.get("resource_access", {})
+            resource_access = user_info.get("resource_access", {})
             for client in resource_access.values():
                 all_roles.update(client.get("roles", []))
 

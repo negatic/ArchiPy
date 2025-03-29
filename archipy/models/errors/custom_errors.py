@@ -243,6 +243,7 @@ class PermissionDeniedError(BaseError):
         self,
         lang: LanguageType = LanguageType.FA,
         error: ErrorDetailDTO = ErrorMessageType.PERMISSION_DENIED.value,
+        additional_data: dict | None = None,
     ) -> None:
         """Initializes the exception.
 
@@ -250,7 +251,7 @@ class PermissionDeniedError(BaseError):
             lang: Language code for the error message (defaults to Persian).
             error: The error detail or message.
         """
-        super().__init__(error, lang)
+        super().__init__(error, lang, additional_data)
 
 
 # Resource Error
