@@ -1,13 +1,13 @@
 from behave import given, then
-
-from archipy.models.types.exception_message_types import ExceptionMessageType
 from features.test_helpers import get_current_scenario_context
+
+from archipy.models.types.error_message_types import ErrorMessageType
 
 # Exception Mapping
 exception_mapping = {
-    "INVALID_PHONE": ExceptionMessageType.INVALID_PHONE,
-    "NOT_FOUND": ExceptionMessageType.NOT_FOUND,
-    "TOKEN_EXPIRED": ExceptionMessageType.TOKEN_EXPIRED,
+    "INVALID_PHONE": ErrorMessageType.INVALID_PHONE,
+    "NOT_FOUND": ErrorMessageType.NOT_FOUND,
+    "TOKEN_EXPIRED": ErrorMessageType.TOKEN_EXPIRED,
 }
 
 

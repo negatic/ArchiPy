@@ -109,11 +109,11 @@ Standardized exception handling:
 ```python
 from archipy.helpers.utils.error_utils import ErrorUtils
 from archipy.models.errors import BaseError
-from archipy.models.types.exception_message_types import ExceptionMessageType
+from archipy.models.types.error_message_types import ErrorMessageType
 
 # Create exception detail
 detail = ErrorUtils.create_exception_detail(
-    ExceptionMessageType.INVALID_PHONE,
+    ErrorMessageType.INVALID_PHONE,
     lang="en"
 )
 

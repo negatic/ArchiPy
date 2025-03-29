@@ -19,7 +19,7 @@ except ImportError:
     StatusCode = None
 
 
-class ExceptionMessageType(Enum):
+class ErrorMessageType(Enum):
     """Enumeration of exception types with associated error details.
 
     This class defines a set of standard exception types, each with an associated error code,
