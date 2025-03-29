@@ -14,11 +14,11 @@ DEFAULT_LANG = LanguageType.FA
 
 class KeycloakUtils:
     @staticmethod
-    def get_keycloak_adapter() -> KeycloakAdapter:
+    def _get_keycloak_adapter() -> KeycloakAdapter:
         return KeycloakAdapter()
 
     @staticmethod
-    def get_async_keycloak_adapter() -> AsyncKeycloakAdapter:
+    def _get_async_keycloak_adapter() -> AsyncKeycloakAdapter:
         return AsyncKeycloakAdapter()
 
     @classmethod
@@ -54,7 +54,7 @@ class KeycloakUtils:
         def dependency(
             request: Request,
             token: HTTPAuthorizationCredentials | None = Security(security),
-            keycloak: KeycloakAdapter = Depends(cls.get_keycloak_adapter),
+            keycloak: KeycloakAdapter = Depends(cls._get_keycloak_adapter),
         ):
             if token is None:
                 raise UnauthenticatedError()
@@ -148,7 +148,7 @@ class KeycloakUtils:
         async def dependency(
             request: Request,
             token: HTTPAuthorizationCredentials = Security(security),
-            keycloak: AsyncKeycloakAdapter = Depends(cls.get_async_keycloak_adapter),
+            keycloak: AsyncKeycloakAdapter = Depends(cls._get_async_keycloak_adapter),
         ):
             if token is None:
                 raise UnauthenticatedError()
