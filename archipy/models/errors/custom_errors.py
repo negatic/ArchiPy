@@ -1,7 +1,7 @@
 from typing import Any
 
 from archipy.models.dtos.error_dto import ErrorDetailDTO
-from archipy.models.types.exception_message_types import ExceptionMessageType
+from archipy.models.types.error_message_types import ErrorMessageType
 from archipy.models.types.language_type import LanguageType
 
 try:
@@ -30,7 +30,7 @@ class BaseError(Exception):
 
     def __init__(
         self,
-        error: ErrorDetailDTO | ExceptionMessageType | None = None,
+        error: ErrorDetailDTO | ErrorMessageType | None = None,
         lang: LanguageType = LanguageType.FA,
         additional_data: dict | None = None,
         *args: Any,
@@ -46,12 +46,12 @@ class BaseError(Exception):
             additional_data: Additional context data for the error.
             *args: Additional arguments for the base Exception class.
         """
-        if isinstance(error, ExceptionMessageType):
+        if isinstance(error, ErrorMessageType):
             self.error_detail = error.value
         elif isinstance(error, ErrorDetailDTO):
             self.error_detail = error
         else:
-            self.error_detail = ExceptionMessageType.UNKNOWN_ERROR.value
+            self.error_detail = ErrorMessageType.UNKNOWN_ERROR.value
 
         self.lang = lang
         self.additional_data = additional_data or {}
@@ -171,7 +171,7 @@ class InvalidPhoneNumberError(BaseError):
         self,
         phone_number: str,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.INVALID_PHONE.value,
+        error: ErrorDetailDTO = ErrorMessageType.INVALID_PHONE.value,
     ) -> None:
         """Initializes the exception.
 
@@ -190,7 +190,7 @@ class InvalidLandlineNumberError(BaseError):
         self,
         landline_number: str,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.INVALID_LANDLINE.value,
+        error: ErrorDetailDTO = ErrorMessageType.INVALID_LANDLINE.value,
     ) -> None:
         """Initializes the exception.
 
@@ -208,7 +208,7 @@ class TokenExpiredError(BaseError):
     def __init__(
         self,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.TOKEN_EXPIRED.value,
+        error: ErrorDetailDTO = ErrorMessageType.TOKEN_EXPIRED.value,
     ) -> None:
         """Initializes the exception.
 
@@ -225,7 +225,7 @@ class InvalidTokenError(BaseError):
     def __init__(
         self,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.INVALID_TOKEN.value,
+        error: ErrorDetailDTO = ErrorMessageType.INVALID_TOKEN.value,
     ) -> None:
         """Initializes the exception.
 
@@ -242,7 +242,8 @@ class PermissionDeniedError(BaseError):
     def __init__(
         self,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.PERMISSION_DENIED.value,
+        error: ErrorDetailDTO = ErrorMessageType.PERMISSION_DENIED.value,
+        additional_data: dict | None = None,
     ) -> None:
         """Initializes the exception.
 
@@ -250,7 +251,7 @@ class PermissionDeniedError(BaseError):
             lang: Language code for the error message (defaults to Persian).
             error: The error detail or message.
         """
-        super().__init__(error, lang)
+        super().__init__(error, lang, additional_data)
 
 
 # Resource Error
@@ -261,7 +262,7 @@ class NotFoundError(BaseError):
         self,
         resource_type: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.NOT_FOUND.value,
+        error: ErrorDetailDTO = ErrorMessageType.NOT_FOUND.value,
     ) -> None:
         """Initializes the exception.
 
@@ -280,7 +281,7 @@ class AlreadyExistsError(BaseError):
         self,
         resource_type: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.ALREADY_EXISTS.value,
+        error: ErrorDetailDTO = ErrorMessageType.ALREADY_EXISTS.value,
     ) -> None:
         """Initializes the exception.
 
@@ -300,7 +301,7 @@ class InvalidArgumentError(BaseError):
         self,
         argument_name: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.INVALID_ARGUMENT.value,
+        error: ErrorDetailDTO = ErrorMessageType.INVALID_ARGUMENT.value,
     ) -> None:
         """Initializes the exception.
 
@@ -319,7 +320,7 @@ class OutOfRangeError(BaseError):
         self,
         field_name: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.OUT_OF_RANGE.value,
+        error: ErrorDetailDTO = ErrorMessageType.OUT_OF_RANGE.value,
     ) -> None:
         """Initializes the exception.
 
@@ -339,7 +340,7 @@ class DeadlineExceededError(BaseError):
         self,
         operation: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.DEADLINE_EXCEEDED.value,
+        error: ErrorDetailDTO = ErrorMessageType.DEADLINE_EXCEEDED.value,
     ) -> None:
         """Initializes the exception.
 
@@ -358,7 +359,7 @@ class DeprecationError(BaseError):
         self,
         operation: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.DEPRECATION.value,
+        error: ErrorDetailDTO = ErrorMessageType.DEPRECATION.value,
     ) -> None:
         """Initializes the exception.
 
@@ -377,7 +378,7 @@ class FailedPreconditionError(BaseError):
         self,
         condition: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.FAILED_PRECONDITION.value,
+        error: ErrorDetailDTO = ErrorMessageType.FAILED_PRECONDITION.value,
     ) -> None:
         """Initializes the exception.
 
@@ -396,7 +397,7 @@ class ResourceExhaustedError(BaseError):
         self,
         resource_type: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.RESOURCE_EXHAUSTED.value,
+        error: ErrorDetailDTO = ErrorMessageType.RESOURCE_EXHAUSTED.value,
     ) -> None:
         """Initializes the exception.
 
@@ -415,7 +416,7 @@ class AbortedError(BaseError):
         self,
         reason: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.ABORTED.value,
+        error: ErrorDetailDTO = ErrorMessageType.ABORTED.value,
     ) -> None:
         """Initializes the exception.
 
@@ -434,7 +435,7 @@ class CancelledError(BaseError):
         self,
         reason: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.CANCELLED.value,
+        error: ErrorDetailDTO = ErrorMessageType.CANCELLED.value,
     ) -> None:
         """Initializes the exception.
 
@@ -454,7 +455,7 @@ class InternalError(BaseError):
         self,
         details: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.INTERNAL_ERROR.value,
+        error: ErrorDetailDTO = ErrorMessageType.INTERNAL_ERROR.value,
     ) -> None:
         """Initializes the exception.
 
@@ -473,7 +474,7 @@ class DataLossError(BaseError):
         self,
         details: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.DATA_LOSS.value,
+        error: ErrorDetailDTO = ErrorMessageType.DATA_LOSS.value,
     ) -> None:
         """Initializes the exception.
 
@@ -492,7 +493,7 @@ class UnImplementedError(BaseError):
         self,
         feature: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.UNIMPLEMENTED.value,
+        error: ErrorDetailDTO = ErrorMessageType.UNIMPLEMENTED.value,
     ) -> None:
         """Initializes the exception.
 
@@ -511,7 +512,7 @@ class UnavailableError(BaseError):
         self,
         service: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.UNAVAILABLE.value,
+        error: ErrorDetailDTO = ErrorMessageType.UNAVAILABLE.value,
     ) -> None:
         """Initializes the exception.
 
@@ -530,7 +531,7 @@ class UnknownError(BaseError):
         self,
         details: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.UNKNOWN_ERROR.value,
+        error: ErrorDetailDTO = ErrorMessageType.UNKNOWN_ERROR.value,
     ) -> None:
         """Initializes the exception.
 
@@ -549,7 +550,7 @@ class InvalidNationalCodeError(BaseError):
         self,
         national_code: str,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.INVALID_NATIONAL_CODE.value,
+        error: ErrorDetailDTO = ErrorMessageType.INVALID_NATIONAL_CODE.value,
     ) -> None:
         """Initializes the exception.
 
@@ -569,7 +570,7 @@ class InvalidEntityTypeError(BaseError):
         entity_type: Any | None = None,
         expected_type: type | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.INVALID_ENTITY_TYPE.value,
+        error: ErrorDetailDTO = ErrorMessageType.INVALID_ENTITY_TYPE.value,
     ) -> None:
         """Initializes the exception.
 
@@ -588,7 +589,7 @@ class DeadlockDetectedError(BaseError):
     def __init__(
         self,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.DEADLOCK_TYPE.value,
+        error: ErrorDetailDTO = ErrorMessageType.DEADLOCK_TYPE.value,
     ) -> None:
         """Initializes the exception.
 
@@ -605,7 +606,7 @@ class UnauthenticatedError(BaseError):
     def __init__(
         self,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ExceptionMessageType.UNAUTHENTICATED_TYPE.value,
+        error: ErrorDetailDTO = ErrorMessageType.UNAUTHENTICATED_TYPE.value,
     ) -> None:
         """Initializes the exception.
 

@@ -38,6 +38,11 @@ Documentation for `archipy.helpers.utils.string_utils`.
 Documentation for `archipy.helpers.utils.totp_utils`.
 *Includes all members, undocumented members, and shows inheritance.*
 
+### keycloak_utils
+
+Documentation for `archipy.helpers.utils.keycloak_utils`.
+*Includes all members, undocumented members, and shows inheritance.*
+
 ## Key Functions
 
 ### get_utc_now

@@ -109,11 +109,11 @@ Standardized exception handling:
 ```python
 from archipy.helpers.utils.error_utils import ErrorUtils
 from archipy.models.errors import BaseError
-from archipy.models.types.exception_message_types import ExceptionMessageType
+from archipy.models.types.error_message_types import ErrorMessageType
 
 # Create exception detail
 detail = ErrorUtils.create_exception_detail(
-    ExceptionMessageType.INVALID_PHONE,
+    ErrorMessageType.INVALID_PHONE,
     lang="en"
 )
 
@@ -215,6 +215,57 @@ is_valid_url = ValidatorUtils.is_valid_url("https://example.com")
 print(f"Valid URL: {is_valid_url}")
 ```
 
+## keycloak_utils
+
+Authentication and authorization utilities with Keycloak integration:
+
+```python
+if __name__ == '__main__':
+    import uvicorn
+    from uuid import UUID
+    from archipy.configs.base_config import BaseConfig
+    from archipy.helpers.utils.app_utils import AppUtils
+    from archipy.helpers.utils.keycloak_utils import KeycloakUtils
+    from archipy.models.types.language_type import LanguageType
+    from fastapi import Depends
+
+    # Initialize your app configuration
+    config = BaseConfig()
+    BaseConfig.set_global(config)
+    app = AppUtils.create_fastapi_app()
+
+    # Resource-based authorization for users with role and admin access
+    @app.get("/users/{user_uuid}/info")
+    def get_user_info(user_uuid: UUID, user: dict = Depends(KeycloakUtils.fastapi_auth(
+        resource_type_param="user_uuid",
+        resource_type="users",
+        required_roles={"user"},
+        admin_roles={"superusers", "administrators"},
+        lang=LanguageType.EN,
+    ))):
+        return {
+            "message": f"User info for {user_uuid}",
+            "username": user.get("preferred_username")
+        }
+
+    # Async version for employees with multiple acceptable roles
+    @app.get("/employees/{employee_uuid}/info")
+    async def get_employee_info(employee_uuid: UUID, employee: dict = Depends(KeycloakUtils.async_fastapi_auth(
+        resource_type_param="employee_uuid",
+        resource_type="employees",
+        required_roles={"employee", "manager", "user"},
+        all_roles_required=False,  # User can have any of these roles
+        admin_roles={"hr_admins", "system_admins"},
+        lang=LanguageType.FA,
+    ))):
+        return {
+            "message": f"Employee info for {employee_uuid}",
+            "username": employee.get("preferred_username")
+        }
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+```
+
 # Additional Resources
 
 For more examples and detailed documentation:
@@ -222,5 +273,6 @@ For more examples and detailed documentation:
 - [Helpers Overview](../../api_reference/helpers.md)
 - [Utils API Reference](../../api_reference/utils.md)
 - [Configuration Examples](../config_management.md)
+- [Keycloak Adapter](../adapters/keycloak.md)
 
 > **Note**: This page contains examples of using ArchiPy's utility functions. For API details, see the [Utils API Reference](../../api_reference/utils.md).
