@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 from fastapi import Depends, Request, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -13,6 +15,8 @@ DEFAULT_LANG = LanguageType.FA
 
 
 class KeycloakUtils:
+    """Utility class for Keycloak authentication and authorization in FastAPI applications."""
+
     @staticmethod
     def _get_keycloak_adapter() -> KeycloakAdapter:
         return KeycloakAdapter()
@@ -32,7 +36,7 @@ class KeycloakUtils:
         required_permissions: list[tuple[str, str]] | None = None,
         admin_roles: set[str] | None = None,
         lang: LanguageType = DEFAULT_LANG,
-    ):
+    ) -> Callable:
         """FastAPI decorator for Keycloak authentication and resource-based authorization.
 
         Args:
@@ -53,11 +57,11 @@ class KeycloakUtils:
 
         def dependency(
             request: Request,
-            token: HTTPAuthorizationCredentials | None = Security(security),
-            keycloak: KeycloakAdapter = Depends(cls._get_keycloak_adapter),
-        ):
+            token: HTTPAuthorizationCredentials = Security(security),  # noqa: B008
+            keycloak: KeycloakAdapter = Depends(cls._get_keycloak_adapter),  # noqa: B008
+        ) -> dict:
             if token is None:
-                raise UnauthenticatedError()
+                raise UnauthenticatedError
             token_str = token.credentials  # Extract the token string
             # Validate token
             if not keycloak.validate_token(token_str):
@@ -126,7 +130,7 @@ class KeycloakUtils:
         required_permissions: list[tuple[str, str]] | None = None,
         admin_roles: set[str] | None = None,
         lang: LanguageType = DEFAULT_LANG,
-    ):
+    ) -> Callable:
         """FastAPI async decorator for Keycloak authentication and resource-based authorization.
 
         Args:
@@ -147,15 +151,16 @@ class KeycloakUtils:
 
         async def dependency(
             request: Request,
-            token: HTTPAuthorizationCredentials = Security(security),
-            keycloak: AsyncKeycloakAdapter = Depends(cls._get_async_keycloak_adapter),
-        ):
+            token: HTTPAuthorizationCredentials = Security(security),  # noqa: B008
+            keycloak: AsyncKeycloakAdapter = Depends(cls._get_async_keycloak_adapter),  # noqa: B008
+        ) -> dict:
             if token is None:
-                raise UnauthenticatedError()
+                raise UnauthenticatedError
             token_str = token.credentials  # Extract the token string
+
             # Validate token
             if not await keycloak.validate_token(token_str):
-                # TODO
+                # Handle token validation error
                 token_info = await keycloak.introspect_token(token_str)
                 if not token_info.get("active", False):
                     raise TokenExpiredError(lang=lang)

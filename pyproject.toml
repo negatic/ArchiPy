@@ -176,6 +176,7 @@ target-version = "py313"
 # Ignore F811 (redefinition of function) in steps implementations
 "archipy/helpers/decorators/*" = ["ANN401"]
 "archipy/helpers/utils/jwt_utils.py" = ["S105"]
+"archipy/helpers/utils/keycloak_utils.py" = ["FBT001", "FBT002"]
 "features/steps/*" = ["F811"]
 "scripts/*" = ["S603", "S607"]
 
