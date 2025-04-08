@@ -68,11 +68,13 @@ repos:
         entry: poetry run black --config pyproject.toml
         files: \.(py|pyi)$
         language: system
+        exclude: ^(features|scripts)/
       - id: ruff
         name: ruff
         entry: poetry run ruff check --config pyproject.toml --fix
         files: \.(py|pyi)$
         language: system
+        exclude: ^(features|scripts)/
       - id: add-trailing-comma
         name: add-trailing-comma
         entry: poetry run add-trailing-comma
@@ -88,3 +90,4 @@ repos:
         entry: poetry run mypy --config-file pyproject.toml
         files: \.(py|pyi)$
         language: system
+        exclude: ^(features|scripts)/
