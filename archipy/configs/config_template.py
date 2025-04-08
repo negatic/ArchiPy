@@ -289,6 +289,10 @@ class AuthConfig(BaseModel):
 
     # TOTP Settings
     TOTP_SECRET_KEY: SecretStr | None = None
+    TOTP_HASH_ALGORITHM: str = Field(
+        default="SHA1",
+        description="Hash algorithm for TOTP generation (SHA1, SHA256, SHA512)",
+    )
     TOTP_LENGTH: int = Field(default=6, ge=6, le=8)
     TOTP_EXPIRES_IN: int = Field(default=300, description="TOTP expiration time in seconds (5 minutes)")
     TOTP_TIME_STEP: int = Field(default=30, description="TOTP time step in seconds")

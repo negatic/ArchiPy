@@ -41,12 +41,7 @@ class JWTUtils:
         """
         import jwt
 
-        # Use the global config or provided auth_config
-        if auth_config is None:
-            config = cast(BaseConfig, BaseConfig.global_config())
-            configs = config.AUTH
-        else:
-            configs = auth_config
+        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
         current_time = DatetimeUtils.get_datetime_utc_now()
 
         # Define argument names
@@ -106,12 +101,7 @@ class JWTUtils:
         Returns:
             str: The encoded access token.
         """
-        # Use the global config or provided auth_config
-        if auth_config is None:
-            config = cast(BaseConfig, BaseConfig.global_config())
-            configs = config.AUTH
-        else:
-            configs = auth_config
+        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
 
         return cls.create_token(
             data={
@@ -142,12 +132,7 @@ class JWTUtils:
         Returns:
             str: The encoded refresh token.
         """
-        # Use the global config or provided auth_config
-        if auth_config is None:
-            config = cast(BaseConfig, BaseConfig.global_config())
-            configs = config.AUTH
-        else:
-            configs = auth_config
+        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
 
         return cls.create_token(
             data={
@@ -191,12 +176,7 @@ class JWTUtils:
             InvalidTokenError as JWTInvalidTokenError,
         )
 
-        # Use the global config or provided auth_config
-        if auth_config is None:
-            config = cast(BaseConfig, BaseConfig.global_config())
-            configs = config.AUTH
-        else:
-            configs = auth_config
+        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
         required_claims = ["exp", "iat", "nbf", "aud", "iss", "sub", "type", "token_version"]
         if configs.ENABLE_JTI_CLAIM:
             required_claims.append("jti")
@@ -263,12 +243,7 @@ class JWTUtils:
             InvalidTokenException: If the token is invalid or not an access token.
             TokenExpiredException: If the token has expired.
         """
-        # Use the global config or provided auth_config
-        if auth_config is None:
-            config = cast(BaseConfig, BaseConfig.global_config())
-            configs = config.AUTH
-        else:
-            configs = auth_config
+        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
         return cls.decode_token(token, verify_type="access", auth_config=configs)
 
     @classmethod
@@ -287,12 +262,7 @@ class JWTUtils:
             InvalidTokenException: If the token is invalid or not a refresh token.
             TokenExpiredException: If the token has expired.
         """
-        # Use the global config or provided auth_config
-        if auth_config is None:
-            config = cast(BaseConfig, BaseConfig.global_config())
-            configs = config.AUTH
-        else:
-            configs = auth_config
+        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
         return cls.decode_token(token, verify_type="refresh", auth_config=configs)
 
     @staticmethod

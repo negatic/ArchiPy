@@ -1,14 +1,25 @@
-# src/utils/totp_utils.py
+"""Utility module for TOTP (Time-based One-Time Password) operations.
+
+This module provides functionality for generating and verifying TOTP codes that are
+commonly used for multi-factor authentication.
+"""
+
 import base64
 import hmac
-import random
+import secrets  # Using secrets instead of random for cryptographic operations
 import struct
 from datetime import datetime
+from typing import cast
 from uuid import UUID
 
 from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import AuthConfig
 from archipy.helpers.utils.datetime_utils import DatetimeUtils
+from archipy.models.errors.custom_errors import (
+    InternalError,
+    InvalidArgumentError,
+    InvalidTokenError,
+)
 
 
 class TOTPUtils:
@@ -16,20 +27,37 @@ class TOTPUtils:
 
     This class provides methods for generating and verifying TOTP codes, as well as generating
     secure secret keys for TOTP initialization.
+
+    Uses the following configuration parameters from AuthConfig:
+    - TOTP_SECRET_KEY: Master secret key for generating TOTP secrets
+    - TOTP_HASH_ALGORITHM: Hash algorithm used for TOTP generation (default: SHA1)
+    - TOTP_LENGTH: Number of digits in generated TOTP codes
+    - TOTP_TIME_STEP: Time step in seconds between TOTP code changes
+    - TOTP_EXPIRES_IN: TOTP validity period in seconds
+    - TOTP_VERIFICATION_WINDOW: Number of time steps to check before/after
+    - SALT_LENGTH: Length of random bytes for secure key generation
     """
 
     @classmethod
     def generate_totp(cls, secret: str | UUID, auth_config: AuthConfig | None = None) -> tuple[str, datetime]:
-        """Generates a TOTP code using HMAC-SHA1.
+        """Generates a TOTP code using the configured hash algorithm.
 
         Args:
-            secret (str | UUID): The secret key used to generate the TOTP code.
-            auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
+            secret: The secret key used to generate the TOTP code.
+            auth_config: Optional auth configuration override. If not provided, uses the global config.
 
         Returns:
-            Tuple[str, datetime]: A tuple containing the generated TOTP code and its expiration time.
+            A tuple containing the generated TOTP code and its expiration time.
+
+        Raises:
+            InvalidArgumentError: If the secret is invalid or empty.
         """
-        configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
+        if not secret:
+            raise InvalidArgumentError(
+                argument_name="secret",
+            )
+
+        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
 
         # Convert secret to bytes if it's UUID
         if isinstance(secret, UUID):
@@ -39,10 +67,14 @@ class TOTPUtils:
         current_time = DatetimeUtils.get_epoch_time_now()
         time_step_counter = int(current_time / configs.TOTP_TIME_STEP)
 
-        # Generate HMAC-SHA1 hash
+        # Generate HMAC hash
         secret_bytes = str(secret).encode("utf-8")
         time_bytes = struct.pack(">Q", time_step_counter)
-        hmac_obj = hmac.new(secret_bytes, time_bytes, configs.HASH_ALGORITHM.replace("HS", "SHA"))
+
+        # Use the dedicated TOTP hash algorithm from config, with fallback to SHA1
+        hash_algo = getattr(configs, "TOTP_HASH_ALGORITHM", "SHA1")
+
+        hmac_obj = hmac.new(secret_bytes, time_bytes, hash_algo)
         hmac_result = hmac_obj.digest()
 
         # Get offset and truncate
@@ -67,19 +99,36 @@ class TOTPUtils:
         """Verifies a TOTP code against the provided secret.
 
         Args:
-            secret (str | UUID): The secret key used to generate the TOTP code.
-            totp_code (str): The TOTP code to verify.
-            auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
+            secret: The secret key used to generate the TOTP code.
+            totp_code: The TOTP code to verify.
+            auth_config: Optional auth configuration override. If not provided, uses the global config.
 
         Returns:
-            bool: `True` if the TOTP code is valid, `False` otherwise.
+            `True` if the TOTP code is valid, `False` otherwise.
+
+        Raises:
+            InvalidArgumentError: If the secret is invalid or empty.
+            InvalidTokenError: If the TOTP code format is invalid.
         """
-        configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
+        if not secret:
+            raise InvalidArgumentError(
+                argument_name="secret",
+            )
+
+        if not totp_code:
+            raise InvalidArgumentError(
+                argument_name="totp_code",
+            )
 
         if not totp_code.isdigit():
-            return False
+            raise InvalidTokenError
+
+        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
 
         current_time = DatetimeUtils.get_epoch_time_now()
+
+        # Use the dedicated TOTP hash algorithm from config, with fallback to SHA1
+        hash_algo = getattr(configs, "TOTP_HASH_ALGORITHM", "SHA1")
 
         # Check codes within verification window
         for i in range(-configs.TOTP_VERIFICATION_WINDOW, configs.TOTP_VERIFICATION_WINDOW + 1):
@@ -87,7 +136,7 @@ class TOTPUtils:
 
             secret_bytes = str(secret).encode("utf-8")
             time_bytes = struct.pack(">Q", time_step_counter)
-            hmac_obj = hmac.new(secret_bytes, time_bytes, configs.HASH_ALGORITHM.replace("HS", "SHA"))
+            hmac_obj = hmac.new(secret_bytes, time_bytes, hash_algo)
             hmac_result = hmac_obj.digest()
 
             offset = hmac_result[-1] & 0xF
@@ -110,16 +159,39 @@ class TOTPUtils:
         """Generates a random secret key for TOTP initialization.
 
         Args:
-            auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
+            auth_config: Optional auth configuration override. If not provided, uses the global config.
 
         Returns:
-            str: A base32-encoded secret key for TOTP initialization.
+            A base32-encoded secret key for TOTP initialization.
+
+        Raises:
+            InvalidArgumentError: If the TOTP_SECRET_KEY is not configured.
+            InternalError: If there is an error generating the secret key.
         """
-        configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config
+        try:
+            configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
 
-        random_bytes = random.randbytes(configs.SALT_LENGTH)
-        master_key = configs.TOTP_SECRET_KEY.get_secret_value().encode("utf-8")
+            # Use secrets module instead of random for better security
+            random_bytes = secrets.token_bytes(configs.SALT_LENGTH)
 
-        # Use HMAC with master key for additional security
-        hmac_obj = hmac.new(master_key, random_bytes, configs.HASH_ALGORITHM.replace("HS", "SHA"))
-        return base64.b32encode(hmac_obj.digest()).decode("utf-8")
+            # Check if TOTP secret key is configured
+            if not configs.TOTP_SECRET_KEY:
+                # Disable linter for this specific case since we're already in a try-except block
+                # and creating nested functions would reduce code readability
+                raise InvalidArgumentError(  # noqa: TRY301
+                    argument_name="TOTP_SECRET_KEY",
+                )
+
+            master_key = configs.TOTP_SECRET_KEY.get_secret_value().encode("utf-8")
+
+            # Use the dedicated TOTP hash algorithm from config, with fallback to SHA1
+            hash_algo = getattr(configs, "TOTP_HASH_ALGORITHM", "SHA1")
+
+            # Use HMAC with master key for additional security
+            hmac_obj = hmac.new(master_key, random_bytes, hash_algo)
+            return base64.b32encode(hmac_obj.digest()).decode("utf-8")
+        except Exception as e:
+            # Convert any errors to our custom errors
+            raise InternalError(
+                details=str(e),
+            ) from e

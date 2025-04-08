@@ -5,6 +5,7 @@ import os
 import secrets  # Use secrets instead of random for cryptographic operations
 import string
 from base64 import b64decode, b64encode
+from typing import cast
 
 from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import AuthConfig
@@ -26,7 +27,7 @@ class PasswordUtils:
         Returns:
             str: A base64-encoded string containing the salt and hash in the format "salt:hash".
         """
-        configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config  # type: ignore[attr-defined]
+        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
         salt = os.urandom(configs.SALT_LENGTH)
         pw_hash = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, configs.HASH_ITERATIONS)
 
@@ -46,7 +47,7 @@ class PasswordUtils:
             bool: True if the password matches the stored hash, False otherwise.
         """
         try:
-            configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config  # type: ignore[attr-defined]
+            configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
 
             # Decode the stored password
             decoded = b64decode(stored_password.encode("utf-8"))
@@ -78,7 +79,7 @@ class PasswordUtils:
         Raises:
             InvalidPasswordError: If the password does not meet the policy requirements.
         """
-        configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config  # type: ignore[attr-defined]
+        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
         errors = []
 
         if len(password) < configs.MIN_LENGTH:
@@ -109,7 +110,7 @@ class PasswordUtils:
         Returns:
             str: A randomly generated password that meets the policy requirements.
         """
-        configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config  # type: ignore[attr-defined]
+        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
 
         lowercase_chars = string.ascii_lowercase
         uppercase_chars = string.ascii_uppercase
@@ -159,7 +160,7 @@ class PasswordUtils:
         Raises:
             InvalidPasswordError: If the new password has been used recently or does not meet the policy requirements.
         """
-        configs = BaseConfig.global_config().AUTH if auth_config is None else auth_config  # type: ignore[attr-defined]
+        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
 
         # First validate against password policy
         cls.validate_password(new_password, configs, lang)

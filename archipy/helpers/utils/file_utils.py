@@ -1,10 +1,12 @@
 import base64
 import hashlib
-import os
+from pathlib import Path
+from typing import cast
 
 from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import FileConfig
 from archipy.helpers.utils.datetime_utils import DatetimeUtils
+from archipy.models.errors.custom_errors import InvalidArgumentError, OutOfRangeError
 
 
 class FileUtils:
@@ -23,12 +25,12 @@ class FileUtils:
             str: A base64-encoded secure hash for the file link.
 
         Raises:
-            ValueError: If the `SECRET_KEY` in the configuration is `None`.
+            InvalidArgumentError: If the `SECRET_KEY` in the configuration is `None`.
         """
-        configs: FileConfig = file_config or BaseConfig.global_config().FILE  # type: ignore [attr-defined]
+        configs: FileConfig = file_config or cast(BaseConfig, BaseConfig.global_config()).FILE
         secret: str | None = configs.SECRET_KEY
         if secret is None:
-            raise ValueError("'SECRET_KEY' cannot be None")
+            raise InvalidArgumentError(argument_name="SECRET_KEY")
         _input = f"{expires_at}{path} {secret}"
         hash_object = hashlib.md5(_input.encode("utf8"))
         return base64.urlsafe_b64encode(hash_object.digest()).decode("utf-8").rstrip("=")
@@ -51,16 +53,17 @@ class FileUtils:
             str: A secure link with a hash and expiration timestamp.
 
         Raises:
-            ValueError: If the `path` is empty or `minutes` is negative.
+            InvalidArgumentError: If the `path` is empty.
+            OutOfRangeError: If `minutes` is less than 1.
         """
         if not path:
-            raise ValueError("Path cannot be empty")
+            raise InvalidArgumentError(argument_name="path")
 
-        configs: FileConfig = file_config or BaseConfig.global_config().FILE  # type: ignore [attr-defined]
+        configs: FileConfig = file_config or cast(BaseConfig, BaseConfig.global_config()).FILE
         expiry_minutes: int = minutes if minutes is not None else configs.DEFAULT_EXPIRY_MINUTES
 
         if expiry_minutes < 1:
-            raise ValueError("Minutes must be greater than or equal to 1")
+            raise OutOfRangeError(field_name="minutes")
 
         expires_at = int(DatetimeUtils.get_datetime_after_given_datetime_or_now(minutes=expiry_minutes).timestamp())
         secure_link_hash = cls._create_secure_link_hash(path, expires_at, file_config)
@@ -83,18 +86,17 @@ class FileUtils:
             bool: `True` if the file name has an allowed extension, `False` otherwise.
 
         Raises:
-            ValueError: If `file_name` is not a string or `allowed_extensions` is not a list.
+            InvalidArgumentError: If `file_name` is not a string or `allowed_extensions` is not a list.
         """
-        configs: FileConfig = file_config or BaseConfig.global_config().FILE  # type: ignore [attr-defined]
+        configs: FileConfig = file_config or cast(BaseConfig, BaseConfig.global_config()).FILE
         allowed_extensions: list[str] = configs.ALLOWED_EXTENSIONS
 
         if not isinstance(file_name, str):
-            raise ValueError(
-                "Invalid input: 'name' must be a string ",
-            )
-        if not allowed_extensions:
-            raise ValueError("Invalid input: 'allowed_extensions' must be a list")
+            raise InvalidArgumentError(argument_name="file_name")
 
-        _, ext = os.path.splitext(file_name)
-        ext = ext[1:].lower()
+        if not allowed_extensions:
+            raise InvalidArgumentError(argument_name="allowed_extensions")
+
+        file_path = Path(file_name)
+        ext = file_path.suffix[1:].lower()
         return ext in allowed_extensions and bool(ext)
