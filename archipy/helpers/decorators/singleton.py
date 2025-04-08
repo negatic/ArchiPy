@@ -1,7 +1,9 @@
 import threading
+from collections.abc import Callable
+from typing import Any
 
 
-def singleton_decorator(thread_safe=True):
+def singleton_decorator(thread_safe: bool = True) -> Callable[[type[Any]], Callable[..., Any]]:
     """A decorator to create thread-safe Singleton classes.
 
     This decorator ensures that only one instance of a class is created. It supports an optional
@@ -35,7 +37,7 @@ def singleton_decorator(thread_safe=True):
         ```
     """
 
-    def decorator(cls):
+    def decorator(cls: type[Any]) -> Callable[..., Any]:
         """The inner decorator function that implements the Singleton pattern.
 
         Args:
@@ -45,9 +47,11 @@ def singleton_decorator(thread_safe=True):
             function: A function that returns the Singleton instance of the class.
         """
         instances = {}  # Stores instances of Singleton classes
-        lock = threading.Lock() if thread_safe else None  # Lock for thread-safe instance creation
+        lock: threading.Lock | None = (
+            threading.Lock() if thread_safe else None
+        )  # Lock for thread-safe instance creation
 
-        def get_instance(*args, **kwargs):
+        def get_instance(*args: Any, **kwargs: Any) -> Any:
             """Create or return the Singleton instance of the class.
 
             If `thread_safe` is True, a lock is used to ensure that only one instance is created
@@ -63,9 +67,10 @@ def singleton_decorator(thread_safe=True):
             """
             if cls not in instances:
                 if thread_safe:
-                    with lock:
-                        if cls not in instances:
-                            instances[cls] = cls(*args, **kwargs)
+                    if lock is not None:
+                        with lock:
+                            if cls not in instances:
+                                instances[cls] = cls(*args, **kwargs)
                 else:
                     instances[cls] = cls(*args, **kwargs)
             return instances[cls]

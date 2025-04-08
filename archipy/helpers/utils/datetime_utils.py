@@ -19,7 +19,7 @@ class DatetimeUtils:
     utility functions for timezone-aware datetime objects, date ranges, and string formatting.
     """
 
-    '''A class-level cache for storing holiday statuses to avoid redundant API calls.'''
+    """A class-level cache for storing holiday statuses to avoid redundant API calls."""
     _holiday_cache: ClassVar[dict[str, tuple[bool, datetime]]] = {}
 
     @staticmethod

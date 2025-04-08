@@ -1,7 +1,7 @@
 import logging
 import time
 from collections.abc import Callable
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 # Define a type variable for the return type of the decorated function
 F = TypeVar("F", bound=Callable[..., Any])
@@ -40,9 +40,9 @@ def timing_decorator(func: F) -> F:
             start_time = time.time()
             result = func(*args, **kwargs)
             end_time = time.time()
-            logging.debug(f"{func.__name__} took {end_time - start_time:.4f} seconds to execute.")
+            logging.debug("%s took %.4f seconds to execute.", func.__name__, end_time - start_time)
         else:
             result = func(*args, **kwargs)
         return result
 
-    return wrapper  # type: ignore[return]
+    return cast(F, wrapper)

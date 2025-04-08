@@ -1,8 +1,9 @@
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 from archipy.models.errors import DeprecationError
+from archipy.models.types.language_type import LanguageType
 
 # Define a type variable for the return type of the decorated function
 F = TypeVar("F", bound=Callable[..., Any])
@@ -11,7 +12,7 @@ F = TypeVar("F", bound=Callable[..., Any])
 T = TypeVar("T", bound=type[Any])
 
 
-def method_deprecation_error(operation: str = None, lang: str = "en"):
+def method_deprecation_error(operation: str | None = None, lang: LanguageType = LanguageType.EN) -> Callable[[F], F]:
     """Decorator that raises a DeprecationError when the decorated method is called.
 
     This decorator is used to mark methods as deprecated and immediately prevent
@@ -21,7 +22,7 @@ def method_deprecation_error(operation: str = None, lang: str = "en"):
     Args:
         operation (str, optional): The name of the operation that is deprecated.
             Defaults to the name of the decorated method.
-        lang (str): The language for the error message (default: "fa").
+        lang (LanguageType): The language for the error message (default: "en").
 
     Returns:
         Callable: The decorated method that raises a DeprecationException.
@@ -31,7 +32,7 @@ def method_deprecation_error(operation: str = None, lang: str = "en"):
 
         ```python
         class MyClass:
-            @method_deprecation_error(operation="old_method", lang="en")
+            @method_deprecation_error(operation="old_method", lang=LanguageType.EN)
             def old_method(self):
                 return "This is the old method."
 
@@ -49,16 +50,16 @@ def method_deprecation_error(operation: str = None, lang: str = "en"):
 
     def decorator(func: F) -> F:
         @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
+        def wrapper(*_args: Any, **_kwargs: Any) -> Any:
             operation_name = operation if operation is not None else func.__name__
             raise DeprecationError(operation=operation_name, lang=lang)
 
-        return wrapper  # type: ignore[return-value]
+        return cast(F, wrapper)
 
     return decorator
 
 
-def class_deprecation_error(operation: str | None = None, lang: str = "fa") -> Callable[[T], T]:
+def class_deprecation_error(operation: str | None = None, lang: LanguageType = LanguageType.FA) -> Callable[[T], T]:
     """A decorator that raises a DeprecationException when the decorated class is instantiated.
 
     Args:
@@ -90,7 +91,7 @@ def class_deprecation_error(operation: str | None = None, lang: str = "fa") -> C
     """
 
     def decorator(cls: T) -> T:
-        def new_init(self: Any, *args: Any, **kwargs: Any) -> None:
+        def new_init(_self: Any, *_args: Any, **_kwargs: Any) -> None:
             operation_name = operation if operation is not None else cls.__name__
             raise DeprecationError(operation=operation_name, lang=lang)
 

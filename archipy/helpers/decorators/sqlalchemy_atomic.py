@@ -1,18 +1,21 @@
 import logging
 from collections.abc import Callable
 from functools import partial
-from typing import Any
+from typing import Any, cast
 
 from psycopg.errors import DeadlockDetected, SerializationFailure
 from sqlalchemy.exc import OperationalError
 
+from archipy.adapters.orm.sqlalchemy.session_manager_ports import AsyncSessionManagerPort, SessionManagerPort
 from archipy.adapters.orm.sqlalchemy.session_manager_registry import SessionManagerRegistry
 from archipy.models.errors import AbortedError, BaseError, DeadlockDetectedError, InternalError
 
 _in_atomic_block = "in_sqlalchemy_atomic_block"
 
 
-def sqlalchemy_atomic_decorator(function: Callable | None = None) -> Callable | partial:
+def sqlalchemy_atomic_decorator(
+    function: Callable[..., Any] | None = None,
+) -> Callable[..., Any] | partial[Callable[..., Any]]:
     """Decorator for wrapping a function in a SQLAlchemy atomic transaction block.
 
     This decorator ensures that the function runs within a database transaction. If the function
@@ -28,7 +31,7 @@ def sqlalchemy_atomic_decorator(function: Callable | None = None) -> Callable | 
     return _atomic(function) if function else partial(_atomic)
 
 
-def _atomic(function: Callable) -> Callable:
+def _atomic(function: Callable[..., Any]) -> Callable[..., Any]:
     """Internal wrapper for `sqlalchemy_atomic` decorator.
 
     Args:
@@ -53,7 +56,7 @@ def _atomic(function: Callable) -> Callable:
             DeadlockDetectedException: If an operational error occurs due to a deadlock.
             InternalException: If any other exception occurs during the function execution.
         """
-        session_manager = SessionManagerRegistry.get_sync_manager()
+        session_manager: SessionManagerPort = cast(SessionManagerPort, SessionManagerRegistry.get_sync_manager())  # type: ignore[no-untyped-call]
         session = session_manager.get_session()
         is_nested_atomic_block = session.info.get(_in_atomic_block)
         if not is_nested_atomic_block:
@@ -74,15 +77,15 @@ def _atomic(function: Callable) -> Callable:
             if hasattr(exception, "orig") and isinstance(exception.orig, SerializationFailure):
                 session.rollback()
                 raise DeadlockDetectedError() from exception
-            raise InternalError() from exception
+            raise InternalError(details=str(exception)) from exception
         except BaseError as exception:
-            logging.debug(f"Exception occurred in atomic block, rollback will be initiated, ex:{exception}")
+            logging.debug("Exception occurred in atomic block, rollback will be initiated, ex:%s", exception)
             session.rollback()
             raise exception
         except Exception as exception:
-            logging.debug(f"Exception occurred in atomic block, rollback will be initiated, ex:{exception}")
+            logging.debug("Exception occurred in atomic block, rollback will be initiated, ex:%s", exception)
             session.rollback()
-            raise InternalError() from exception
+            raise InternalError(details=str(exception)) from exception
         finally:
             if not session.in_transaction():
                 session.close()
@@ -91,7 +94,9 @@ def _atomic(function: Callable) -> Callable:
     return wrapper
 
 
-def async_sqlalchemy_atomic_decorator(function: Callable | None = None) -> Callable | partial:
+def async_sqlalchemy_atomic_decorator(
+    function: Callable[..., Any] | None = None,
+) -> Callable[..., Any] | partial[Callable[..., Any]]:
     """Decorator for wrapping an asynchronous function in a SQLAlchemy atomic transaction block.
 
     This decorator ensures that the asynchronous function runs within a database transaction.
@@ -108,7 +113,7 @@ def async_sqlalchemy_atomic_decorator(function: Callable | None = None) -> Calla
     return _async_atomic(function) if function else partial(_async_atomic)
 
 
-def _async_atomic(function: Callable) -> Callable:
+def _async_atomic(function: Callable[..., Any]) -> Callable[..., Any]:
     """Internal wrapper for `async_sqlalchemy_atomic` decorator.
 
     Args:
@@ -133,7 +138,10 @@ def _async_atomic(function: Callable) -> Callable:
             DeadlockDetectedException: If an operational error occurs due to a deadlock.
             InternalException: If any other exception occurs during the function execution.
         """
-        session_manager = SessionManagerRegistry.get_async_manager()
+        session_manager: AsyncSessionManagerPort = cast(
+            AsyncSessionManagerPort,
+            SessionManagerRegistry.get_async_manager(),  # type: ignore[no-untyped-call]
+        )
         session = session_manager.get_session()
         is_nested_atomic_block = session.info.get(_in_atomic_block)
         if not is_nested_atomic_block:
@@ -154,15 +162,15 @@ def _async_atomic(function: Callable) -> Callable:
             if hasattr(exception, "orig") and isinstance(exception.orig, SerializationFailure):
                 await session.rollback()
                 raise DeadlockDetectedError() from exception
-            raise InternalError() from exception
+            raise InternalError(details=str(exception)) from exception
         except BaseError as exception:
-            logging.debug(f"Exception occurred in atomic block, rollback will be initiated, ex:{exception}")
-            session.rollback()
+            logging.debug("Exception occurred in atomic block, rollback will be initiated, ex:%s", exception)
+            await session.rollback()
             raise exception
         except Exception as exception:
-            logging.debug(f"Exception occurred in atomic block, rollback will be initiated, ex:{exception}")
+            logging.debug("Exception occurred in atomic block, rollback will be initiated, ex:%s", exception)
             await session.rollback()
-            raise InternalError() from exception
+            raise InternalError(details=str(exception)) from exception
         finally:
             if not session.in_transaction():
                 await session.close()
