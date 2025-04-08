@@ -22,7 +22,8 @@ class ClearableFunction(Protocol[P_co]):
 
 
 def ttl_cache_decorator(
-    ttl_seconds: int = 300, maxsize: int = 100,
+    ttl_seconds: int = 300,
+    maxsize: int = 100,
 ) -> Callable[[Callable[..., Any]], ClearableFunction[Callable[..., Any]]]:
     """Decorator that provides a TTL cache for methods.
 

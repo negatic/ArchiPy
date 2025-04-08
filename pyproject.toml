@@ -48,6 +48,7 @@ add-trailing-comma = "^3.1.0"
 validate-pyproject = "^0.18"
 mypy = "^1.14.1"
 behave = "^1.2.6"
+types-cachetools = "^5.5.0.20240820"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.6.1"
