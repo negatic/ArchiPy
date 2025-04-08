@@ -140,13 +140,13 @@ class KeycloakConfig(BaseModel):
     TIMEOUT: int = 10
 
 
-class MinioConfig:
-    ENDPOINT: str = "localhost:9000"
+class MinioConfig(BaseModel):
+    ENDPOINT: str | None = None
     ACCESS_KEY: str | None = None
     SECRET_KEY: str | None = None
     SECURE: bool = False
-    SESSION_TOKEN: str | None = (None,)
-    REGION: str | None = (None,)
+    SESSION_TOKEN: str | None = None
+    REGION: str | None = None
 
 
 class SqlAlchemyConfig(BaseModel):
