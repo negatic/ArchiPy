@@ -1,4 +1,10 @@
 import threading
+from typing import Any, ClassVar
+
+# Define type constants for explicit typing
+SingletonInstance = Any
+ClassDict = dict[str, Any]
+ClassBases = tuple[type, ...]
 
 
 class Singleton(type):
@@ -31,10 +37,16 @@ class Singleton(type):
         ```
     """
 
-    _instances = {}  # Stores instances of Singleton classes
-    _lock = threading.Lock()  # Lock for thread-safe instance creation
+    _instances: ClassVar[dict[type, SingletonInstance]] = {}  # Stores instances of Singleton classes
+    _lock: ClassVar[threading.Lock] = threading.Lock()  # Lock for thread-safe instance creation
 
-    def __new__(cls, name, bases, dct, **kwargs):
+    def __new__(
+        cls,
+        name: str,
+        bases: ClassBases,
+        dct: ClassDict,
+        **kwargs: object,
+    ) -> type:
         """Create a new Singleton metaclass instance.
 
         Args:
@@ -50,11 +62,11 @@ class Singleton(type):
         thread_safe = kwargs.pop("thread_safe", True)
         # Create the new class
         new_class = super().__new__(cls, name, bases, dct, **kwargs)
-        # Set the `thread_safe` attribute for the class
-        new_class._thread_safe = thread_safe
+        # Store thread_safe as an attribute using setattr to avoid linting errors
+        setattr(new_class, "__thread_safe", thread_safe)
         return new_class
 
-    def __call__(cls, *args, **kwargs):
+    def __call__(cls, *args: object, **kwargs: object) -> SingletonInstance:
         """Create or return the Singleton instance of the class.
 
         If `thread_safe` is True, a lock is used to ensure that only one instance is created
@@ -69,7 +81,7 @@ class Singleton(type):
             object: The Singleton instance of the class.
         """
         if cls not in cls._instances:
-            if cls._thread_safe:
+            if getattr(cls, "__thread_safe", True):
                 with cls._lock:
                     if cls not in cls._instances:
                         cls._instances[cls] = super().__call__(*args, **kwargs)
