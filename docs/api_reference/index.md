@@ -13,6 +13,7 @@ The adapters module provides standardized interfaces to external systems:
 - [Redis Adapters](adapters.md#redis)
 - [Email Adapters](adapters.md#email)
 - [Keycloak Adapters](adapters.md#keycloak)
+- [MinIO Adapters](adapters.md#minio)
 
 ### Configs
 
@@ -51,6 +52,7 @@ archipy/
 ├── adapters/           # External system integrations
 │   ├── email/         # Email service adapters
 │   ├── keycloak/      # Keycloak authentication adapters
+│   ├── minio/         # MinIO object storage adapters
 │   ├── orm/           # Database ORM adapters
 │   └── redis/         # Redis adapters
 ├── configs/           # Configuration management
