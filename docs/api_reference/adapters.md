@@ -88,6 +88,39 @@ For detailed examples and usage guidelines, see the [Keycloak Adapter Examples](
       show_root_heading: true
       show_source: true
 
+### MinIO
+
+MinIO integration for S3-compatible object storage operations.
+
+```python
+from archipy.adapters.minio import MinioAdapter
+
+# Create a MinIO adapter
+minio = MinioAdapter()  # Uses global config by default
+
+# Create a bucket
+if not minio.bucket_exists("my-bucket"):
+    minio.make_bucket("my-bucket")
+
+# Upload a file
+minio.put_object("my-bucket", "document.pdf", "/path/to/local/file.pdf")
+
+# Generate a download URL (valid for 1 hour)
+download_url = minio.presigned_get_object("my-bucket", "document.pdf")
+```
+
+For detailed examples and usage guidelines, see the [MinIO Adapter Examples](../examples/adapters/minio.md).
+
+::: archipy.adapters.minio.adapters
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.minio.ports
+    options:
+      show_root_heading: true
+      show_source: true
+
 ### ORM
 
 Object-Relational Mapping adapters, primarily for SQLAlchemy integration.

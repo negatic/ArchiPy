@@ -20,6 +20,7 @@ from archipy.configs.config_template import (
     KafkaConfig,
     KavenegarConfig,
     KeycloakConfig,
+    MinioConfig,
     PrometheusConfig,
     RedisConfig,
     SentryConfig,
@@ -27,7 +28,7 @@ from archipy.configs.config_template import (
 )
 from archipy.configs.environment_type import EnvironmentType
 
-'''
+"""
 
 Priority :
             1. pypoject.toml [tool.configs]
@@ -35,7 +36,7 @@ Priority :
             3. .env file
             4. os level environment variable
             5. class field value
-'''
+"""
 R = TypeVar("R")  # Runtime Config
 
 
@@ -130,6 +131,7 @@ class BaseConfig(BaseSettings, Generic[R]):
     KAFKA: KafkaConfig = KafkaConfig()
     KAVENEGAR: KavenegarConfig = KavenegarConfig()
     KEYCLOAK: KeycloakConfig = KeycloakConfig()
+    MINIO: MinioConfig = MinioConfig()
     PROMETHEUS: PrometheusConfig = PrometheusConfig()
     REDIS: RedisConfig = RedisConfig()
     SENTRY: SentryConfig = SentryConfig()
