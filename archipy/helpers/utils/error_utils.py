@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, Protocol
 
 from archipy.configs.base_config import BaseConfig
 from archipy.models.dtos.fastapi_exception_response_dto import (
@@ -8,25 +8,48 @@ from archipy.models.dtos.fastapi_exception_response_dto import (
 )
 from archipy.models.errors import BaseError
 
+
+# Define type protocols for better type checking
+class RequestProtocol(Protocol):
+    """Protocol for FastAPI Request objects."""
+
+
+class JSONResponseProtocol(Protocol):
+    """Protocol for FastAPI JSONResponse objects."""
+
+
+# Define forward references for conditional imports
+class _HTTPStatusPlaceholder:
+    INTERNAL_SERVER_ERROR = 500
+
+
+class _StatusCodePlaceholder:
+    class UNKNOWN:
+        value = (2, "UNKNOWN")
+
+
+# Use real classes if available, otherwise use placeholders
 try:
     from http import HTTPStatus
 
-    from fastapi import Request
+    from fastapi import Request  # noqa: F401
     from fastapi.responses import JSONResponse
 
     HTTP_AVAILABLE = True
 except ImportError:
     HTTP_AVAILABLE = False
-    HTTPStatus = None
-    Request = None
-    JSONResponse = None
+    # Using globals() to avoid "cannot assign to a type" error
+    globals()["HTTPStatus"] = _HTTPStatusPlaceholder
+    globals()["Request"] = object
+    globals()["JSONResponse"] = object
+
 try:
     from grpc import StatusCode
 
     GRPC_AVAILABLE = True
 except ImportError:
     GRPC_AVAILABLE = False
-    StatusCode = None
+    globals()["StatusCode"] = _StatusCodePlaceholder
 
 
 class ErrorUtils:
@@ -44,7 +67,7 @@ class ErrorUtils:
         """
         # Always log the exception locally
         logging.exception("An exception occurred: %s", str(exception))
-        config = BaseConfig.global_config()
+        config: Any = BaseConfig.global_config()
 
         # Report exception to Sentry if enabled
         if config.SENTRY.IS_ENABLED:
@@ -60,17 +83,18 @@ class ErrorUtils:
             try:
                 import elasticapm
 
-                client = elasticapm.get_client()
-                client.capture_exception()
+                # Type ignoring elasticapm.get_client() as it's a third-party function
+                client = elasticapm.get_client()  # type: ignore[attr-defined]
+                client.capture_exception()  # type: ignore[no-untyped-call]
             except ImportError:
                 logging.exception("elasticapm is not installed, cannot capture exception in Elastic APM.")
 
     @staticmethod
-    async def async_handle_fastapi_exception(request: Request, exception: BaseError) -> JSONResponse:
+    async def async_handle_fastapi_exception(_request: RequestProtocol, exception: BaseError) -> JSONResponseProtocol:
         """Handles a FastAPI exception and returns a JSON response.
 
         Args:
-            request (Request): The incoming FastAPI request.
+            _request (Request): The incoming FastAPI request.
             exception (BaseError): The exception to handle.
 
         Returns:
@@ -116,11 +140,12 @@ class ErrorUtils:
         Returns:
             dict[int, dict[str, Any]]: A dictionary mapping HTTP status codes to their corresponding response schemas.
         """
-        responses = {}
+        responses: dict[int, dict[str, Any]] = {}
 
         # Add validation error response by default
-        validationـerror_response = ValidationErrorResponseDTO()
-        responses[validationـerror_response.status_code] = validationـerror_response.model
+        validation_error_response = ValidationErrorResponseDTO()
+        if validation_error_response.status_code is not None:
+            responses[validation_error_response.status_code] = validation_error_response.model
 
         exception_schemas = {
             "InvalidPhoneNumberError": {
@@ -168,6 +193,7 @@ class ErrorUtils:
             if error.http_status:
                 additional_properties = exception_schemas.get(exc.__name__)
                 response = FastAPIErrorResponseDTO(error, additional_properties)
-                responses[response.status_code] = response.model
+                if response.status_code is not None:
+                    responses[response.status_code] = response.model
 
         return responses
