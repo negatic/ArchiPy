@@ -621,3 +621,22 @@ class UnauthenticatedError(BaseError):
             error: The error detail or message.
         """
         super().__init__(error, lang)
+
+
+class InvalidPasswordError(BaseError):
+    """Exception raised when a password does not meet the security requirements."""
+
+    def __init__(
+        self,
+        requirements: list[str] | None = None,
+        lang: LanguageType = LanguageType.FA,
+        error: ErrorDetailDTO = ErrorMessageType.INVALID_PASSWORD.value,
+    ) -> None:
+        """Initializes the exception.
+
+        Args:
+            requirements: List of specific password requirements that were not met.
+            lang: Language code for the error message (defaults to Persian).
+            error: The error detail or message.
+        """
+        super().__init__(error, lang, additional_data={"requirements": requirements} if requirements else None)

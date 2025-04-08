@@ -139,6 +139,14 @@ class ErrorMessageType(Enum):
         grpc_status=StatusCode.INVALID_ARGUMENT if GRPC_AVAILABLE else None,
     )
 
+    INVALID_PASSWORD = ErrorDetailDTO.create_error_detail(
+        code="INVALID_PASSWORD",
+        message_en="Password does not meet the security requirements",
+        message_fa="رمز عبور الزامات امنیتی را برآورده نمی‌کند.",
+        http_status=HTTPStatus.BAD_REQUEST if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INVALID_ARGUMENT if GRPC_AVAILABLE else None,
+    )
+
     OUT_OF_RANGE = ErrorDetailDTO.create_error_detail(
         code="OUT_OF_RANGE",
         message_en="Value is out of acceptable range",
