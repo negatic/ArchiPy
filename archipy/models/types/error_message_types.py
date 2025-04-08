@@ -8,7 +8,7 @@ try:
     HTTP_AVAILABLE = True
 except ImportError:
     HTTP_AVAILABLE = False
-    HTTPStatus = None
+    HTTPStatus = None  # type: ignore[misc, name-defined, assignment]
 
 try:
     from grpc import StatusCode
@@ -16,7 +16,7 @@ try:
     GRPC_AVAILABLE = True
 except ImportError:
     GRPC_AVAILABLE = False
-    StatusCode = None
+    StatusCode = None  # type: ignore[misc, name-defined, assignment]
 
 
 class ErrorMessageType(Enum):
@@ -26,7 +26,7 @@ class ErrorMessageType(Enum):
     English and Farsi messages, and corresponding HTTP and gRPC status codes.
 
     Attributes:
-        UNAUTHENTICATED_TYPE: Indicates that the user is not authenticated.
+        UNAUTHENTICATED: Indicates that the user is not authenticated.
         INVALID_PHONE: Indicates an invalid Iranian phone number.
         INVALID_LANDLINE: Indicates an invalid Iranian landline number.
         INVALID_NATIONAL_CODE: Indicates an invalid national code format.
@@ -49,11 +49,11 @@ class ErrorMessageType(Enum):
         DEPRECATION: Indicates that the operation is deprecated.
         UNAVAILABLE: Indicates that the service is unavailable.
         UNKNOWN_ERROR: Indicates an unknown error occurred.
-        DEADLOCK_TYPE: Indicates a deadlock condition was detected.
+        DEADLOCK: Indicates a deadlock condition was detected.
     """
 
     # Authentication Errors (400, 401, 403)
-    UNAUTHENTICATED_TYPE = ErrorDetailDTO.create_error_detail(
+    UNAUTHENTICATED = ErrorDetailDTO.create_error_detail(
         code="UNAUTHENTICATED_TYPE",
         message_en="You are not authorized to perform this action.",
         message_fa="شما مجوز انجام این عمل را ندارید.",
@@ -239,8 +239,8 @@ class ErrorMessageType(Enum):
         grpc_status=StatusCode.UNKNOWN if GRPC_AVAILABLE else None,
     )
 
-    DEADLOCK_TYPE = ErrorDetailDTO.create_error_detail(
-        code="DEADLOCK_TYPE",
+    DEADLOCK = ErrorDetailDTO.create_error_detail(
+        code="DEADLOCK",
         message_en="Deadlock type detected",
         message_fa="خطای قفل‌شدگی (Deadlock) تشخیص داده شد.",
         http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,

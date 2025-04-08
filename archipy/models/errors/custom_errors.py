@@ -1,5 +1,3 @@
-from typing import Any
-
 from archipy.models.dtos.error_dto import ErrorDetailDTO
 from archipy.models.types.error_message_types import ErrorMessageType
 from archipy.models.types.language_type import LanguageType
@@ -10,7 +8,7 @@ try:
     HTTP_AVAILABLE = True
 except ImportError:
     HTTP_AVAILABLE = False
-    HTTPStatus = None
+    HTTPStatus = None  # type: ignore[misc, name-defined, assignment]
 
 try:
     from grpc import StatusCode
@@ -18,7 +16,7 @@ try:
     GRPC_AVAILABLE = True
 except ImportError:
     GRPC_AVAILABLE = False
-    StatusCode = None
+    StatusCode = None  # type: ignore[misc, name-defined, assignment]
 
 
 class BaseError(Exception):
@@ -33,7 +31,7 @@ class BaseError(Exception):
         error: ErrorDetailDTO | ErrorMessageType | None = None,
         lang: LanguageType = LanguageType.FA,
         additional_data: dict | None = None,
-        *args: Any,
+        *args: object,
     ) -> None:
         """Initializes the base exception.
 
@@ -79,8 +77,9 @@ class BaseError(Exception):
         }
 
         # Add additional data if present
-        if self.additional_data:
-            response["detail"].update(self.additional_data)
+        detail = response["detail"]
+        if isinstance(detail, dict) and self.additional_data:
+            detail.update(self.additional_data)
 
         return response
 
@@ -250,6 +249,7 @@ class PermissionDeniedError(BaseError):
         Args:
             lang: Language code for the error message (defaults to Persian).
             error: The error detail or message.
+            additional_data: Additional context data for the error.
         """
         super().__init__(error, lang, additional_data)
 
@@ -567,7 +567,7 @@ class InvalidEntityTypeError(BaseError):
 
     def __init__(
         self,
-        entity_type: Any | None = None,
+        entity_type: object | None = None,
         expected_type: type | None = None,
         lang: LanguageType = LanguageType.FA,
         error: ErrorDetailDTO = ErrorMessageType.INVALID_ENTITY_TYPE.value,
@@ -589,7 +589,7 @@ class DeadlockDetectedError(BaseError):
     def __init__(
         self,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ErrorMessageType.DEADLOCK_TYPE.value,
+        error: ErrorDetailDTO = ErrorMessageType.DEADLOCK.value,
     ) -> None:
         """Initializes the exception.
 
@@ -606,7 +606,7 @@ class UnauthenticatedError(BaseError):
     def __init__(
         self,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ErrorMessageType.UNAUTHENTICATED_TYPE.value,
+        error: ErrorDetailDTO = ErrorMessageType.UNAUTHENTICATED.value,
     ) -> None:
         """Initializes the exception.
 

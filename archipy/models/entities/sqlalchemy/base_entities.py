@@ -1,8 +1,7 @@
-from datetime import datetime
-from typing import Any
+from typing import Any, ClassVar
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey
-from sqlalchemy.orm import DeclarativeBase, Mapped, Synonym
+from sqlalchemy.orm import DeclarativeBase, Synonym
 
 from archipy.helpers.utils.base_utils import BaseUtils
 
@@ -22,7 +21,7 @@ class BaseEntity(DeclarativeBase):
     """
 
     __abstract__ = True
-    created_at: Mapped[datetime] = Column(DateTime(), server_default="DEFAULT", nullable=False)
+    created_at = Column(DateTime(), default=BaseUtils.get_datetime_now, nullable=False)
 
     @classmethod
     def _is_abstract(cls) -> bool:
@@ -73,10 +72,10 @@ class EntityAttributeChecker:
             attribute names. At least one attribute from each inner list must be present.
     """
 
-    required_any: list[list[str]] = []
+    required_any: ClassVar[list[list[str]]] = []
 
     @classmethod
-    def validate(cls, base_class) -> None:
+    def validate(cls, base_class: type) -> None:
         """Validate that at least one of the required attributes is present.
 
         Args:
@@ -137,7 +136,8 @@ class ArchivableMixin:
 
     __abstract__ = True
     is_archived = Column(Boolean, default=False, nullable=False)
-    origin_uuid = Column(ForeignKey("self.pk_uuid"), nullable=True)
+    # Using Column without Mapped is acceptable since Column works with BaseEntity.__table__
+    origin_uuid = Column(ForeignKey("self.pk_uuid"), nullable=True)  # type: ignore[var-annotated]
 
 
 # Mixins dependent on EntityAttributeChecker
@@ -152,7 +152,7 @@ class AdminMixin(EntityAttributeChecker):
     """
 
     __abstract__ = True
-    required_any = [["created_by_admin", "created_by_admin_uuid"]]
+    required_any: ClassVar[list[list[str]]] = [["created_by_admin", "created_by_admin_uuid"]]
 
     def __init_subclass__(cls, **kw: Any) -> None:
         """Validate the subclass during initialization.
@@ -175,7 +175,7 @@ class ManagerMixin(EntityAttributeChecker):
     """
 
     __abstract__ = True
-    required_any = [["created_by", "created_by_uuid"]]
+    required_any: ClassVar[list[list[str]]] = [["created_by", "created_by_uuid"]]
 
     def __init_subclass__(cls, **kw: Any) -> None:
         """Validate the subclass during initialization.
@@ -198,7 +198,7 @@ class UpdatableAdminMixin(EntityAttributeChecker):
     """
 
     __abstract__ = True
-    required_any = [["updated_by_admin", "updated_by_admin_uuid"]]
+    required_any: ClassVar[list[list[str]]] = [["updated_by_admin", "updated_by_admin_uuid"]]
 
     def __init_subclass__(cls, **kw: Any) -> None:
         """Validate the subclass during initialization.
@@ -221,7 +221,7 @@ class UpdatableManagerMixin(EntityAttributeChecker):
     """
 
     __abstract__ = True
-    required_any = [["updated_by", "updated_by_uuid"]]
+    required_any: ClassVar[list[list[str]]] = [["updated_by", "updated_by_uuid"]]
 
     def __init_subclass__(cls, **kw: Any) -> None:
         """Validate the subclass during initialization.

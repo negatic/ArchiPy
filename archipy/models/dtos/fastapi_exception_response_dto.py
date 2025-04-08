@@ -4,9 +4,15 @@ from archipy.models.dtos.error_dto import ErrorDetailDTO
 
 
 class FastAPIErrorResponseDTO:
-    """Standardized error response model for OpenAPI documentation"""
+    """Standardized error response model for OpenAPI documentation."""
 
-    def __init__(self, exception: ErrorDetailDTO, additional_properties: dict | None = None):
+    def __init__(self, exception: ErrorDetailDTO, additional_properties: dict | None = None) -> None:
+        """Initialize the error response model.
+
+        Args:
+            exception: The error detail object
+            additional_properties: Additional properties to include in the response
+        """
         self.status_code = exception.http_status
 
         # Base properties that all errors have
@@ -56,9 +62,10 @@ class FastAPIErrorResponseDTO:
 
 
 class ValidationErrorResponseDTO(FastAPIErrorResponseDTO):
-    """Specific response model for validation errors"""
+    """Specific response model for validation errors."""
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initialize the validation error response model."""
         self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
         self.model = {
             "description": "Validation Error",
