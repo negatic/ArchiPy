@@ -201,7 +201,7 @@ section-order = [
 
 [tool.ruff.lint.flake8-quotes]
 inline-quotes = "double"  # Use double quotes for inline strings
-multiline-quotes = "single"  # Use single quotes for multiline strings
+multiline-quotes = "double"  # Use double quotes for multiline strings
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"  # Use Google-style docstrings

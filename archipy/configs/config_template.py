@@ -4,6 +4,12 @@ from pydantic import BaseModel, Field, SecretStr
 
 
 class ElasticSearchConfig(BaseModel):
+    """Configuration settings for Elasticsearch connections and operations.
+
+    Contains settings related to Elasticsearch server connectivity, authentication,
+    and batch operation parameters.
+    """
+
     SEARCH_HOSTS: list = []
     SEARCH_HTTP_USER_NAME: str | None = None
     SEARCH_HTTP_PASSWORD: str | None = None
@@ -14,6 +20,12 @@ class ElasticSearchConfig(BaseModel):
 
 
 class ElasticSearchAPMConfig(BaseModel):
+    """Configuration settings for Elasticsearch APM (Application Performance Monitoring).
+
+    Controls behavior of the Elastic APM agent for application monitoring, tracing,
+    and error reporting.
+    """
+
     API_REQUEST_SIZE: str = "768kb"
     API_REQUEST_TIME: str = "10s"
     AUTO_LOG_STACKS: bool = True
@@ -35,6 +47,12 @@ class ElasticSearchAPMConfig(BaseModel):
 
 
 class FastAPIConfig(BaseModel):
+    """Configuration settings for FastAPI applications.
+
+    Controls FastAPI application behavior, including server settings, middleware,
+    documentation, and performance parameters.
+    """
+
     PROJECT_NAME: str = "project_name"
     API_PREFIX: str = "/api"
 
@@ -51,7 +69,7 @@ class FastAPIConfig(BaseModel):
     PROXY_HEADERS: bool = True
     RELOAD: bool = False
     SERVER_HEADER: bool = True
-    SERVE_HOST: str = "0.0.0.0"
+    SERVE_HOST: str = "0.0.0.0"  # noqa: S104 # Deliberate binding to all interfaces for containerized deployments
     SERVE_PORT: int = 8100
     TIMEOUT_GRACEFUL_SHUTDOWN: int | None = None
     TIMEOUT_KEEP_ALIVE: int = 5
@@ -67,8 +85,14 @@ class FastAPIConfig(BaseModel):
 
 
 class GrpcConfig(BaseModel):
+    """Configuration settings for gRPC services.
+
+    Controls gRPC server behavior, including connection parameters,
+    performance tuning, and timeout settings.
+    """
+
     SERVE_PORT: int = 8100
-    SERVE_HOST: str = "[::]"
+    SERVE_HOST: str = "[::]"  # IPv6 equivalent of 0.0.0.0
     THREAD_WORKER_COUNT: int | None = None
     THREAD_PER_CPU_CORE: int = 40  # Adjust based on thread block to cpu time ratio
     SERVER_OPTIONS_CONFIG_LIST: list[tuple[str, int]] = [
@@ -112,6 +136,12 @@ class GrpcConfig(BaseModel):
 
 
 class KafkaConfig(BaseModel):
+    """Configuration settings for Apache Kafka integration.
+
+    Controls Kafka producer and consumer behavior, including broker connections,
+    message delivery guarantees, and performance settings.
+    """
+
     ACKNOWLEDGE_COUNT: int = 1
     AUTO_OFFSET_RESET: str = "earliest"
     BROKERS_LIST: list = ["localhost:9092"]
@@ -132,6 +162,12 @@ class KafkaConfig(BaseModel):
 
 
 class KeycloakConfig(BaseModel):
+    """Configuration settings for Keycloak integration.
+
+    Controls connection parameters and authentication settings for the Keycloak
+    identity and access management service.
+    """
+
     SERVER_URL: str | None = None
     CLIENT_ID: str | None = None
     REALM_NAME: str = "master"
@@ -141,6 +177,12 @@ class KeycloakConfig(BaseModel):
 
 
 class MinioConfig(BaseModel):
+    """Configuration settings for MinIO object storage integration.
+
+    Controls connection parameters and authentication for the MinIO S3-compatible
+    object storage service.
+    """
+
     ENDPOINT: str | None = None
     ACCESS_KEY: str | None = None
     SECRET_KEY: str | None = None
@@ -150,6 +192,11 @@ class MinioConfig(BaseModel):
 
 
 class SqlAlchemyConfig(BaseModel):
+    """Configuration settings for SQLAlchemy ORM.
+
+    Controls database connection parameters, pooling behavior, and query execution settings.
+    """
+
     DATABASE: str | None = None
     DRIVER_NAME: str = "postgresql+psycopg"
     ECHO: bool = False
@@ -172,11 +219,22 @@ class SqlAlchemyConfig(BaseModel):
 
 
 class PrometheusConfig(BaseModel):
+    """Configuration settings for Prometheus metrics integration.
+
+    Controls whether Prometheus metrics collection is enabled and the port
+    for the metrics endpoint.
+    """
+
     IS_ENABLED: bool = False
     SERVER_PORT: int = 8200
 
 
 class RedisConfig(BaseModel):
+    """Configuration settings for Redis cache integration.
+
+    Controls Redis server connection parameters and client behavior settings.
+    """
+
     MASTER_HOST: str | None = None
     SLAVE_HOST: str | None = None
     PORT: int = 6379
@@ -188,6 +246,11 @@ class RedisConfig(BaseModel):
 
 
 class SentryConfig(BaseModel):
+    """Configuration settings for Sentry error tracking integration.
+
+    Controls Sentry client behavior, including DSN, sampling rates, and debug settings.
+    """
+
     IS_ENABLED: bool = False
     DSN: str | None = None
     DEBUG: bool = False
@@ -197,12 +260,24 @@ class SentryConfig(BaseModel):
 
 
 class KavenegarConfig(BaseModel):
+    """Configuration settings for Kavenegar SMS service integration.
+
+    Controls connection parameters and authentication for sending SMS messages
+    through the Kavenegar service.
+    """
+
     SERVER_URL: str | None = None
     API_KEY: str | None = None
     PHONE_NUMBER: str | None = None
 
 
 class AuthConfig(BaseModel):
+    """Configuration settings for authentication and security.
+
+    Controls JWT token settings, TOTP configuration, rate limiting,
+    password policies, and token security features.
+    """
+
     # JWT Settings
     SECRET_KEY: SecretStr | None = None
     ACCESS_TOKEN_EXPIRES_IN: int = 1 * 60 * 60  # 1 hour in seconds
@@ -244,6 +319,12 @@ class AuthConfig(BaseModel):
 
 
 class EmailConfig(BaseModel):
+    """Configuration settings for email service integration.
+
+    Controls SMTP server connection parameters, authentication,
+    and email sending behavior.
+    """
+
     SMTP_SERVER: str | None = None
     SMTP_PORT: int = 587
     USERNAME: str | None = None
@@ -255,6 +336,11 @@ class EmailConfig(BaseModel):
 
 
 class FileConfig(BaseModel):
+    """Configuration settings for file handling capabilities.
+
+    Controls file link security, expiration policies, and file type restrictions.
+    """
+
     SECRET_KEY: str | None = Field(default=None, description="Secret key used for generating secure file links")
     DEFAULT_EXPIRY_MINUTES: int = Field(
         default=60,
@@ -265,6 +351,12 @@ class FileConfig(BaseModel):
 
 
 class DatetimeConfig(BaseModel):
+    """Configuration settings for date and time handling.
+
+    Controls API connections for specialized date/time services
+    and date caching behavior.
+    """
+
     TIME_IR_API_KEY: str | None = "ZAVdqwuySASubByCed5KYuYMzb9uB2f7"
     TIME_IR_API_ENDPOINT: str | None = "https://api.time.ir/v1/event/fa/events/calendar"
     REQUEST_TIMEOUT: int = 5

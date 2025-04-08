@@ -8,7 +8,7 @@ Feature: Base Configuration System
   Scenario: Retrieving global configuration without setting it
     Given BaseConfig is not initialized globally
     When retrieving global configuration
-    Then an error should be raised with message "You should set global configs with  BaseConfig.set_global(MyConfig())"
+    Then an error should be raised with message "You should set global configs with BaseConfig.set_global(MyConfig())"
 
   Scenario Outline: Ensure configuration contains specific attributes
     Given a custom BaseConfig instance

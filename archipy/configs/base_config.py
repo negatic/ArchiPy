@@ -110,6 +110,20 @@ class BaseConfig(BaseSettings, Generic[R]):
         dotenv_settings: PydanticBaseSettingsSource,
         file_secret_settings: PydanticBaseSettingsSource,
     ) -> tuple[PydanticBaseSettingsSource, ...]:
+        """Customize the settings sources priority order.
+
+        This method defines the priority order for configuration sources.
+
+        Args:
+            settings_cls: The settings class
+            init_settings: Settings from initialization values
+            env_settings: Settings from environment variables
+            dotenv_settings: Settings from .env file
+            file_secret_settings: Settings from secret files
+
+        Returns:
+            A tuple of configuration sources in priority order
+        """
         return (
             file_secret_settings,
             PyprojectTomlConfigSettingsSource(settings_cls),
@@ -137,7 +151,12 @@ class BaseConfig(BaseSettings, Generic[R]):
     SENTRY: SentryConfig = SentryConfig()
     SQLALCHEMY: SqlAlchemyConfig = SqlAlchemyConfig()
 
-    def customize(self) -> None: ...
+    def customize(self) -> None:
+        """Customize configuration after loading.
+
+        This method can be overridden in subclasses to perform
+        custom configuration modifications after loading settings.
+        """
 
     @classmethod
     def global_config(cls) -> R:
@@ -154,9 +173,10 @@ class BaseConfig(BaseSettings, Generic[R]):
             >>> config = BaseConfig.global_config()
             >>> redis_host = config.REDIS.MASTER_HOST
         """
+        config_not_set_error = "You should set global configs with BaseConfig.set_global(MyConfig())"
         if cls.__global_config is None:
-            raise AssertionError("You should set global configs with  BaseConfig.set_global(MyConfig())")
-        return cls.__global_config
+            raise AssertionError(config_not_set_error)
+        return cls.__global_config  # type: ignore[no-any-return]
 
     @classmethod
     def set_global(cls, config: R) -> None:
@@ -172,5 +192,6 @@ class BaseConfig(BaseSettings, Generic[R]):
             >>> my_config = MyAppConfig(BaseConfig)
             >>> BaseConfig.set_global(my_config)
         """
-        config.customize()
+        if hasattr(config, "customize") and callable(config.customize):
+            config.customize()
         cls.__global_config = config
