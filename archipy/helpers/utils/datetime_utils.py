@@ -1,7 +1,7 @@
 import time
 from collections.abc import Generator
 from datetime import UTC, date, datetime, timedelta
-from typing import ClassVar
+from typing import Any, ClassVar
 
 import jdatetime
 import requests
@@ -49,7 +49,7 @@ class DatetimeUtils:
         # Convert to Jalali date first
         jalali_date = cls.convert_to_jalali(target_date)
         date_str = target_date.strftime("%Y-%m-%d")
-        current_time = datetime.now()
+        current_time = cls.get_datetime_utc_now()
 
         # Check cache first
         is_cached, is_holiday = cls._check_cache(date_str, current_time)
@@ -57,8 +57,7 @@ class DatetimeUtils:
             return is_holiday
 
         # Fetch holiday status and cache it
-        is_holiday = cls._fetch_and_cache_holiday_status(jalali_date, date_str, current_time)
-        return is_holiday
+        return cls._fetch_and_cache_holiday_status(jalali_date, date_str, current_time)
 
     @classmethod
     def _check_cache(cls, date_str: str, current_time: datetime) -> tuple[bool, bool]:
@@ -105,35 +104,37 @@ class DatetimeUtils:
             bool: True if the date is a holiday, False otherwise.
 
         Raises:
-            UnknownException: If the API request fails due to a network issue or other request-related errors.
+            UnknownError: If the API request fails due to a network issue or other request-related errors.
         """
         try:
+            config: Any = BaseConfig.global_config()
             response = cls._call_holiday_api(jalali_date)
             is_holiday = cls._parse_holiday_response(response, jalali_date)
 
             # Cache the result with expiration
-            expiry_time = current_time + timedelta(seconds=BaseConfig.global_config().DATETIME.CACHE_TTL)
+            expiry_time = current_time + timedelta(seconds=config.DATETIME.CACHE_TTL)
             cls._holiday_cache[date_str] = (is_holiday, expiry_time)
-
-            return is_holiday
         except requests.RequestException as exception:
-            raise UnknownError() from exception
+            raise UnknownError from exception
+
+        return is_holiday
 
     @staticmethod
-    def _call_holiday_api(jalali_date: jdatetime.date) -> dict:
+    def _call_holiday_api(jalali_date: jdatetime.date) -> dict[str, Any]:
         """Calls the Time.ir API to fetch holiday data for the given Jalali date.
 
         Args:
             jalali_date (jdatetime.date): The Jalali date to fetch data for.
 
         Returns:
-            dict: The JSON response from the API.
+            Dict[str, Any]: The JSON response from the API.
 
         Raises:
             requests.RequestException: If the API request fails.
         """
+        config: Any = BaseConfig.global_config()
         retry_strategy = Retry(
-            total=BaseConfig.global_config().DATETIME.MAX_RETRIES,
+            total=config.DATETIME.MAX_RETRIES,
             status_forcelist=[429, 500, 502, 503, 504],
             allowed_methods=["HEAD", "GET", "OPTIONS"],
         )
@@ -142,10 +143,11 @@ class DatetimeUtils:
         session.mount("https://", adapter)
 
         url = DatetimeUtils._build_api_url(jalali_date)
-        headers = {"x-api-key": BaseConfig.global_config().DATETIME.TIME_IR_API_KEY}
-        response = session.get(url, headers=headers, timeout=BaseConfig.global_config().DATETIME.REQUEST_TIMEOUT)
+        headers = {"x-api-key": config.DATETIME.TIME_IR_API_KEY}
+        response = session.get(url, headers=headers, timeout=config.DATETIME.REQUEST_TIMEOUT)
         response.raise_for_status()
-        return response.json()
+        result: dict[str, Any] = response.json()
+        return result
 
     @staticmethod
     def _build_api_url(jalali_date: jdatetime.date) -> str:
@@ -157,15 +159,16 @@ class DatetimeUtils:
         Returns:
             str: The constructed API URL.
         """
-        base_url = BaseConfig.global_config().DATETIME.TIME_IR_API_ENDPOINT
+        config: Any = BaseConfig.global_config()
+        base_url = config.DATETIME.TIME_IR_API_ENDPOINT
         return f"{base_url}?year={jalali_date.year}&month={jalali_date.month}&day={jalali_date.day}"
 
     @staticmethod
-    def _parse_holiday_response(response_data: dict, jalali_date: jdatetime.date) -> bool:
+    def _parse_holiday_response(response_data: dict[str, Any], jalali_date: jdatetime.date) -> bool:
         """Parses the API response to extract and return the holiday status.
 
         Args:
-            response_data (dict): The JSON response from the API.
+            response_data (Dict[str, Any]): The JSON response from the API.
             jalali_date (jdatetime.date): The Jalali date to check.
 
         Returns:
@@ -178,7 +181,8 @@ class DatetimeUtils:
                 and event_info.get("jalali_month") == jalali_date.month
                 and event_info.get("jalali_day") == jalali_date.day
             ):
-                return event_info.get("is_holiday", False)
+                is_holiday = event_info.get("is_holiday", False)
+                return bool(is_holiday)
         return False
 
     @classmethod
@@ -196,7 +200,7 @@ class DatetimeUtils:
         return dt
 
     @classmethod
-    def daterange(cls, start_date: datetime, end_date: datetime) -> Generator[datetime.date, None, None]:
+    def daterange(cls, start_date: datetime, end_date: datetime) -> Generator[date, None, None]:
         """Generates a range of dates from start_date to end_date, exclusive of end_date.
 
         Args:
@@ -204,7 +208,7 @@ class DatetimeUtils:
             end_date (datetime): The end date of the range.
 
         Yields:
-            datetime.date: Each date in the range.
+            date: Each date in the range.
         """
         for n in range((end_date - start_date).days):
             yield (start_date + timedelta(n)).date()
@@ -245,11 +249,20 @@ class DatetimeUtils:
             format_ (str | None): The format string. If None, uses ISO 8601.
 
         Returns:
-            datetime: The parsed datetime object.
+            datetime: The parsed datetime object with UTC timezone.
         """
-        if format_ is None:
-            return datetime.fromisoformat(date_string)
-        return datetime.strptime(date_string, format_)
+        # Parse using a single expression and immediately make timezone-aware for both cases
+        dt = (
+            datetime.fromisoformat(date_string)
+            if format_ is None
+            else datetime.strptime(date_string, format_).replace(tzinfo=UTC)
+        )
+
+        # Handle the fromisoformat case which might already have timezone info
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=UTC)
+
+        return dt
 
     @classmethod
     def get_string_datetime_now(cls) -> str:
@@ -262,12 +275,12 @@ class DatetimeUtils:
 
     @classmethod
     def get_datetime_now(cls) -> datetime:
-        """Gets the current local datetime.
+        """Gets the current local datetime with timezone information.
 
         Returns:
-            datetime: The current local datetime.
+            datetime: The current local datetime with UTC timezone.
         """
-        return datetime.now()
+        return datetime.now(UTC)
 
     @classmethod
     def get_datetime_utc_now(cls) -> datetime:
