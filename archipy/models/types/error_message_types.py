@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import TYPE_CHECKING
 
 from archipy.models.dtos.error_dto import ErrorDetailDTO
 
@@ -8,7 +9,9 @@ try:
     HTTP_AVAILABLE = True
 except ImportError:
     HTTP_AVAILABLE = False
-    HTTPStatus = None  # type: ignore[misc, name-defined, assignment]
+    if not TYPE_CHECKING:
+        # Only create at runtime, not during type checking
+        HTTPStatus = None
 
 try:
     from grpc import StatusCode
@@ -16,7 +19,9 @@ try:
     GRPC_AVAILABLE = True
 except ImportError:
     GRPC_AVAILABLE = False
-    StatusCode = None  # type: ignore[misc, name-defined, assignment]
+    if not TYPE_CHECKING:
+        # Only create at runtime, not during type checking
+        StatusCode = None
 
 
 class ErrorMessageType(Enum):
@@ -241,7 +246,7 @@ class ErrorMessageType(Enum):
 
     DEADLOCK = ErrorDetailDTO.create_error_detail(
         code="DEADLOCK",
-        message_en="Deadlock type detected",
+        message_en="Deadlock detected",
         message_fa="خطای قفل‌شدگی (Deadlock) تشخیص داده شد.",
         http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,
         grpc_status=StatusCode.INTERNAL if GRPC_AVAILABLE else None,

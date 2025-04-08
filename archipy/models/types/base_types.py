@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Any
 
 
 class BaseType(Enum):
@@ -8,7 +7,7 @@ class BaseType(Enum):
     This class extends the `Enum` class to allow custom values for enum members.
     """
 
-    def __new__(cls, *args: Any, **_: Any) -> "BaseType":
+    def __new__(cls, *args: object, **_: object) -> "BaseType":
         """Create a new instance of the enum member.
 
         Args:

@@ -1,4 +1,4 @@
-from typing import Any, ClassVar
+from typing import ClassVar
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Synonym
@@ -32,7 +32,7 @@ class BaseEntity(DeclarativeBase):
         """
         return (not hasattr(cls, "__tablename__")) and cls.__abstract__
 
-    def __init_subclass__(cls, **kw: Any) -> None:
+    def __init_subclass__(cls, **kw: object) -> None:
         """Validate the subclass during initialization.
 
         Args:
@@ -54,10 +54,12 @@ class BaseEntity(DeclarativeBase):
             AttributeError: If the primary key column is missing or invalid.
         """
         if not hasattr(cls, PK_COLUMN_NAME):
-            raise AttributeError(f"Child class {cls.__name__} must have {PK_COLUMN_NAME}")
+            error_message = f"Child class {cls.__name__} must have {PK_COLUMN_NAME}"
+            raise AttributeError(error_message)
         pk_column = getattr(cls, PK_COLUMN_NAME)
         if not isinstance(pk_column, Synonym):
-            raise AttributeError(f"{PK_COLUMN_NAME} must be a sqlalchemy.orm.Synonym type")
+            error_message = f"{PK_COLUMN_NAME} must be a sqlalchemy.orm.Synonym type"
+            raise TypeError(error_message)
 
 
 # Utility class for mixins
@@ -86,7 +88,8 @@ class EntityAttributeChecker:
         """
         for attrs in cls.required_any:
             if not any(hasattr(base_class, attr) for attr in attrs):
-                raise AttributeError(f"One of {attrs} must be defined in {base_class.__name__}")
+                error_message = f"One of {attrs} must be defined in {base_class.__name__}"
+                raise AttributeError(error_message)
 
 
 # Independent mixins
@@ -154,7 +157,7 @@ class AdminMixin(EntityAttributeChecker):
     __abstract__ = True
     required_any: ClassVar[list[list[str]]] = [["created_by_admin", "created_by_admin_uuid"]]
 
-    def __init_subclass__(cls, **kw: Any) -> None:
+    def __init_subclass__(cls, **kw: object) -> None:
         """Validate the subclass during initialization.
 
         Args:
@@ -177,7 +180,7 @@ class ManagerMixin(EntityAttributeChecker):
     __abstract__ = True
     required_any: ClassVar[list[list[str]]] = [["created_by", "created_by_uuid"]]
 
-    def __init_subclass__(cls, **kw: Any) -> None:
+    def __init_subclass__(cls, **kw: object) -> None:
         """Validate the subclass during initialization.
 
         Args:
@@ -200,7 +203,7 @@ class UpdatableAdminMixin(EntityAttributeChecker):
     __abstract__ = True
     required_any: ClassVar[list[list[str]]] = [["updated_by_admin", "updated_by_admin_uuid"]]
 
-    def __init_subclass__(cls, **kw: Any) -> None:
+    def __init_subclass__(cls, **kw: object) -> None:
         """Validate the subclass during initialization.
 
         Args:
@@ -223,7 +226,7 @@ class UpdatableManagerMixin(EntityAttributeChecker):
     __abstract__ = True
     required_any: ClassVar[list[list[str]]] = [["updated_by", "updated_by_uuid"]]
 
-    def __init_subclass__(cls, **kw: Any) -> None:
+    def __init_subclass__(cls, **kw: object) -> None:
         """Validate the subclass during initialization.
 
         Args:

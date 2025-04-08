@@ -43,15 +43,27 @@ class PaginationDTO(BaseDTO):
     MAX_ITEMS: ClassVar = 10000
 
     @model_validator(mode="after")
-    def validate_pagination(cls, model: Self) -> Self:
-        total_items = model.page * model.page_size
-        if total_items > cls.MAX_ITEMS:
-            raise ValueError(
+    def validate_pagination(self) -> Self:
+        """Validate pagination limits to prevent excessive resource usage.
+
+        Ensures that the requested number of items (page * page_size) doesn't exceed
+        the maximum allowed limit.
+
+        Returns:
+            The validated model instance if valid.
+
+        Raises:
+            ValueError: If the total requested items exceeds MAX_ITEMS.
+        """
+        total_items = self.page * self.page_size
+        if total_items > self.MAX_ITEMS:
+            error_message = (
                 f"Pagination limit exceeded. "
-                f"Requested {total_items} items, but the maximum is {cls.MAX_ITEMS}. "
-                f"Try reducing page size or requesting a lower page number.",
+                f"Requested {total_items} items, but the maximum is {self.MAX_ITEMS}. "
+                f"Try reducing page size or requesting a lower page number."
             )
-        return model
+            raise ValueError(error_message)
+        return self
 
     @property
     def offset(self) -> int:

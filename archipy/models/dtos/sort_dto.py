@@ -51,7 +51,7 @@ class SortDTO(BaseModel, Generic[T]):
     """
 
     column: T | str = Field(default="created_at", description="Column name or enum to sort by")
-    order: str = Field(default=SortOrderType.DESCENDING, description="Sort order (ASCENDING or DESCENDING)")
+    order: SortOrderType = Field(default=SortOrderType.DESCENDING, description="Sort order (ASCENDING or DESCENDING)")
 
     @classmethod
     def default(cls) -> "SortDTO":

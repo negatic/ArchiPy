@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from archipy.models.dtos.error_dto import ErrorDetailDTO
 from archipy.models.types.error_message_types import ErrorMessageType
 from archipy.models.types.language_type import LanguageType
@@ -8,7 +10,9 @@ try:
     HTTP_AVAILABLE = True
 except ImportError:
     HTTP_AVAILABLE = False
-    HTTPStatus = None  # type: ignore[misc, name-defined, assignment]
+    if not TYPE_CHECKING:
+        # Only create at runtime, not during type checking
+        HTTPStatus = None
 
 try:
     from grpc import StatusCode
@@ -16,7 +20,9 @@ try:
     GRPC_AVAILABLE = True
 except ImportError:
     GRPC_AVAILABLE = False
-    StatusCode = None  # type: ignore[misc, name-defined, assignment]
+    if not TYPE_CHECKING:
+        # Only create at runtime, not during type checking
+        StatusCode = None
 
 
 class BaseError(Exception):

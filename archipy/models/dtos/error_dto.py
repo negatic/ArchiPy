@@ -1,4 +1,4 @@
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
 from archipy.models.dtos.base_dtos import BaseDTO
 
@@ -8,7 +8,9 @@ try:
     HTTP_AVAILABLE = True
 except ImportError:
     HTTP_AVAILABLE = False
-    HTTPStatus = None  # type: ignore[misc, name-defined, assignment]
+    if not TYPE_CHECKING:
+        # Only create at runtime, not during type checking
+        HTTPStatus = None
 
 try:
     from grpc import StatusCode
@@ -16,7 +18,9 @@ try:
     GRPC_AVAILABLE = True
 except ImportError:
     GRPC_AVAILABLE = False
-    StatusCode = None  # type: ignore[misc, name-defined, assignment]
+    if not TYPE_CHECKING:
+        # Only create at runtime, not during type checking
+        StatusCode = None
 
 
 class ErrorDetailDTO(BaseDTO):
