@@ -1,14 +1,29 @@
 from collections.abc import Callable
 from functools import wraps
-from typing import TypeVar
+from typing import Any, Protocol, TypeVar, cast
 
 from cachetools import TTLCache
 
 T = TypeVar("T")
 R = TypeVar("R")
+P_co = TypeVar("P_co", bound=Callable[..., Any], covariant=True)
 
 
-def ttl_cache_decorator(ttl_seconds: int = 300, maxsize: int = 100):
+class ClearableFunction(Protocol[P_co]):
+    """Protocol for a function with a clear_cache method."""
+
+    def __call__(self, *args: object, **kwargs: object) -> object:
+        """Call the function."""
+        ...
+
+    def clear_cache(self) -> None:
+        """Clear the cache."""
+        ...
+
+
+def ttl_cache_decorator(
+    ttl_seconds: int = 300, maxsize: int = 100,
+) -> Callable[[Callable[..., Any]], ClearableFunction[Callable[..., Any]]]:
     """Decorator that provides a TTL cache for methods.
 
     Args:
@@ -18,11 +33,11 @@ def ttl_cache_decorator(ttl_seconds: int = 300, maxsize: int = 100):
     Returns:
         Decorated function with TTL caching
     """
-    cache = TTLCache(maxsize=maxsize, ttl=ttl_seconds)
+    cache: TTLCache = TTLCache(maxsize=maxsize, ttl=ttl_seconds)
 
-    def decorator(func: Callable[..., R]) -> Callable[..., R]:
+    def decorator(func: Callable[..., Any]) -> ClearableFunction[Callable[..., Any]]:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: object, **kwargs: object) -> object:
             # Create a key based on function name, args, and kwargs
             key_parts = [func.__name__]
             key_parts.extend(str(arg) for arg in args[1:])  # Skip self
@@ -39,10 +54,11 @@ def ttl_cache_decorator(ttl_seconds: int = 300, maxsize: int = 100):
             return result
 
         # Add a method to clear the cache
-        def clear_cache():
+        def clear_cache() -> None:
             cache.clear()
 
-        wrapper.clear_cache = clear_cache
-        return wrapper
+        # Type ignored because we're adding an attribute that's not defined in the function type
+        wrapper.clear_cache = clear_cache  # type: ignore[attr-defined]
+        return cast(ClearableFunction[Callable[..., Any]], wrapper)
 
     return decorator

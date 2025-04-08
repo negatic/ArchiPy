@@ -54,8 +54,23 @@ class MinioPort:
         raise NotImplementedError
 
     @abstractmethod
-    def list_objects(self, bucket_name: str, prefix: str = "", recursive: bool = False) -> list[MinioObjectType]:
-        """List objects in a bucket."""
+    def list_objects(
+        self,
+        bucket_name: str,
+        prefix: str = "",
+        *,  # Force recursive to be keyword-only to avoid boolean flag issues
+        recursive: bool = False,
+    ) -> list[MinioObjectType]:
+        """List objects in a bucket.
+
+        Args:
+            bucket_name: The name of the bucket to list objects from
+            prefix: Optional prefix to filter objects by
+            recursive: Whether to list objects recursively (include sub-directories)
+
+        Returns:
+            A list of MinioObjectType objects
+        """
         raise NotImplementedError
 
     @abstractmethod
