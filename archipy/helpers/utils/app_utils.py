@@ -1,7 +1,11 @@
-import logging
-from http import HTTPStatus
+from __future__ import annotations
 
-from fastapi import FastAPI, Request
+import logging
+from collections.abc import Awaitable, Callable
+from http import HTTPStatus
+from typing import Any, cast
+
+from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
@@ -32,10 +36,12 @@ class FastAPIExceptionHandler:
             JSONResponse: A JSON response containing the exception details.
         """
         BaseUtils.capture_exception(exception)
-        return JSONResponse(status_code=exception.http_status_code, content=exception.to_dict())
+        # Default to internal server error if status code is not set
+        status_code = exception.http_status_code if exception.http_status_code else HTTPStatus.INTERNAL_SERVER_ERROR
+        return JSONResponse(status_code=status_code, content=exception.to_dict())
 
     @staticmethod
-    async def custom_exception_handler(request: Request, exception: BaseError) -> JSONResponse:
+    async def custom_exception_handler(request: Request, exception: BaseError) -> JSONResponse:  # noqa: ARG004
         """Handles custom errors.
 
         Args:
@@ -48,7 +54,7 @@ class FastAPIExceptionHandler:
         return FastAPIExceptionHandler.create_error_response(exception)
 
     @staticmethod
-    async def generic_exception_handler(request: Request, exception: Exception) -> JSONResponse:
+    async def generic_exception_handler(request: Request, exception: Exception) -> JSONResponse:  # noqa: ARG004
         """Handles generic errors.
 
         Args:
@@ -61,7 +67,10 @@ class FastAPIExceptionHandler:
         return FastAPIExceptionHandler.create_error_response(UnknownError())
 
     @staticmethod
-    async def validation_exception_handler(request: Request, exception: ValidationError) -> JSONResponse:
+    async def validation_exception_handler(
+        request: Request,  # noqa: ARG004
+        exception: ValidationError,
+    ) -> JSONResponse:
         """Handles validation errors.
 
         Args:
@@ -71,15 +80,15 @@ class FastAPIExceptionHandler:
         Returns:
             JSONResponse: A JSON response containing the validation error details.
         """
-        errors = []
-        for error in exception.errors():
-            errors.append(
-                {
-                    "field": ".".join(str(x) for x in error["loc"]),
-                    "message": error["msg"],
-                    "value": str(error.get("input", "")),
-                },
-            )
+        # Using list comprehension instead of append for better performance
+        errors: list[dict[str, str]] = [
+            {
+                "field": ".".join(str(x) for x in error["loc"]),
+                "message": error["msg"],
+                "value": str(error.get("input", "")),
+            }
+            for error in exception.errors()
+        ]
 
         return JSONResponse(
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
@@ -123,8 +132,8 @@ class FastAPIUtils:
                 traces_sample_rate=config.SENTRY.TRACES_SAMPLE_RATE,
                 environment=config.ENVIRONMENT,
             )
-        except Exception as e:
-            logging.exception(f"Failed to initialize Sentry: {e}")
+        except Exception:
+            logging.exception("Failed to initialize Sentry")
 
     @staticmethod
     def setup_cors(app: FastAPI, config: BaseConfig) -> None:
@@ -155,13 +164,32 @@ class FastAPIUtils:
             return
 
         try:
-            import elasticapm
-            from elasticapm.contrib.starlette import ElasticAPM
+            from elasticapm.contrib.starlette import ElasticAPM, make_apm_client
 
-            apm_client = elasticapm.get_client()
+            apm_client = make_apm_client(
+                {
+                    "API_REQUEST_SIZE": config.ELASTIC_APM.API_REQUEST_SIZE,
+                    "API_REQUEST_TIME": config.ELASTIC_APM.API_REQUEST_TIME,
+                    "AUTO_LOG_STACKS": config.ELASTIC_APM.AUTO_LOG_STACKS,
+                    "CAPTURE_BODY": config.ELASTIC_APM.CAPTURE_BODY,
+                    "CAPTURE_HEADERS": config.ELASTIC_APM.CAPTURE_HEADERS,
+                    "COLLECT_LOCAL_VARIABLES": config.ELASTIC_APM.COLLECT_LOCAL_VARIABLES,
+                    "ENVIRONMENT": config.ENVIRONMENT,
+                    "LOG_FILE": config.ELASTIC_APM.LOG_FILE,
+                    "LOG_FILE_SIZE": config.ELASTIC_APM.LOG_FILE_SIZE,
+                    "RECORDING": config.ELASTIC_APM.RECORDING,
+                    "SECRET_TOKEN": config.ELASTIC_APM.SECRET_TOKEN,
+                    "SERVER_TIMEOUT": config.ELASTIC_APM.SERVER_TIMEOUT,
+                    "SERVER_URL": config.ELASTIC_APM.SERVER_URL,
+                    "SERVICE_NAME": config.ELASTIC_APM.SERVICE_NAME,
+                    "SERVICE_VERSION": config.ELASTIC_APM.SERVICE_VERSION,
+                    "TRANSACTION_SAMPLE_RATE": config.ELASTIC_APM.TRANSACTION_SAMPLE_RATE,
+                    "API_KEY": config.ELASTIC_APM.API_KEY,
+                },
+            )
             app.add_middleware(ElasticAPM, client=apm_client)
-        except Exception as e:
-            logging.exception(f"Failed to initialize Elastic APM: {e}")
+        except Exception:
+            logging.exception("Failed to initialize Elastic APM")
 
     @staticmethod
     def setup_exception_handlers(app: FastAPI) -> None:
@@ -170,17 +198,38 @@ class FastAPIUtils:
         Args:
             app (FastAPI): The FastAPI application instance.
         """
-        app.add_exception_handler(RequestValidationError, FastAPIExceptionHandler.validation_exception_handler)
-        app.add_exception_handler(ValidationError, FastAPIExceptionHandler.validation_exception_handler)
-        app.add_exception_handler(BaseError, FastAPIExceptionHandler.custom_exception_handler)
-        app.add_exception_handler(Exception, FastAPIExceptionHandler.generic_exception_handler)
+        # While these handlers don't match the exact type signatures expected by FastAPI,
+        # they are compatible in practice as they return JSONResponse objects.
+        # We need to use a more general type cast to bypass the strict type checking.
+        validation_handler = cast(
+            Callable[[Request, Exception], Awaitable[Response]],
+            FastAPIExceptionHandler.validation_exception_handler,
+        )
+        custom_handler = cast(
+            Callable[[Request, Exception], Awaitable[Response]],
+            FastAPIExceptionHandler.custom_exception_handler,
+        )
+        generic_handler = cast(
+            Callable[[Request, Exception], Awaitable[Response]],
+            FastAPIExceptionHandler.generic_exception_handler,
+        )
+
+        app.add_exception_handler(RequestValidationError, validation_handler)
+        app.add_exception_handler(ValidationError, validation_handler)
+        app.add_exception_handler(BaseError, custom_handler)
+        app.add_exception_handler(Exception, generic_handler)
 
 
 class AppUtils:
     """Utility class for creating and configuring FastAPI applications."""
 
     @classmethod
-    def create_fastapi_app(cls, config: BaseConfig | None = None, configure_exception_handlers: bool = True) -> FastAPI:
+    def create_fastapi_app(
+        cls,
+        config: BaseConfig | None = None,
+        *,
+        configure_exception_handlers: bool = True,
+    ) -> FastAPI:
         """Creates and configures a FastAPI application.
 
         Args:
@@ -203,7 +252,7 @@ class AppUtils:
             swagger_ui_parameters=config.FASTAPI.SWAGGER_UI_PARAMS,
             docs_url=config.FASTAPI.DOCS_URL,
             redocs_url=config.FASTAPI.RE_DOCS_URL,
-            responses=common_responses,
+            responses=cast(dict[int | str, Any], common_responses),
         )
 
         FastAPIUtils.setup_sentry(config)
