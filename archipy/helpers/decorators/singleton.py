@@ -3,7 +3,7 @@ from collections.abc import Callable
 from typing import Any
 
 
-def singleton_decorator(thread_safe: bool = True) -> Callable[[type[Any]], Callable[..., Any]]:
+def singleton_decorator(*, thread_safe: bool = True) -> Callable[[type[Any]], Callable[..., Any]]:
     """A decorator to create thread-safe Singleton classes.
 
     This decorator ensures that only one instance of a class is created. It supports an optional

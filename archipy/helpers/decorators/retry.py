@@ -62,18 +62,19 @@ def retry_decorator(
                     result = func(*args, **kwargs)
                     if retries > 0:
                         logging.info("Attempt %d succeeded.", retries + 1)
-                    return result
                 except Exception as e:
                     retries += 1
                     # Check if the exception should be ignored
                     if ignore and isinstance(e, ignore):
-                        raise e
+                        raise
                     # Check if the exception should be retried
                     if retry_on and not isinstance(e, retry_on):
-                        raise e
+                        raise
                     logging.warning("Attempt %d failed: %s", retries, e)
                     if retries < max_retries:
                         time.sleep(delay)
+                    continue
+                return result
             raise ResourceExhaustedError(resource_type=resource_type, lang=lang)
 
         return cast(F, wrapper)
