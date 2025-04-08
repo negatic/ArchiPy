@@ -30,22 +30,34 @@ is_holiday = DatetimeUtils.is_holiday_in_iran(now)
 Generate and verify JWT tokens:
 
 ```python
+import logging
 from archipy.helpers.utils.jwt_utils import JWTUtils
 from uuid import uuid4
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # Generate a user access token
 user_id = uuid4()
 access_token = JWTUtils.create_access_token(user_id)
 
-# Generate a refresh token
-refresh_token = JWTUtils.create_refresh_token(user_id)
+# Generate a refresh token with additional claims
+additional_claims = {"user_role": "admin", "permissions": ["read", "write"]}
+refresh_token = JWTUtils.create_refresh_token(user_id, additional_claims=additional_claims)
 
 # Verify a token
 try:
     payload = JWTUtils.verify_access_token(access_token)
-    print(f"Token valid for user: {payload['sub']}")
-except Exception as e:
-    print(f"Invalid token: {e}")
+    logger.info(f"Token valid for user: {payload['sub']}")
+except (InvalidTokenError, TokenExpiredError) as e:
+    logger.error(f"Invalid token: {e}")
+
+# Get token expiration time
+expiry = JWTUtils.get_token_expiry(access_token)
+logger.debug(f"Token expires at: {expiry}")
+
+# Extract user UUID from token payload
+user_uuid = JWTUtils.extract_user_uuid(payload)
 ```
 
 ## password_utils
@@ -53,7 +65,13 @@ except Exception as e:
 Secure password handling:
 
 ```python
+import logging
 from archipy.helpers.utils.password_utils import PasswordUtils
+from archipy.models.types.language_type import LanguageType
+from archipy.models.errors.custom_errors import InvalidPasswordError
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # Hash a password
 password = "SecureP@ssword123"
@@ -61,11 +79,26 @@ hashed = PasswordUtils.hash_password(password)
 
 # Verify password
 is_valid = PasswordUtils.verify_password(password, hashed)
-print(f"Password valid: {is_valid}")
+logger.info(f"Password valid: {is_valid}")
 
-# Generate a secure password
-secure_password = PasswordUtils.generate_password(length=12)
-print(f"Generated password: {secure_password}")
+# Generate a secure password that meets policy requirements
+secure_password = PasswordUtils.generate_password()
+logger.info(f"Generated password: {secure_password}")
+
+# Validate a password against policy
+try:
+    PasswordUtils.validate_password(password, lang=LanguageType.EN)
+    logger.info("Password meets policy requirements")
+except InvalidPasswordError as e:
+    logger.warning(f"Invalid password: {e.requirements}")
+
+# Check password against history
+password_history = [hashed]  # Previous password hashes
+try:
+    PasswordUtils.validate_password_history("NewSecureP@ssword123", password_history)
+    logger.info("Password not previously used")
+except InvalidPasswordError as e:
+    logger.warning("Password has been used recently")
 ```
 
 ## file_utils
@@ -73,14 +106,26 @@ print(f"Generated password: {secure_password}")
 Handle files securely:
 
 ```python
+import logging
 from archipy.helpers.utils.file_utils import FileUtils
+from archipy.models.errors.custom_errors import InvalidArgumentError, OutOfRangeError
 
-# Generate secure link to file
-link = FileUtils.generate_secure_file_link("/path/to/document.pdf", expires_in=3600)
+# Configure logging
+logger = logging.getLogger(__name__)
 
-# Validate file extension
-is_valid = FileUtils.validate_file_extension("document.pdf", ["pdf", "docx", "txt"])
-print(f"File is valid: {is_valid}")
+# Create a secure link to a file with expiration
+try:
+    link = FileUtils.create_secure_link("/path/to/document.pdf", minutes=60)
+    logger.info(f"Secure link: {link}")
+except (InvalidArgumentError, OutOfRangeError) as e:
+    logger.error(f"Error creating link: {e}")
+
+# Validate file name against allowed extensions
+try:
+    is_valid = FileUtils.validate_file_name("document.pdf")
+    logger.info(f"File is valid: {is_valid}")
+except InvalidArgumentError as e:
+    logger.error(f"Error validating file: {e}")
 ```
 
 ## base_utils
@@ -88,42 +133,28 @@ print(f"File is valid: {is_valid}")
 Validate and sanitize data:
 
 ```python
+import logging
 from archipy.helpers.utils.base_utils import BaseUtils
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
 # Sanitize phone number
-phone = BaseUtils.sanitize_phone_number("+989123456789")
-print(phone)  # 09123456789
+phone = BaseUtils.sanitize_iranian_landline_or_phone_number("+989123456789")
+logger.info(f"Sanitized phone: {phone}")  # 09123456789
 
 # Validate Iranian national code
 try:
     BaseUtils.validate_iranian_national_code_pattern("1234567891")
-    print("National code is valid")
+    logger.info("National code is valid")
 except Exception as e:
-    print(f"Invalid national code: {e}")
+    logger.error(f"Invalid national code: {e}")
 ```
 
 ## error_utils
 
 Standardized exception handling:
 
-```python
-from archipy.helpers.utils.error_utils import ErrorUtils
-from archipy.models.errors import BaseError
-from archipy.models.types.error_message_types import ErrorMessageType
-
-# Create exception detail
-detail = ErrorUtils.create_exception_detail(
-    ErrorMessageType.INVALID_PHONE,
-    lang="en"
-)
-
-# Handle exceptions
-try:
-    # Some code that might fail
-    raise ValueError("Something went wrong")
-except Exception as e:
-    ErrorUtils.capture_exception(e)
-```
 
 ## app_utils
 
@@ -137,10 +168,8 @@ from archipy.configs.base_config import BaseConfig
 app = AppUtils.create_fastapi_app(BaseConfig.global_config())
 
 # Add custom exception handlers
-FastAPIUtils.add_exception_handlers(app)
+FastAPIUtils.setup_exception_handlers(app)
 
-# Generate unique route IDs
-route_id = FastAPIUtils.generate_unique_route_id("users", "get_user")
 
 # Set up CORS
 FastAPIUtils.setup_cors(
@@ -149,71 +178,10 @@ FastAPIUtils.setup_cors(
 )
 ```
 
-## transaction_utils
-
-Database transaction management:
-
-```python
-from archipy.helpers.utils.transaction_utils import TransactionUtils
-from archipy.adapters.orm.sqlalchemy.session_manager_adapters import SessionManagerAdapter
-
-# Synchronous transaction
-session_manager = SessionManagerAdapter()
-
-with TransactionUtils.atomic_transaction(session_manager):
-    # Database operations here
-    # Will be committed if successful, rolled back if exception occurs
-    pass
-
-# Asynchronous transaction
-async with TransactionUtils.async_atomic_transaction(async_session_manager):
-    # Async database operations here
-    pass
-```
-
 ## string_utils
 
 String manipulation utilities:
 
-```python
-from archipy.helpers.utils.string_utils import StringUtils
-
-# Convert camel case to snake case
-snake = StringUtils.camel_to_snake("thisIsACamelCaseString")
-print(snake)  # this_is_a_camel_case_string
-
-# Convert snake case to camel case
-camel = StringUtils.snake_to_camel("this_is_a_snake_case_string")
-print(camel)  # thisIsASnakeCaseString
-
-# Generate a random string
-random_str = StringUtils.generate_random_string(length=10)
-print(random_str)
-
-# Mask sensitive data
-masked = StringUtils.mask_sensitive_data("1234567890123456", show_last=4)
-print(masked)  # ************3456
-```
-
-## validator_utils
-
-Validate input data:
-
-```python
-from archipy.helpers.utils.validator_utils import ValidatorUtils
-
-# Validate email
-is_valid_email = ValidatorUtils.is_valid_email("user@example.com")
-print(f"Valid email: {is_valid_email}")
-
-# Validate phone number
-is_valid_phone = ValidatorUtils.is_valid_phone_number("+15551234567")
-print(f"Valid phone: {is_valid_phone}")
-
-# Validate URL
-is_valid_url = ValidatorUtils.is_valid_url("https://example.com")
-print(f"Valid URL: {is_valid_url}")
-```
 
 ## keycloak_utils
 

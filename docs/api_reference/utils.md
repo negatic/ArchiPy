@@ -38,6 +38,14 @@ Documentation for `archipy.helpers.utils.string_utils`.
 Documentation for `archipy.helpers.utils.totp_utils`.
 *Includes all members, undocumented members, and shows inheritance.*
 
+The TOTP utilities provide enhanced security features:
+
+- HMAC-based implementation for time-based one-time passwords
+- Configurable hash algorithms (SHA1, SHA256, SHA512)
+- Secure key generation with master key protection
+- Configurable verification window for time skew tolerance
+- Comprehensive error handling with specific exception types
+
 ### keycloak_utils
 
 Documentation for `archipy.helpers.utils.keycloak_utils`.

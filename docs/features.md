@@ -21,9 +21,11 @@ ArchiPy provides a robust framework for structured Python development, focusing 
 
 ## Helper Utilities
 
-- **Utilities**: Tools like `datetime_utils`, `jwt_utils`, `password_utils`.
+- **Utilities**: Tools like `datetime_utils`, `jwt_utils`, `password_utils`, and `totp_utils`.
 - **Decorators**: `retry`, `singleton`, `sqlalchemy_atomic`, etc.
 - **Interceptors**: Rate limiting (FastAPI), tracing (gRPC).
+- **Enhanced Security**: Cryptographically secure implementations with `secrets` module.
+- **Type Safety**: Consistent type checking and casting for robust interfaces.
 
 ## BDD Testing
 

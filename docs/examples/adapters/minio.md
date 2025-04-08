@@ -55,16 +55,21 @@ minio = MinioAdapter(custom_config)
 ### Bucket Operations
 
 ```python
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
 # Check if bucket exists
 if not minio.bucket_exists("my-bucket"):
     # Create bucket
     minio.make_bucket("my-bucket")
-    print("Bucket created successfully")
+    logger.info("Bucket created successfully")
 
 # List all buckets
 buckets = minio.list_buckets()
 for bucket in buckets:
-    print(f"Bucket: {bucket['name']}, Created: {bucket['creation_date']}")
+    logger.info(f"Bucket: {bucket['name']}, Created: {bucket['creation_date']}")
 
 # Remove bucket
 minio.remove_bucket("my-bucket")
@@ -73,6 +78,11 @@ minio.remove_bucket("my-bucket")
 ### Working with Objects
 
 ```python
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
 # Upload a file
 minio.put_object("my-bucket", "document.pdf", "/path/to/local/document.pdf")
 
@@ -82,12 +92,12 @@ minio.get_object("my-bucket", "document.pdf", "/path/to/download/document.pdf")
 # List objects in a bucket
 objects = minio.list_objects("my-bucket", prefix="documents/", recursive=True)
 for obj in objects:
-    print(f"Object: {obj['object_name']}, Size: {obj['size']} bytes")
+    logger.info(f"Object: {obj['object_name']}, Size: {obj['size']} bytes")
 
 # Get object metadata
 metadata = minio.stat_object("my-bucket", "document.pdf")
-print(f"Content type: {metadata['content_type']}")
-print(f"Last modified: {metadata['last_modified']}")
+logger.info(f"Content type: {metadata['content_type']}")
+logger.info(f"Last modified: {metadata['last_modified']}")
 
 # Remove an object
 minio.remove_object("my-bucket", "document.pdf")
@@ -96,18 +106,29 @@ minio.remove_object("my-bucket", "document.pdf")
 ### Generating Presigned URLs
 
 ```python
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
 # Generate a presigned URL for downloading (valid for 1 hour by default)
 download_url = minio.presigned_get_object("my-bucket", "document.pdf")
-print(f"Download URL: {download_url}")
+logger.info(f"Download URL: {download_url}")
 
 # Generate a presigned URL for uploading (with custom expiry time in seconds)
 upload_url = minio.presigned_put_object("my-bucket", "new-document.pdf", expires=7200)  # 2 hours
-print(f"Upload URL: {upload_url}")
+logger.info(f"Upload URL: {upload_url}")
 ```
 
 ### Managing Bucket Policies
 
 ```python
+import logging
+import json
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
 # Set a read-only policy for a bucket
 policy = {
     "Version": "2012-10-17",
@@ -124,7 +145,7 @@ minio.set_bucket_policy("my-bucket", json.dumps(policy))
 
 # Get bucket policy
 policy_info = minio.get_bucket_policy("my-bucket")
-print(policy_info["policy"])
+logger.info(f"Bucket policy: {policy_info['policy']}")
 ```
 
 ## Error Handling
@@ -132,6 +153,7 @@ print(policy_info["policy"])
 The MinioAdapter uses ArchiPy's domain-specific exceptions for consistent error handling:
 
 ```python
+import logging
 from archipy.models.errors import (
     AlreadyExistsError,
     InternalError,
@@ -140,16 +162,19 @@ from archipy.models.errors import (
     PermissionDeniedError,
 )
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
 try:
     minio.make_bucket("existing-bucket")
 except AlreadyExistsError:
-    print("Bucket already exists")
+    logger.warning("Bucket already exists")
 except PermissionDeniedError:
-    print("Permission denied to create bucket")
+    logger.error("Permission denied to create bucket")
 except InvalidArgumentError as e:
-    print(f"Invalid argument: {e}")
+    logger.error(f"Invalid argument: {e}")
 except InternalError as e:
-    print(f"Internal error: {e}")
+    logger.error(f"Internal error: {e}")
 ```
 
 ## Performance Optimization
