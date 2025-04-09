@@ -159,11 +159,11 @@ class BaseConfig(BaseSettings, Generic[R]):
         """
 
     @classmethod
-    def global_config(cls) -> R:
+    def global_config(cls) -> Self:
         """Retrieves the global configuration instance.
 
         Returns:
-            R: The global configuration instance.
+            Self: The global configuration instance.
 
         Raises:
             AssertionError: If the global config hasn't been set with

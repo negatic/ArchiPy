@@ -1,3 +1,9 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from archipy.adapters.orm.sqlalchemy.session_manager_ports import AsyncSessionManagerPort, SessionManagerPort
+
+
 class SessionManagerRegistry:
     """Registry for SQLAlchemy session managers.
 
@@ -33,7 +39,7 @@ class SessionManagerRegistry:
     _async_instance = None
 
     @classmethod
-    def get_sync_manager(cls):
+    def get_sync_manager(cls) -> "SessionManagerPort":
         """Get the synchronous session manager instance.
 
         Lazily initializes a default SessionManagerAdapter if none has been set.
@@ -52,7 +58,7 @@ class SessionManagerRegistry:
         return cls._sync_instance
 
     @classmethod
-    def set_sync_manager(cls, manager):
+    def set_sync_manager(cls, manager: "SessionManagerPort") -> None:
         """Set a custom synchronous session manager.
 
         Use this method to override the default manager, particularly useful
@@ -68,7 +74,7 @@ class SessionManagerRegistry:
         cls._sync_instance = manager
 
     @classmethod
-    def get_async_manager(cls):
+    def get_async_manager(cls) -> "AsyncSessionManagerPort":
         """Get the asynchronous session manager instance.
 
         Lazily initializes a default AsyncSessionManagerAdapter if none has been set.
@@ -87,7 +93,7 @@ class SessionManagerRegistry:
         return cls._async_instance
 
     @classmethod
-    def set_async_manager(cls, manager):
+    def set_async_manager(cls, manager: "AsyncSessionManagerPort") -> None:
         """Set a custom asynchronous session manager.
 
         Use this method to override the default manager, particularly useful
@@ -103,7 +109,7 @@ class SessionManagerRegistry:
         cls._async_instance = manager
 
     @classmethod
-    def reset(cls):
+    def reset(cls) -> None:
         """Reset the registry to its initial state.
 
         This method clears both registered managers, which is particularly

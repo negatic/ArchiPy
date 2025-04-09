@@ -14,7 +14,7 @@ from archipy.configs.config_template import SqlAlchemyConfig
 from archipy.models.dtos.pagination_dto import PaginationDTO
 from archipy.models.dtos.sort_dto import SortDTO
 from archipy.models.entities import BaseEntity
-from archipy.models.errors import InvalidEntityTypeError
+from archipy.models.errors.custom_errors import InternalError, InvalidEntityTypeError
 from archipy.models.types.base_types import FilterOperationType
 from archipy.models.types.sort_order_type import SortOrderType
 
@@ -31,28 +31,6 @@ class SqlAlchemyFilterMixin:
     - String operations (LIKE, ILIKE, startswith, endswith)
     - List operations (IN, NOT IN)
     - NULL checks
-
-    Examples:
-        >>> from sqlalchemy import select
-        >>> from archipy.adapters.orm.sqlalchemy.adapters import SqlAlchemyFilterMixin
-        >>> from archipy.models.types.base_types import FilterOperationType
-        >>>
-        >>> class UserRepository(SqlAlchemyFilterMixin):
-        ...     def find_active_users_by_name(self, name_fragment):
-        ...         query = select(User)
-        ...         query = self._apply_filter(
-        ...             query,
-        ...             User.name,
-        ...             name_fragment,
-        ...             FilterOperationType.ILIKE
-        ...         )
-        ...         query = self._apply_filter(
-        ...             query,
-        ...             User.is_active,
-        ...             True,
-        ...             FilterOperationType.EQUAL
-        ...         )
-        ...         return query
     """
 
     @staticmethod
@@ -75,34 +53,6 @@ class SqlAlchemyFilterMixin:
 
         Returns:
             The updated query with the filter applied
-
-        Examples:
-            >>> # Filter users with specific email domain
-            >>> query = select(User)
-            >>> query = SqlAlchemyFilterMixin._apply_filter(
-            ...     query,
-            ...     User.email,
-            ...     "%@example.com",
-            ...     FilterOperationType.LIKE
-            ... )
-            >>>
-            >>> # Filter active users
-            >>> query = SqlAlchemyFilterMixin._apply_filter(
-            ...     query,
-            ...     User.is_active,
-            ...     True,
-            ...     FilterOperationType.EQUAL
-            ... )
-            >>>
-            >>> # Filter users created after a certain date
-            >>> from datetime import datetime
-            >>> cutoff_date = datetime(2023, 1, 1)
-            >>> query = SqlAlchemyFilterMixin._apply_filter(
-            ...     query,
-            ...     User.created_at,
-            ...     cutoff_date,
-            ...     FilterOperationType.GREATER_THAN
-            ... )
         """
         if value is not None or operation in [FilterOperationType.IS_NULL, FilterOperationType.IS_NOT_NULL]:
             if operation == FilterOperationType.EQUAL:
@@ -139,6 +89,12 @@ class SqlAlchemyFilterMixin:
 
 
 class SqlAlchemyPaginationMixin:
+    """Mixin providing pagination capabilities for SQLAlchemy queries.
+
+    This mixin defines methods for applying pagination to SQLAlchemy queries,
+    supporting common pagination operations like limiting results and applying offsets.
+    """
+
     @staticmethod
     def _apply_pagination(query: Select, pagination: PaginationDTO | None) -> Select:
         if pagination is None:
@@ -147,6 +103,12 @@ class SqlAlchemyPaginationMixin:
 
 
 class SqlAlchemySortMixin:
+    """Mixin providing sorting capabilities for SQLAlchemy queries.
+
+    This mixin defines methods for applying various sorting operations to SQLAlchemy queries,
+    supporting dynamic column selection and ordering direction.
+    """
+
     @staticmethod
     def _apply_sorting(entity: type[BaseEntity], query: Select, sort_info: SortDTO | None) -> Select:
         if sort_info is None:
@@ -173,31 +135,16 @@ class SqlAlchemyAdapter(SqlAlchemyPort, SqlAlchemyPaginationMixin, SqlAlchemySor
     Args:
         orm_config (SqlAlchemyConfig, optional): Configuration for SQLAlchemy.
             If None, retrieves from global config. Defaults to None.
-
-    Examples:
-        >>> from archipy.adapters.orm.sqlalchemy.adapters import SqlAlchemyAdapter
-        >>> from archipy.models.entities import BaseEntity
-        >>>
-        >>> # Create adapter with default configuration
-        >>> db = SqlAlchemyAdapter()
-        >>>
-        >>> # Create a new entity
-        >>> user = User(name="John Doe", email="john@example.com")
-        >>> db.create(user)
-        >>>
-        >>> # Query with sorting and pagination
-        >>> from sqlalchemy import select
-        >>> from archipy.models.dtos.pagination_dto import PaginationDTO
-        >>> from archipy.models.dtos.sort_dto import SortDTO
-        >>>
-        >>> query = select(User)
-        >>> pagination = PaginationDTO(page=1, page_size=10)
-        >>> sort_info = SortDTO(column="created_at", order="DESC")
-        >>> results, total = db.execute_search_query(User, query, pagination, sort_info)
     """
 
     def __init__(self, orm_config: SqlAlchemyConfig | None = None) -> None:
-        configs: SqlAlchemyConfig = BaseConfig.global_config().SQLALCHEMY if orm_config is None else orm_config
+        """Initializes the SQLAlchemy adapter.
+
+        Args:
+            orm_config: Configuration for SQLAlchemy. If None, retrieves from global config.
+        """
+        # Get configurations from global config if not provided
+        configs = BaseConfig.global_config().SQLALCHEMY if orm_config is None else orm_config
         self.session_manager = SessionManagerAdapter(configs)
 
     @override
@@ -206,21 +153,28 @@ class SqlAlchemyAdapter(SqlAlchemyPort, SqlAlchemyPaginationMixin, SqlAlchemySor
         entity: type[BaseEntity],
         query: Select,
         pagination: PaginationDTO | None = None,
-        sort_info: SortDTO | None = SortDTO.default(),
+        sort_info: SortDTO | None = None,
     ) -> tuple[list[BaseEntity], int]:
         try:
+            if sort_info is None:
+                sort_info = SortDTO.default()
             session = self.get_session()
             sorted_query = self._apply_sorting(entity, query, sort_info)
             paginated_query = self._apply_pagination(sorted_query, pagination)
 
-            results = session.execute(paginated_query)
-            results = results.scalars().all()
+            result_set = session.execute(paginated_query)
+            results = list(result_set.scalars().all())
 
             count_query = select(func.count()).select_from(query.subquery())
-            total_count = session.execute(count_query).scalar_one()
-            return results, total_count
+            count_result = session.execute(count_query)
+            total_count = count_result.scalar_one()
         except Exception as e:
-            raise RuntimeError(f"Database query failed: {e!s}") from e
+            # Convert generic exceptions to InternalError
+            raise InternalError(
+                details=f"Database query failed: {e!s}",
+            ) from e
+        else:
+            return results, total_count
 
     @override
     def get_session(self) -> Session:
@@ -239,28 +193,55 @@ class SqlAlchemyAdapter(SqlAlchemyPort, SqlAlchemyPaginationMixin, SqlAlchemySor
 
         Raises:
             InvalidEntityTypeError: If the provided entity is not a BaseEntity.
-
-        Examples:
-            >>> user = User(name="John Doe", email="john@example.com")
-            >>> created_user = db.create(user)
-            >>> print(created_user.id)  # UUID is now populated
         """
         if not isinstance(entity, BaseEntity):
             raise InvalidEntityTypeError(entity, BaseEntity)
-        session = self.get_session()
-        session.add(entity)
-        session.flush()
-        return entity
+        try:
+            session = self.get_session()
+            session.add(entity)
+            session.flush()
+        except Exception as e:
+            # Convert generic exceptions to InternalError
+            raise InternalError(
+                details=f"Entity creation failed: {e!s}",
+            ) from e
+        else:
+            return entity
 
     @override
     def bulk_create(self, entities: list[BaseEntity]) -> list[BaseEntity] | None:
-        session = self.get_session()
-        session.add_all(entities)
-        session.flush()
-        return entities
+        """Creates multiple entities in a single database operation.
+
+        Args:
+            entities: List of entity objects to create.
+
+        Returns:
+            The list of created entities with updated attributes (e.g., generated IDs),
+            or None if creation failed.
+
+        Raises:
+            InvalidEntityTypeError: If any of the provided entities is not a BaseEntity.
+            InternalError: If the database operation fails.
+        """
+        # Check that all entities are valid
+        for entity in entities:
+            if not isinstance(entity, BaseEntity):
+                raise InvalidEntityTypeError(entity, BaseEntity)
+
+        try:
+            session = self.get_session()
+            session.add_all(entities)
+            session.flush()
+        except Exception as e:
+            # Convert generic exceptions to InternalError
+            raise InternalError(
+                details=f"Bulk create operation failed: {e!s}",
+            ) from e
+        else:
+            return entities
 
     @override
-    def get_by_uuid(self, entity_type: type, entity_uuid: UUID):
+    def get_by_uuid(self, entity_type: type, entity_uuid: UUID) -> BaseEntity | None:
         """Retrieves an entity by its UUID.
 
         Args:
@@ -273,42 +254,101 @@ class SqlAlchemyAdapter(SqlAlchemyPort, SqlAlchemyPaginationMixin, SqlAlchemySor
         Raises:
             InvalidEntityTypeError: If entity_type is not a subclass of BaseEntity
                 or if entity_uuid is not a UUID.
-
-        Examples:
-            >>> from uuid import UUID
-            >>> user_id = UUID("550e8400-e29b-41d4-a716-446655440000")
-            >>> user = db.get_by_uuid(User, user_id)
-            >>> if user:
-            ...     print(user.name)
         """
         if not issubclass(entity_type, BaseEntity):
             raise InvalidEntityTypeError(entity_type, BaseEntity)
         if not isinstance(entity_uuid, UUID):
             raise InvalidEntityTypeError(entity_uuid, UUID)
-        session = self.get_session()
-        return session.get(entity_type, entity_uuid)
+        try:
+            session = self.get_session()
+            return session.get(entity_type, entity_uuid)
+        except Exception as e:
+            # Convert generic exceptions to InternalError
+            raise InternalError(
+                details=f"Entity retrieval by UUID failed: {e!s}",
+            ) from e
 
     @override
     def delete(self, entity: BaseEntity) -> None:
         if not isinstance(entity, BaseEntity):
             raise InvalidEntityTypeError(entity, BaseEntity)
-        session = self.get_session()
-        session.delete(entity)
+        try:
+            session = self.get_session()
+            session.delete(entity)
+        except Exception as e:
+            # Convert generic exceptions to InternalError
+            raise InternalError(
+                details=f"Entity deletion failed: {e!s}",
+            ) from e
 
     @override
     def bulk_delete(self, entities: list[BaseEntity]) -> None:
-        for entity in entities:
-            self.delete(entity)
+        """Deletes multiple entities in a sequence of operations.
+
+        Args:
+            entities: List of entity objects to delete.
+
+        Raises:
+            InvalidEntityTypeError: If any of the provided entities is not a BaseEntity.
+            InternalError: If the database operation fails.
+        """
+        try:
+            for entity in entities:
+                self.delete(entity)
+        except Exception as e:
+            # Convert generic exceptions to InternalError
+            raise InternalError(
+                details=f"Bulk delete operation failed: {e!s}",
+            ) from e
 
     @override
-    def execute(self, statement: Executable, params: AnyExecuteParams | None = None):
-        session = self.get_session()
-        return session.execute(statement, params)
+    def execute(self, statement: Executable, params: AnyExecuteParams | None = None) -> Result[Any]:
+        """Executes a raw SQL statement.
+
+        Args:
+            statement: The SQLAlchemy statement to execute.
+            params: Optional parameters for the statement.
+
+        Returns:
+            The execution result.
+
+        Raises:
+            InternalError: If the statement execution fails.
+        """
+        try:
+            session = self.get_session()
+            return session.execute(statement, params)
+        except Exception as e:
+            # Convert generic exceptions to InternalError
+            raise InternalError(
+                details=f"Statement execution failed: {e!s}",
+            ) from e
 
     @override
-    def scalars(self, statement: Executable, params: AnyExecuteParams | None = None):
-        session = self.get_session()
-        return session.scalars(statement, params)
+    def scalars(self, statement: Executable, params: AnyExecuteParams | None = None) -> ScalarResult[Any]:
+        """Executes a statement and returns the scalar result.
+
+        This is a convenience method that executes a statement and
+        returns the scalar result directly.
+
+        Args:
+            statement: The SQLAlchemy statement to execute.
+            params: Optional parameters for the statement.
+
+        Returns:
+            The scalar result of executing the statement.
+
+        Raises:
+            InternalError: If the statement execution fails.
+        """
+        try:
+            session = self.get_session()
+            return session.scalars(statement, params)
+        except Exception as e:
+            # Convert generic exceptions to InternalError
+            raise InternalError(
+                details=f"Scalar query failed: {e!s}",
+            ) from e
 
 
 class AsyncSqlAlchemyAdapter(AsyncSqlAlchemyPort, SqlAlchemyPaginationMixin, SqlAlchemySortMixin):
@@ -322,25 +362,16 @@ class AsyncSqlAlchemyAdapter(AsyncSqlAlchemyPort, SqlAlchemyPaginationMixin, Sql
     Args:
         orm_config (SqlAlchemyConfig, optional): Configuration for SQLAlchemy.
             If None, retrieves from global config. Defaults to None.
-
-    Examples:
-        >>> from archipy.adapters.orm.sqlalchemy.adapters import AsyncSqlAlchemyAdapter
-        >>> from sqlalchemy import select
-        >>> from archipy.models.dtos.pagination_dto import PaginationDTO
-        >>>
-        >>> # Create adapter with default configuration
-        >>> db = AsyncSqlAlchemyAdapter()
-        >>>
-        >>> # Example async function using the adapter
-        >>> async def get_users():
-        ...     query = select(User)
-        ...     pagination = PaginationDTO(page=1, page_size=10)
-        ...     results, total = await db.execute_search_query(User, query, pagination)
-        ...     return results
     """
 
     def __init__(self, orm_config: SqlAlchemyConfig | None = None) -> None:
-        configs: SqlAlchemyConfig = BaseConfig.global_config().SQLALCHEMY if orm_config is None else orm_config
+        """Initializes the async SQLAlchemy adapter.
+
+        Args:
+            orm_config: Configuration for SQLAlchemy. If None, retrieves from global config.
+        """
+        # Get configurations from global config if not provided
+        configs = BaseConfig.global_config().SQLALCHEMY if orm_config is None else orm_config
         self.session_manager = AsyncSessionManagerAdapter(configs)
 
     @override
@@ -349,7 +380,7 @@ class AsyncSqlAlchemyAdapter(AsyncSqlAlchemyPort, SqlAlchemyPaginationMixin, Sql
         entity: type[BaseEntity],
         query: Select,
         pagination: PaginationDTO | None,
-        sort_info: SortDTO | None = SortDTO.default(),
+        sort_info: SortDTO | None = None,
     ) -> tuple[list[BaseEntity], int]:
         """Execute a search query with pagination and sorting.
 
@@ -368,32 +399,28 @@ class AsyncSqlAlchemyAdapter(AsyncSqlAlchemyPort, SqlAlchemyPaginationMixin, Sql
                 - Total count of matching records (ignoring pagination)
 
         Raises:
-            RuntimeError: If the database query fails
-
-        Examples:
-            >>> async def get_active_users(page: int = 1):
-            ...     query = select(User).where(User.is_active == True)
-            ...     pagination = PaginationDTO(page=page, page_size=20)
-            ...     sort_info = SortDTO(column="created_at", order="DESC")
-            ...     users, total = await db.execute_search_query(
-            ...         User, query, pagination, sort_info
-            ...     )
-            ...     return users, total
+            InvalidEntityTypeError: If the entity type is invalid
+            InternalError: If the database query fails for any other reason
         """
         try:
+            if sort_info is None:
+                sort_info = SortDTO.default()
+
             session = self.get_session()
             sorted_query = self._apply_sorting(entity, query, sort_info)
             paginated_query = self._apply_pagination(sorted_query, pagination)
 
-            results = await session.execute(paginated_query)
-            results = results.scalars().all()
+            result_set = await session.execute(paginated_query)
+            results = list(result_set.scalars().all())
 
             count_query = select(func.count()).select_from(query.subquery())
-            total_count = await session.execute(count_query)
-            total_count = total_count.scalar_one()
-            return results, total_count
+            count_result = await session.execute(count_query)
+            total_count = count_result.scalar_one()
         except Exception as e:
-            raise RuntimeError(f"Database query failed: {e!s}") from e
+            # Convert generic exceptions to InternalError
+            raise InternalError(details=f"Database query failed: {e!s}") from e
+        else:
+            return results, total_count
 
     @override
     def get_session(self) -> AsyncSession:
@@ -403,17 +430,49 @@ class AsyncSqlAlchemyAdapter(AsyncSqlAlchemyPort, SqlAlchemyPaginationMixin, Sql
     async def create(self, entity: BaseEntity) -> BaseEntity | None:
         if not isinstance(entity, BaseEntity):
             raise InvalidEntityTypeError(entity, BaseEntity)
-        session: AsyncSession = self.get_session()
-        session.add(entity)
-        await session.flush()
-        return entity
+        try:
+            session: AsyncSession = self.get_session()
+            session.add(entity)
+            await session.flush()
+        except Exception as e:
+            # Convert generic exceptions to InternalError
+            raise InternalError(
+                details=f"Async entity creation failed: {e!s}",
+            ) from e
+        else:
+            return entity
 
     @override
     async def bulk_create(self, entities: list[BaseEntity]) -> list[BaseEntity] | None:
-        session = self.get_session()
-        session.add_all(entities)
-        await session.flush()
-        return entities
+        """Creates multiple entities in a single asynchronous database operation.
+
+        Args:
+            entities: List of entity objects to create.
+
+        Returns:
+            The list of created entities with updated attributes (e.g., generated IDs),
+            or None if creation failed.
+
+        Raises:
+            InvalidEntityTypeError: If any of the provided entities is not a BaseEntity.
+            InternalError: If the database operation fails.
+        """
+        # Check that all entities are valid
+        for entity in entities:
+            if not isinstance(entity, BaseEntity):
+                raise InvalidEntityTypeError(entity, BaseEntity)
+
+        try:
+            session = self.get_session()
+            session.add_all(entities)
+            await session.flush()
+        except Exception as e:
+            # Convert generic exceptions to InternalError
+            raise InternalError(
+                details=f"Async bulk create operation failed: {e!s}",
+            ) from e
+        else:
+            return entities
 
     @override
     async def get_by_uuid(self, entity_type: type, entity_uuid: UUID) -> Any | None:
@@ -421,27 +480,93 @@ class AsyncSqlAlchemyAdapter(AsyncSqlAlchemyPort, SqlAlchemyPaginationMixin, Sql
             raise InvalidEntityTypeError(entity_type, BaseEntity)
         if not isinstance(entity_uuid, UUID):
             raise InvalidEntityTypeError(entity_uuid, UUID)
-        session = self.get_session()
-        return await session.get(entity_type, entity_uuid)
+        try:
+            session = self.get_session()
+            return await session.get(entity_type, entity_uuid)
+        except Exception as e:
+            # Convert generic exceptions to InternalError
+            raise InternalError(
+                details=f"Async entity retrieval by UUID failed: {e!s}",
+            ) from e
 
     @override
     async def delete(self, entity: BaseEntity) -> None:
         if not isinstance(entity, BaseEntity):
             raise InvalidEntityTypeError(entity, BaseEntity)
-        session = self.get_session()
-        await session.delete(entity)
+        try:
+            session = self.get_session()
+            await session.delete(entity)
+        except Exception as e:
+            # Convert generic exceptions to InternalError
+            raise InternalError(
+                details=f"Async entity deletion failed: {e!s}",
+            ) from e
 
     @override
     async def bulk_delete(self, entities: list[BaseEntity]) -> None:
-        for entity in entities:
-            await self.delete(entity)
+        """Deletes multiple entities in a sequence of asynchronous operations.
+
+        Args:
+            entities: List of entity objects to delete.
+
+        Raises:
+            InvalidEntityTypeError: If any of the provided entities is not a BaseEntity.
+            InternalError: If the database operation fails.
+        """
+        try:
+            for entity in entities:
+                await self.delete(entity)
+        except Exception as e:
+            # Convert generic exceptions to InternalError
+            raise InternalError(
+                details=f"Async bulk delete operation failed: {e!s}",
+            ) from e
 
     @override
     async def execute(self, statement: Executable, params: AnyExecuteParams | None = None) -> Result[Any]:
-        session = self.get_session()
-        return await session.execute(statement, params)
+        """Executes a raw SQL statement asynchronously.
+
+        Args:
+            statement: The SQLAlchemy statement to execute.
+            params: Optional parameters for the statement.
+
+        Returns:
+            The asynchronous execution result.
+
+        Raises:
+            InternalError: If the statement execution fails.
+        """
+        try:
+            session = self.get_session()
+            return await session.execute(statement, params)
+        except Exception as e:
+            # Convert generic exceptions to InternalError
+            raise InternalError(
+                details=f"Async statement execution failed: {e!s}",
+            ) from e
 
     @override
     async def scalars(self, statement: Executable, params: AnyExecuteParams | None = None) -> ScalarResult[Any]:
-        session = self.get_session()
-        return await session.scalars(statement, params)
+        """Executes a statement and returns the scalar result asynchronously.
+
+        This is a convenience method that executes a statement and
+        returns the scalar result directly using async operations.
+
+        Args:
+            statement: The SQLAlchemy statement to execute.
+            params: Optional parameters for the statement.
+
+        Returns:
+            The scalar result of executing the statement asynchronously.
+
+        Raises:
+            InternalError: If the statement execution fails.
+        """
+        try:
+            session = self.get_session()
+            return await session.scalars(statement, params)
+        except Exception as e:
+            # Convert generic exceptions to InternalError
+            raise InternalError(
+                details=f"Async scalar query failed: {e!s}",
+            ) from e
