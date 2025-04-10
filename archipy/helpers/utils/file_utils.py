@@ -1,7 +1,6 @@
 import base64
 import hashlib
 from pathlib import Path
-from typing import cast
 
 from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import FileConfig
@@ -27,7 +26,7 @@ class FileUtils:
         Raises:
             InvalidArgumentError: If the `SECRET_KEY` in the configuration is `None`.
         """
-        configs: FileConfig = file_config or cast(BaseConfig, BaseConfig.global_config()).FILE
+        configs: FileConfig = file_config or BaseConfig.global_config().FILE
         secret: str | None = configs.SECRET_KEY
         if secret is None:
             raise InvalidArgumentError(argument_name="SECRET_KEY")
@@ -59,7 +58,7 @@ class FileUtils:
         if not path:
             raise InvalidArgumentError(argument_name="path")
 
-        configs: FileConfig = file_config or cast(BaseConfig, BaseConfig.global_config()).FILE
+        configs: FileConfig = file_config or BaseConfig.global_config().FILE
         expiry_minutes: int = minutes if minutes is not None else configs.DEFAULT_EXPIRY_MINUTES
 
         if expiry_minutes < 1:
@@ -88,7 +87,7 @@ class FileUtils:
         Raises:
             InvalidArgumentError: If `file_name` is not a string or `allowed_extensions` is not a list.
         """
-        configs: FileConfig = file_config or cast(BaseConfig, BaseConfig.global_config()).FILE
+        configs: FileConfig = file_config or BaseConfig.global_config().FILE
         allowed_extensions: list[str] = configs.ALLOWED_EXTENSIONS
 
         if not isinstance(file_name, str):
