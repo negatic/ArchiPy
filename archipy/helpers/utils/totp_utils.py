@@ -9,7 +9,6 @@ import hmac
 import secrets  # Using secrets instead of random for cryptographic operations
 import struct
 from datetime import datetime
-from typing import cast
 from uuid import UUID
 
 from archipy.configs.base_config import BaseConfig
@@ -57,7 +56,7 @@ class TOTPUtils:
                 argument_name="secret",
             )
 
-        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
+        configs = auth_config or BaseConfig.global_config().AUTH
 
         # Convert secret to bytes if it's UUID
         if isinstance(secret, UUID):
@@ -123,7 +122,7 @@ class TOTPUtils:
         if not totp_code.isdigit():
             raise InvalidTokenError
 
-        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
+        configs = auth_config or BaseConfig.global_config().AUTH
 
         current_time = DatetimeUtils.get_epoch_time_now()
 
@@ -169,7 +168,7 @@ class TOTPUtils:
             InternalError: If there is an error generating the secret key.
         """
         try:
-            configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
+            configs = auth_config or BaseConfig.global_config().AUTH
 
             # Use secrets module instead of random for better security
             random_bytes = secrets.token_bytes(configs.SALT_LENGTH)
@@ -178,7 +177,7 @@ class TOTPUtils:
             if not configs.TOTP_SECRET_KEY:
                 # Disable linter for this specific case since we're already in a try-except block
                 # and creating nested functions would reduce code readability
-                raise InvalidArgumentError(  # noqa: TRY301
+                raise InvalidArgumentError(
                     argument_name="TOTP_SECRET_KEY",
                 )
 

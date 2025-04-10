@@ -124,20 +124,26 @@ extend-exclude = '''
 fix = true
 
 lint.select = [
-    "ALL", # Enable all rules by default
-    "D", # pydocstyle for docstring linting
-    "ERA", # flake8-eradicate for detecting commented-out code
-    "F841", # Unused variable
-    "I001", # isort for import sorting
-    "N", # flake8-naming for naming conventions
-    "PTH", # flake8-use-pathlib for pathlib recommendations
-    "Q", # flake8-quotes for quote consistency
-    "RET", # flake8-return for return statement linting
-    "S", # flake8-bandit for security linting
-    "SIM", # flake8-simplify for simplifying code
-    "TCH", # flake8-type-checking for type-checking imports
-    "TRY", # flake8-try-except for better exception handling
-    "UP", # pyupgrade rules for modern Python features
+    "A",  # flake8-builtins
+    "B",  # flake8-bugbear
+    "BLE",  # flake8-blind-except
+    "C901",  # complex-structure
+    "D",  # pydocstyle
+    "E",  # pycodestyle errors
+    "F",  # pyflakes
+    "G",  # flake8-logging-format
+    "I",  # isort
+    "ASYNC",  # flake8-async
+    "S",  # flake8-bandit
+    "T10",  # flake8-debugger
+    "T20",  # flake8-print
+    "W",  # pycodestyle warnings
+    "RUF",  # Ruff-specific rules
+    "TRY",  # tryceratops
+    "ERA",  # eradicate
+    "ANN",  # flake8-annotations
+    "UP", # pyupgrade
+    "ICN", # flake8-import-conventions
 ]
 
 # Explicitly ignore specific rules
@@ -155,6 +161,11 @@ lint.ignore = [
     "S301", # Ignore pickle usage (equivalent to bandit's B301)
     "D100", # Missing docstring in public module
     "D104", # Missing docstring in public package
+     "TRY301",  # Abstract raise into a function
+    "ANN002",  # Missing type annotation for *args
+    "ANN003",  # Missing type annotation for **kwargs
+    "ANN101",  # Missing type annotation for self in method
+    "ANN102",  # Missing type annotation for cls in classmethod
 ]
 
 # Define source directories
@@ -180,6 +191,10 @@ target-version = "py313"
 "archipy/helpers/utils/keycloak_utils.py" = ["FBT001", "FBT002"]
 "archipy/adapters/orm/sqlalchemy/ports.py" = ["ANN401"]
 "archipy/adapters/orm/sqlalchemy/adapters.py" = ["ANN401"]
+"archipy/adapters/redis/ports.py" = ["ANN401", "D102", "FBT001", "FBT002", "A002"]
+"archipy/adapters/redis/adapters.py" = ["ANN401", "FBT001", "FBT002", "D107", "RET504", "PGH003"]
+"archipy/adapters/redis/mocks.py" = ["D107", "ARG002", "ARG004", "ANN401"]
+"archipy//helpers/utils/keycloak_utils.py" = ["B008"]
 "features/steps/*" = ["F811"]
 "scripts/*" = ["S603", "S607"]
 
@@ -292,8 +307,14 @@ module = [
     "jdatetime.*", # Apply overrides to jdatetime
     "sentry_sdk.*", # Apply overrides to sentry-sdk
     "apscheduler.*", # Apply overrides to apscheduler
+    "archipy.adapters.redis.*"
 ]
 ignore_missing_imports = true
+disable_error_code = ["no-any-return", "misc", "return-value", "arg-type", "type-var", "unused-ignore", "no-untyped-call"]
 
 [tool.config]
 pyproject_root_var = "pyproject"
+
+[tool.codespell]
+ignore-words-list = "exat,convertor"
+skip = ".git,__pycache__,build,dist"

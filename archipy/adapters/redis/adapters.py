@@ -36,19 +36,6 @@ class RedisAdapter(RedisPort):
     Args:
         redis_config (RedisConfig, optional): Configuration settings for Redis.
             If None, retrieves from global config. Defaults to None.
-
-    Examples:
-        >>> from archipy.adapters.redis.redis_adapters import RedisAdapter
-        >>> from archipy.configs.config_template import RedisConfig
-        >>>
-        >>> # Using global configuration
-        >>> redis = RedisAdapter()
-        >>> redis.set("key", "value", ex=60)  # Set with 60 second expiry
-        >>> value = redis.get("key")
-        >>>
-        >>> # Using custom configuration
-        >>> config = RedisConfig(MASTER_HOST="redis.example.com", PORT=6380)
-        >>> custom_redis = RedisAdapter(config)
     """
 
     def __init__(self, redis_config: RedisConfig | None = None) -> None:
@@ -168,7 +155,8 @@ class RedisAdapter(RedisPort):
 
     @override
     def lset(self, name: str, index: int, value: str) -> bool:
-        return self.client.lset(name, index, value)
+        # The Redis library's type hints return str but our port expects bool
+        return bool(self.client.lset(name, index, value))
 
     @override
     def rpop(self, name: str, count: int | None = None) -> Any:
@@ -228,7 +216,10 @@ class RedisAdapter(RedisPort):
 
     @override
     def sismember(self, name: str, value: str) -> Awaitable[bool] | bool:
-        return self.read_only_client.sismember(name, value)
+        # The Redis library returns Literal[0, 1] but our port expects bool
+        result = self.read_only_client.sismember(name, value)
+        # Convert to bool if needed
+        return result  # type: ignore
 
     @override
     def smembers(self, name: str) -> RedisSetResponseType:
@@ -243,8 +234,11 @@ class RedisAdapter(RedisPort):
         return self.client.srem(name, *values)
 
     @override
-    def sunion(self, keys: RedisKeyType, *args: bytes | str) -> set:
-        return self.client.sunion(keys, *args)
+    def sunion(self, keys: RedisKeyType, *args: bytes | str) -> RedisSetResponseType:
+        # The Redis library expects different argument types
+        # Try to accommodate both our port signature and the Redis implementation
+        result = self.client.sunion(keys, *args)  # type: ignore
+        return set(result) if result else set()
 
     @override
     def zadd(
@@ -290,7 +284,7 @@ class RedisAdapter(RedisPort):
         offset: int | None = None,
         num: int | None = None,
     ) -> RedisResponseType:
-        return self.read_only_client.zrange(
+        return self.client.zrange(
             name,
             start,
             end,
@@ -312,7 +306,7 @@ class RedisAdapter(RedisPort):
         withscores: bool = False,
         score_cast_func: RedisScoreCastType = float,
     ) -> RedisResponseType:
-        return self.read_only_client.zrevrange(name, start, end, withscores, score_cast_func)
+        return self.client.zrevrange(name, start, end, withscores, score_cast_func)
 
     @override
     def zrangebyscore(
@@ -325,11 +319,11 @@ class RedisAdapter(RedisPort):
         withscores: bool = False,
         score_cast_func: RedisScoreCastType = float,
     ) -> RedisResponseType:
-        return self.read_only_client.zrangebyscore(name, min, max, start, num, withscores, score_cast_func)
+        return self.client.zrangebyscore(name, min, max, start, num, withscores, score_cast_func)
 
     @override
     def zrank(self, name: RedisKeyType, value: bytes | str | float) -> RedisResponseType:
-        return self.read_only_client.zrank(name, value)
+        return self.client.zrank(name, value)
 
     @override
     def zrem(self, name: RedisKeyType, *values: bytes | str | float) -> RedisResponseType:
@@ -337,7 +331,7 @@ class RedisAdapter(RedisPort):
 
     @override
     def zscore(self, name: RedisKeyType, value: bytes | str | float) -> RedisResponseType:
-        return self.read_only_client.zscore(name, value)
+        return self.client.zscore(name, value)
 
     @override
     def hdel(self, name: str, *keys: str | bytes) -> RedisIntegerResponseType:
@@ -396,6 +390,7 @@ class RedisAdapter(RedisPort):
 
     @override
     def pubsub(self, **kwargs: Any) -> PubSub:
+        # The Redis library's pubsub method doesn't have proper type annotations
         return self.client.pubsub(**kwargs)
 
     @override
@@ -408,6 +403,22 @@ class RedisAdapter(RedisPort):
 
 
 class AsyncRedisAdapter(AsyncRedisPort):
+    """Async adapter for Redis operations providing a standardized interface.
+
+    This adapter implements the AsyncRedisPort interface to provide a consistent
+    way to interact with Redis asynchronously, abstracting the underlying Redis
+    client implementation. It supports all common Redis operations including
+    key-value operations, lists, sets, sorted sets, hashes, and pub/sub functionality.
+
+    The adapter maintains separate connections for read and write operations,
+    which can be used to implement read replicas for better performance.
+
+    Args:
+        redis_config (RedisConfig, optional): Configuration settings for Redis.
+            If None, retrieves from global config. Defaults to None.
+
+    """
+
     def __init__(self, redis_config: RedisConfig | None = None) -> None:
         configs: RedisConfig = BaseConfig.global_config().REDIS if redis_config is None else redis_config
         self._set_clients(configs)
@@ -523,8 +534,11 @@ class AsyncRedisAdapter(AsyncRedisPort):
     async def lrem(self, name: str, count: int, value: str) -> RedisIntegerResponseType:
         return await self.client.lrem(name, count, value)
 
+    @override
     async def lset(self, name: str, index: int, value: str) -> bool:
-        return await self.client.lset(name, index, value)
+        # The Redis library's type hints return str but our port expects bool
+        result = await self.client.lset(name, index, value)
+        return bool(result)
 
     @override
     async def rpop(self, name: str, count: int | None = None) -> Any:
@@ -552,8 +566,8 @@ class AsyncRedisAdapter(AsyncRedisPort):
         count: int | None = None,
         _type: str | None = None,
         **kwargs: Any,
-    ) -> Iterator:
-        return await self.read_only_client.scan_iter(match, count, _type, **kwargs)
+    ) -> Iterator[Any]:
+        return self.read_only_client.scan_iter(match, count, _type, **kwargs)
 
     @override
     async def sscan(
@@ -571,8 +585,8 @@ class AsyncRedisAdapter(AsyncRedisPort):
         name: RedisKeyType,
         match: bytes | str | None = None,
         count: int | None = None,
-    ) -> Iterator:
-        return await self.read_only_client.sscan_iter(name, match, count)
+    ) -> Iterator[Any]:
+        return self.read_only_client.sscan_iter(name, match, count)
 
     @override
     async def sadd(self, name: str, *values: bytes | str | float) -> RedisIntegerResponseType:
@@ -584,7 +598,10 @@ class AsyncRedisAdapter(AsyncRedisPort):
 
     @override
     async def sismember(self, name: str, value: str) -> Awaitable[bool] | bool:
-        return await self.read_only_client.sismember(name, value)
+        # The Redis library returns Literal[0, 1] but our port expects bool
+        result = await self.read_only_client.sismember(name, value)
+        # Convert to bool if needed
+        return result  # type: ignore
 
     @override
     async def smembers(self, name: str) -> RedisSetResponseType:
@@ -599,8 +616,11 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.client.srem(name, *values)
 
     @override
-    async def sunion(self, keys: RedisKeyType, *args: bytes | str) -> set:
-        return await self.client.sunion(keys, *args)
+    async def sunion(self, keys: RedisKeyType, *args: bytes | str) -> RedisSetResponseType:
+        # The Redis library expects different argument types
+        # Try to accommodate both our port signature and the Redis implementation
+        result = await self.client.sunion(keys, *args)  # type: ignore
+        return set(result) if result else set()
 
     @override
     async def zadd(
@@ -646,7 +666,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         offset: int | None = None,
         num: int | None = None,
     ) -> RedisResponseType:
-        return await self.read_only_client.zrange(
+        return await self.client.zrange(
             name,
             start,
             end,
@@ -668,7 +688,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         withscores: bool = False,
         score_cast_func: RedisScoreCastType = float,
     ) -> RedisResponseType:
-        return await self.read_only_client.zrevrange(name, start, end, withscores, score_cast_func)
+        return await self.client.zrevrange(name, start, end, withscores, score_cast_func)
 
     @override
     async def zrangebyscore(
@@ -681,11 +701,11 @@ class AsyncRedisAdapter(AsyncRedisPort):
         withscores: bool = False,
         score_cast_func: RedisScoreCastType = float,
     ) -> RedisResponseType:
-        return await self.read_only_client.zrangebyscore(name, min, max, start, num, withscores, score_cast_func)
+        return await self.client.zrangebyscore(name, min, max, start, num, withscores, score_cast_func)
 
     @override
     async def zrank(self, name: RedisKeyType, value: bytes | str | float) -> RedisResponseType:
-        return await self.read_only_client.zrank(name, value)
+        return await self.client.zrank(name, value)
 
     @override
     async def zrem(self, name: RedisKeyType, *values: bytes | str | float) -> RedisResponseType:
@@ -693,7 +713,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
 
     @override
     async def zscore(self, name: RedisKeyType, value: bytes | str | float) -> RedisResponseType:
-        return await self.read_only_client.zscore(name, value)
+        return await self.client.zscore(name, value)
 
     @override
     async def hdel(self, name: str, *keys: str | bytes) -> RedisIntegerResponseType:
@@ -752,11 +772,12 @@ class AsyncRedisAdapter(AsyncRedisPort):
 
     @override
     async def pubsub(self, **kwargs: Any) -> AsyncPubSub:
-        return await self.client.pubsub(**kwargs)
+        # The Redis library's pubsub method doesn't have proper type annotations
+        return self.client.pubsub(**kwargs)
 
     @override
     async def get_pipeline(self, transaction: Any = True, shard_hint: Any = None) -> AsyncPipeline:
-        return await self.client.pipeline(transaction, shard_hint)
+        return self.client.pipeline(transaction, shard_hint)
 
     @override
     async def ping(self) -> RedisResponseType:

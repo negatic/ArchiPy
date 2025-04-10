@@ -41,7 +41,7 @@ class FastAPIExceptionHandler:
         return JSONResponse(status_code=status_code, content=exception.to_dict())
 
     @staticmethod
-    async def custom_exception_handler(request: Request, exception: BaseError) -> JSONResponse:  # noqa: ARG004
+    async def custom_exception_handler(request: Request, exception: BaseError) -> JSONResponse:
         """Handles custom errors.
 
         Args:
@@ -54,7 +54,7 @@ class FastAPIExceptionHandler:
         return FastAPIExceptionHandler.create_error_response(exception)
 
     @staticmethod
-    async def generic_exception_handler(request: Request, exception: Exception) -> JSONResponse:  # noqa: ARG004
+    async def generic_exception_handler(request: Request, exception: Exception) -> JSONResponse:
         """Handles generic errors.
 
         Args:
@@ -68,7 +68,7 @@ class FastAPIExceptionHandler:
 
     @staticmethod
     async def validation_exception_handler(
-        request: Request,  # noqa: ARG004
+        request: Request,
         exception: ValidationError,
     ) -> JSONResponse:
         """Handles validation errors.

@@ -57,8 +57,8 @@ class KeycloakUtils:
 
         def dependency(
             request: Request,
-            token: HTTPAuthorizationCredentials = Security(security),  # noqa: B008
-            keycloak: KeycloakAdapter = Depends(cls._get_keycloak_adapter),  # noqa: B008
+            token: HTTPAuthorizationCredentials = Security(security),
+            keycloak: KeycloakAdapter = Depends(cls._get_keycloak_adapter),
         ) -> dict:
             if token is None:
                 raise UnauthenticatedError
@@ -151,8 +151,8 @@ class KeycloakUtils:
 
         async def dependency(
             request: Request,
-            token: HTTPAuthorizationCredentials = Security(security),  # noqa: B008
-            keycloak: AsyncKeycloakAdapter = Depends(cls._get_async_keycloak_adapter),  # noqa: B008
+            token: HTTPAuthorizationCredentials = Security(security),
+            keycloak: AsyncKeycloakAdapter = Depends(cls._get_async_keycloak_adapter),
         ) -> dict:
             if token is None:
                 raise UnauthenticatedError

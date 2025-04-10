@@ -4,7 +4,7 @@ This module provides a robust JWT handling implementation with support for acces
 cryptographic security, token validation, and comprehensive error handling.
 """
 
-from typing import Any, cast
+from typing import Any
 from uuid import UUID, uuid4
 
 from archipy.configs.base_config import BaseConfig
@@ -41,7 +41,7 @@ class JWTUtils:
         """
         import jwt
 
-        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
+        configs = auth_config or BaseConfig.global_config().AUTH
         current_time = DatetimeUtils.get_datetime_utc_now()
 
         # Define argument names
@@ -101,7 +101,7 @@ class JWTUtils:
         Returns:
             str: The encoded access token.
         """
-        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
+        configs = auth_config or BaseConfig.global_config().AUTH
 
         return cls.create_token(
             data={
@@ -132,7 +132,7 @@ class JWTUtils:
         Returns:
             str: The encoded refresh token.
         """
-        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
+        configs = auth_config or BaseConfig.global_config().AUTH
 
         return cls.create_token(
             data={
@@ -176,7 +176,7 @@ class JWTUtils:
             InvalidTokenError as JWTInvalidTokenError,
         )
 
-        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
+        configs = auth_config or BaseConfig.global_config().AUTH
         required_claims = ["exp", "iat", "nbf", "aud", "iss", "sub", "type", "token_version"]
         if configs.ENABLE_JTI_CLAIM:
             required_claims.append("jti")
@@ -243,7 +243,7 @@ class JWTUtils:
             InvalidTokenException: If the token is invalid or not an access token.
             TokenExpiredException: If the token has expired.
         """
-        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
+        configs = auth_config or BaseConfig.global_config().AUTH
         return cls.decode_token(token, verify_type="access", auth_config=configs)
 
     @classmethod
@@ -262,7 +262,7 @@ class JWTUtils:
             InvalidTokenException: If the token is invalid or not a refresh token.
             TokenExpiredException: If the token has expired.
         """
-        configs = auth_config if auth_config is not None else cast(BaseConfig, BaseConfig.global_config()).AUTH
+        configs = auth_config or BaseConfig.global_config().AUTH
         return cls.decode_token(token, verify_type="refresh", auth_config=configs)
 
     @staticmethod

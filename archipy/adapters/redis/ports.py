@@ -26,21 +26,6 @@ class RedisPort:
 
     Implementing classes should provide concrete implementations for all
     methods, typically by wrapping a Redis client library.
-
-    Examples:
-        >>> from archipy.adapters.redis.redis_ports import RedisPort
-        >>>
-        >>> class CustomRedisAdapter(RedisPort):
-        ...     def __init__(self, connection_params):
-        ...         self.client = redis.Redis(**connection_params)
-        ...
-        ...     def get(self, key: str) -> Any:
-        ...         return self.client.get(key)
-        ...
-        ...     def set(self, name, value, ex=None, px=None, nx=False, xx=False, ...):
-        ...         return self.client.set(name, value, ex, px, nx, xx, ...)
-        ...
-        ...     # Implement other required methods...
     """
 
     @abstractmethod
@@ -216,7 +201,16 @@ class RedisPort:
         raise NotImplementedError
 
     @abstractmethod
-    def sunion(self, keys: RedisKeyType, *args: bytes | str) -> set:
+    def sunion(self, keys: RedisKeyType, *args: bytes | str) -> RedisSetResponseType:
+        """Get the union of multiple sets.
+
+        Args:
+            keys: Name of the first key.
+            *args: Additional key names.
+
+        Returns:
+            Set containing members of the resulting set.
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -315,14 +309,38 @@ class RedisPort:
 
     @abstractmethod
     def hgetall(self, name: str) -> Awaitable[dict] | dict:
+        """Get all fields and values in a hash.
+
+        Args:
+            name: The name of the hash.
+
+        Returns:
+            A dictionary of field/value pairs in the hash.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def hkeys(self, name: str) -> RedisListResponseType:
+        """Get all the fields in a hash.
+
+        Args:
+            name: The name of the hash.
+
+        Returns:
+            A list of fields in the hash.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def hlen(self, name: str) -> RedisIntegerResponseType:
+        """Get the number of fields in a hash.
+
+        Args:
+            name: The name of the hash.
+
+        Returns:
+            The number of fields in the hash.
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -334,14 +352,44 @@ class RedisPort:
         mapping: dict | None = None,
         items: list | None = None,
     ) -> RedisIntegerResponseType:
+        """Set field in a hash to value.
+
+        Args:
+            name: The name of the hash.
+            key: The field to set.
+            value: The value to set.
+            mapping: A dict of key/value pairs to set.
+            items: A list of key/value pairs to set.
+
+        Returns:
+            The number of fields that were added.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def hmget(self, name: str, keys: list, *args: str | bytes) -> RedisListResponseType:
+        """Get the values of multiple hash fields.
+
+        Args:
+            name: The name of the hash.
+            keys: The fields to get.
+            args: Additional fields to get.
+
+        Returns:
+            A list of values for the specified fields.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def hvals(self, name: str) -> RedisListResponseType:
+        """Get all the values in a hash.
+
+        Args:
+            name: The name of the hash.
+
+        Returns:
+            A list of values in the hash.
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -366,6 +414,17 @@ class RedisPort:
 
 
 class AsyncRedisPort:
+    """Interface for Async Redis operations providing a standardized access pattern.
+
+    This interface defines the contract for asynchronous Redis adapters, ensuring consistent
+    implementation of Redis operations across different adapters. It covers all
+    essential Redis functionality including key-value operations, collections
+    (lists, sets, sorted sets, hashes), and pub/sub capabilities.
+
+    Implementing classes should provide concrete implementations for all
+    methods, typically by wrapping an asynchronous Redis client library.
+    """
+
     @abstractmethod
     async def ping(self) -> RedisResponseType:
         raise NotImplementedError
@@ -539,7 +598,16 @@ class AsyncRedisPort:
         raise NotImplementedError
 
     @abstractmethod
-    async def sunion(self, keys: RedisKeyType, *args: bytes | str) -> set:
+    async def sunion(self, keys: RedisKeyType, *args: bytes | str) -> RedisSetResponseType:
+        """Get the union of multiple sets.
+
+        Args:
+            keys: Name of the first key.
+            *args: Additional key names.
+
+        Returns:
+            Set containing members of the resulting set.
+        """
         raise NotImplementedError
 
     @abstractmethod
