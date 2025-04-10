@@ -8,12 +8,12 @@ Feature: File Utilities
   Scenario: Fail to generate secure link due to missing path
     Given an empty file path
     When a secure link creation is attempted
-    Then an error message "Path cannot be empty" should be raised
+    Then an error message "Invalid argument provided" should be raised
 
   Scenario: Fail to generate secure link due to negative minutes
     Given a valid file path "/secure/files/document.pdf" and negative minutes
     When a secure link creation is attempted
-    Then an error message "Minutes must be greater than or equal to 1" should be raised
+    Then an error message "Value is out of acceptable range" should be raised
 
   Scenario Outline: Validate file name with allowed extensions
     Given a file name "<file_name>"

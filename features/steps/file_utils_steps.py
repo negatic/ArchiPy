@@ -1,6 +1,7 @@
 from behave import given, then, when
 
 from archipy.helpers.utils.file_utils import FileUtils
+from archipy.models.errors import BaseError
 from features.test_helpers import get_current_scenario_context
 
 
@@ -41,8 +42,8 @@ def step_when_secure_link_attempted(context):
     try:
         secure_link = FileUtils.create_secure_link(file_path, minutes)
         scenario_context.store("secure_link", secure_link)
-    except ValueError as e:
-        scenario_context.store("exception_message", str(e))
+    except BaseError as e:
+        scenario_context.store("exception_message", e.message_en)
 
 
 @then("the secure link should contain a hash and expiration timestamp")
