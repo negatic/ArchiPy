@@ -8,8 +8,8 @@ def compile_patterns(patterns):
 class StringUtilsConstants:
     arabic_vowel_translate_table = str.maketrans(
         dict.fromkeys(
-            "\u064E\u064F\u0650\u0652\u0651\u0653\u064B\u064C\u0621\u064D\u0670"  # Normal vowels (Fatha, Damma, Kasra, etc)
-            "\u06D6\u06D7\u06D8\u06D9\u06DA\u06DB",  # Quranic marks
+            "\u064e\u064f\u0650\u0652\u0651\u0653\u064b\u064c\u0621\u064d\u0670"  # Normal vowels (Fatha, Damma, Kasra, etc)
+            "\u06d6\u06d7\u06d8\u06d9\u06da\u06db",  # Quranic marks
             "",
         ),
     )
@@ -19,7 +19,7 @@ class StringUtilsConstants:
 
     # replace 'ٳ|ٲ|ٱ|إ|ﺍ|أ|ٵ | ﺎ' with 'ا'
     alphabet_alef_translate_table = str.maketrans(
-        dict.fromkeys("\uFE8E\u0672\u0671\u0625\ufe8d\u0623\u0675\u0673", "\u0627"),
+        dict.fromkeys("\ufe8e\u0672\u0671\u0625\ufe8d\u0623\u0675\u0673", "\u0627"),
     )
 
     # replace 'ٮ|ݕ|ٻ|ﺐ|ﺏ|ﺑ' with "ب"
@@ -77,7 +77,7 @@ class StringUtilsConstants:
     alphabet_shin_translate_table = str.maketrans(dict.fromkeys("\ufeb5\ufeb6\ufeb8\ufeb7\u069c\u06fa", "\u0634"))
 
     # replace "ڝ|ﺺ|ﺼ|ﺻ |ﺹ" with "ص"
-    alphabet_sad_translate_table = str.maketrans(dict.fromkeys("\uFEB9\ufeba\ufebc\ufebb\u069d", "\u0635"))
+    alphabet_sad_translate_table = str.maketrans(dict.fromkeys("\ufeb9\ufeba\ufebc\ufebb\u069d", "\u0635"))
 
     # replace "ڞ|ۻ|ﺽ|ﺾ|ﺿ|ﻀ"  with "ض"
     alphabet_zad_translate_table = str.maketrans(dict.fromkeys("\ufebd\ufebe\ufebf\ufec0\u06fb\u069e", "\u0636"))
@@ -120,7 +120,7 @@ class StringUtilsConstants:
 
     # replace "ڵ|ڶ|ڸ|ڷ|ݪ|ﻝ|ﻞ|ﻠ|ڵ | ﻟ" with "ل"
     alphabet_lam_translate_table = str.maketrans(
-        dict.fromkeys("\uFEDF\ufedd\ufede\ufee0\u076a\u06b7\u06b8\u06b6\u06b5", "\u0644"),
+        dict.fromkeys("\ufedf\ufedd\ufede\ufee0\u076a\u06b7\u06b8\u06b6\u06b5", "\u0644"),
     )
 
     # replace "ݥ|ݦ|ﻡ|ﻤ|ﻢ|ﻣ" with "م"
@@ -141,7 +141,7 @@ class StringUtilsConstants:
     # replace "ܝ|ܤ|ܣ|ﺔ|ﻬ|ھ|ﻩ|ﻫ|ﻪ|ۀ|ە|ة|ہ|ﮭ|ﺓ" with "ه"
     alphabet_ha_translate_table = str.maketrans(
         dict.fromkeys(
-            "\uFE93\uFBAD\ufe94\ufeec\u06be\ufee9\ufeeb\ufeea\u06c0\u06d5\u0629\u06c1\u0723\u0724\u071d",
+            "\ufe93\ufbad\ufe94\ufeec\u06be\ufee9\ufeeb\ufeea\u06c0\u06d5\u0629\u06c1\u0723\u0724\u071d",
             "\u0647",
         ),
     )
@@ -149,7 +149,7 @@ class StringUtilsConstants:
     # replace "ﺋ|ؿ|ؾ|ؽ|ۑ|ٸ|ﭛ|ﻯ|ۍ|ﻰ|ﻱ|ﻲ|ﻳ|ﻴ|ﯼ|ې|ﯽ|ﯾ|ﯿ|ێ|ے|ى|ي|ﺉ|ﺌ |ﯨ" with "ی"
     alphabet_ye_translate_table = str.maketrans(
         dict.fromkeys(
-            "\uFBE8\ufb5b\ufeef\u06cd\ufef0\ufef1\ufef2\ufef3\ufef4\ufbfc"
+            "\ufbe8\ufb5b\ufeef\u06cd\ufef0\ufef1\ufef2\ufef3\ufef4\ufbfc"
             "\u06d0\ufbfd\ufbfe\ufbff\u06ce\u06d2\u0649\u064a\u0678"
             "\u06d1\u063d\u063e\u063f\ufe89\ufe8b\ufe8c",
             "\u06cc",
@@ -160,43 +160,43 @@ class StringUtilsConstants:
 
     # replace '•|·|●|·|・|∙|｡|ⴰ' with '.'
     punctuation_translate_table2 = str.maketrans(
-        dict.fromkeys("\u2022\u00b7\u25cf\u0387\u30fb\u2219\uff61\u2d30", "\u002E"),
+        dict.fromkeys("\u2022\u00b7\u25cf\u0387\u30fb\u2219\uff61\u2d30", "\u002e"),
     )
 
     # replace ',|٬|٫|‚|，' with '،'
     punctuation_translate_table3 = str.maketrans(dict.fromkeys("\u002c\u066c\u066b\u201a\uff0c", "\u060c"))
 
     # replace 'ʕ | ? | ⁉ | � ' with '؟'
-    punctuation_translate_table4 = str.maketrans(dict.fromkeys("\u0295\u003f\u2049\uFFFD", "\u061f"))
+    punctuation_translate_table4 = str.maketrans(dict.fromkeys("\u0295\u003f\u2049\ufffd", "\u061f"))
 
     # replace '‼ | ❕ ' with '!'
-    punctuation_translate_table5 = str.maketrans(dict.fromkeys("\u203C\u2755", "\u0021"))
+    punctuation_translate_table5 = str.maketrans(dict.fromkeys("\u203c\u2755", "\u0021"))
 
     # replace '_ ' with 'ـ'
-    punctuation_translate_table6 = str.maketrans(dict.fromkeys("\u005F", "\u0640"))
+    punctuation_translate_table6 = str.maketrans(dict.fromkeys("\u005f", "\u0640"))
 
     # replace ' － | ━ | − | ‐ | ‑ | – | — | ─ | − | ー | ⁃ (hyphen bullet : not supported by pycharm) |  ' with '-'
     punctuation_translate_table7 = str.maketrans(
-        dict.fromkeys("\uFF0D\u2501\u2212\u2010\u2011\u2013\u2014\u2500\u2212\u30FC\u2043", "\u002D"),
+        dict.fromkeys("\uff0d\u2501\u2212\u2010\u2011\u2013\u2014\u2500\u2212\u30fc\u2043", "\u002d"),
     )
 
     # replace '‹ |《 | ﴾ ' with '«'
-    punctuation_translate_table8 = str.maketrans(dict.fromkeys("\u2039\u300A\uFD3E", "\u00AB"))
+    punctuation_translate_table8 = str.maketrans(dict.fromkeys("\u2039\u300a\ufd3e", "\u00ab"))
 
     # replace '› | 》| ﴿ ' with '»'
-    punctuation_translate_table9 = str.maketrans(dict.fromkeys("\u203A\u300B\uFD3F", "\u00BB"))
+    punctuation_translate_table9 = str.maketrans(dict.fromkeys("\u203a\u300b\ufd3f", "\u00bb"))
 
     # replace ';' with '؛'
-    punctuation_translate_table10 = str.maketrans(dict.fromkeys("\u003B", "\u061B"))
+    punctuation_translate_table10 = str.maketrans(dict.fromkeys("\u003b", "\u061b"))
 
     # replace '%' with '٪'
-    punctuation_translate_table11 = str.maketrans(dict.fromkeys("\u0025", "\u066A"))
+    punctuation_translate_table11 = str.maketrans(dict.fromkeys("\u0025", "\u066a"))
 
     # replace "  ˈ | ‘ | ’ | “ | ”  " with " ' "
-    punctuation_translate_table12 = str.maketrans(dict.fromkeys("\u02C8\u2018\u2019\u201C\u201D", "\u0027"))
+    punctuation_translate_table12 = str.maketrans(dict.fromkeys("\u02c8\u2018\u2019\u201c\u201d", "\u0027"))
 
     # replace '：' with ': '
-    punctuation_translate_table13 = str.maketrans(dict.fromkeys("\uFF1A", "\u003A"))
+    punctuation_translate_table13 = str.maketrans(dict.fromkeys("\uff1a", "\u003a"))
 
     character_refinement_patterns: list = compile_patterns(
         [
@@ -258,8 +258,8 @@ class StringUtilsConstants:
     # replace ' «|» | . | : | ، | ؛ | ؟ | [|] | (|) | {|} | - | ـ | ٪ | ! | ' | " | # | + | / |' with ' '
     punctuation_persian_marks_to_space_translate_table = str.maketrans(
         dict.fromkeys(
-            "\u002E\u003A\u0021\u060C\u061B\u061F\u00BB\u005D"
-            "\u0029\u007D\u00AB\u005B\u0028\u007B\u002D\u0640\u066A\u0021\u0027\u0022\u0023"
+            "\u002e\u003a\u0021\u060c\u061b\u061f\u00bb\u005d"
+            "\u0029\u007d\u00ab\u005b\u0028\u007b\u002d\u0640\u066a\u0021\u0027\u0022\u0023"
             "\u002b\u002f",
             "\u0020",
         ),

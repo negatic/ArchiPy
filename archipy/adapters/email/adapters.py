@@ -26,7 +26,6 @@ from archipy.models.types.email_types import EmailAttachmentDispositionType, Ema
 
 
 class EmailConnectionManager:
-
     def __init__(self, config: EmailConfig) -> None:
         self.config = config
         self.smtp_connection = None
@@ -68,7 +67,6 @@ class EmailConnectionManager:
 
 
 class EmailConnectionPool:
-
     def __init__(self, config: EmailConfig) -> None:
         self.config = config
         self.pool: Queue = Queue(maxsize=config.POOL_SIZE)

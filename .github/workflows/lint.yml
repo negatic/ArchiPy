@@ -1,0 +1,38 @@
+name: Lint
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Get changed files
+      id: changed-files
+      uses: tj-actions/changed-files@v43
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+
+    - name: Install Poetry
+      run: |
+        pip install poetry
+
+    - name: Install dependencies
+      run: |
+        poetry install --with dev
+
+    - name: Run Ruff on changed files
+      run: |
+        # Filter Python files from changed files and run Ruff
+        echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | grep '\.py$' | xargs -r poetry run ruff check
+        echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | grep '\.py$' | xargs -r poetry run ruff format --check
