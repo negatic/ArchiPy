@@ -1,6 +1,7 @@
 from typing import Literal
+from urllib.parse import urlparse
 
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import BaseModel, Field, SecretStr, model_validator, PostgresDsn
 
 
 class ElasticSearchConfig(BaseModel):
@@ -216,6 +217,67 @@ class SqlAlchemyConfig(BaseModel):
     PORT: int | None = 5432
     QUERY_CACHE_SIZE: int = 500
     USERNAME: str | None = None
+    DB_URL: PostgresDsn | None = None
+
+    @model_validator(mode="after")
+    def build_connection_url(self) -> "SqlAlchemyConfig":
+        """Build and populate DB_URL if not provided but all component parts are present."""
+        if self.DB_URL is not None:
+            return self
+
+        if all([self.USERNAME, self.HOST, self.PORT, self.DATABASE]):
+            password_part = f":{self.PASSWORD}" if self.PASSWORD else ""
+            url_str = f"{self.DRIVER_NAME}://{self.USERNAME}{password_part}@{self.HOST}:{self.PORT}/{self.DATABASE}"
+            self.DB_URL = self.model_construct(DB_URL=url_str).DB_URL
+
+        return self
+
+    @model_validator(mode="after")
+    def extract_connection_parts(self) -> "SqlAlchemyConfig":
+        """Extract connection parts from DB_URL if provided but component parts are missing."""
+        if self.DB_URL is None:
+            return self
+
+        # Check if we need to extract components (if any are None)
+        if any(x is None for x in [self.DRIVER_NAME, self.USERNAME, self.HOST, self.PORT, self.DATABASE]):
+            url = str(self.DB_URL)
+            parsed = urlparse(url)
+
+            # Extract scheme/driver
+            if self.DRIVER_NAME is None and parsed.scheme:
+                self.DRIVER_NAME = parsed.scheme
+
+            # Extract username and password
+            if parsed.netloc:
+                auth_part = parsed.netloc.split('@')[0] if '@' in parsed.netloc else ''
+                if ':' in auth_part:
+                    username, password = auth_part.split(':', 1)
+                    if self.USERNAME is None:
+                        self.USERNAME = username
+                    if self.PASSWORD is None:
+                        self.PASSWORD = password
+                elif auth_part and self.USERNAME is None:
+                    self.USERNAME = auth_part
+
+            # Extract host and port
+            host_part = parsed.netloc.split('@')[-1] if '@' in parsed.netloc else parsed.netloc
+            if ':' in host_part:
+                host, port_str = host_part.split(':', 1)
+                if self.HOST is None:
+                    self.HOST = host
+                if self.PORT is None:
+                    try:
+                        self.PORT = int(port_str)
+                    except ValueError:
+                        pass
+            elif host_part and self.HOST is None:
+                self.HOST = host_part
+
+            # Extract database name
+            if self.DATABASE is None and parsed.path and parsed.path.startswith('/'):
+                self.DATABASE = parsed.path[1:]
+
+        return self
 
 
 class PrometheusConfig(BaseModel):
