@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Awaitable, Callable
 from http import HTTPStatus
-from typing import Any, cast
+from typing import Any, cast, AsyncContextManager
 
 from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
@@ -229,12 +229,14 @@ class AppUtils:
         config: BaseConfig | None = None,
         *,
         configure_exception_handlers: bool = True,
+        lifespan: Callable[..., AsyncContextManager] | None = None,
     ) -> FastAPI:
         """Creates and configures a FastAPI application.
 
         Args:
             config (BaseConfig | None): Optional custom configuration. If not provided, uses global config.
             configure_exception_handlers (bool): Whether to configure exception handlers.
+            lifespan (Callable[..., AsyncContextManager] | None): Optional lifespan context manager for the app.
 
         Returns:
             FastAPI: The configured FastAPI application instance.
@@ -253,6 +255,7 @@ class AppUtils:
             docs_url=config.FASTAPI.DOCS_URL,
             redocs_url=config.FASTAPI.RE_DOCS_URL,
             responses=cast(dict[int | str, Any], common_responses),
+            lifespan=lifespan,
         )
 
         FastAPIUtils.setup_sentry(config)
