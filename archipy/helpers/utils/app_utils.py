@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Awaitable, Callable
+from contextlib import AbstractAsyncContextManager
 from http import HTTPStatus
-from typing import Any, cast, AsyncContextManager
+from typing import Any, cast
 
 from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
@@ -225,18 +226,18 @@ class AppUtils:
 
     @classmethod
     def create_fastapi_app(
-        cls,
-        config: BaseConfig | None = None,
-        *,
-        configure_exception_handlers: bool = True,
-        lifespan: Callable[..., AsyncContextManager] | None = None,
+            cls,
+            config: BaseConfig | None = None,
+            *,
+            configure_exception_handlers: bool = True,
+            lifespan: Callable[..., AbstractAsyncContextManager] | None = None,
     ) -> FastAPI:
         """Creates and configures a FastAPI application.
 
         Args:
             config (BaseConfig | None): Optional custom configuration. If not provided, uses global config.
             configure_exception_handlers (bool): Whether to configure exception handlers.
-            lifespan (Callable[..., AsyncContextManager] | None): Optional lifespan context manager for the app.
+            lifespan: Callable[..., AbstractAsyncContextManager] | None = None,
 
         Returns:
             FastAPI: The configured FastAPI application instance.
