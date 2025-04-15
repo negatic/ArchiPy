@@ -4,6 +4,35 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 
 
 
+
+## [0.13.4] - 2025-04-15
+
+### Added
+
+#### FastAPI Integration
+- Implemented lifespan support for FastAPI applications
+- Enhanced application lifecycle management with proper startup and shutdown handlers
+
+#### Database Configuration
+- Added automatic database URL generation with validation in SqlAlchemyConfig
+- Improved database connection configuration with enhanced error handling
+
+### Code Quality
+- Integrated new features with comprehensive test coverage
+- Enhanced configuration validation and error reporting
+
+### Changed
+
+- Update changelogs
+
+
+### Fixed
+
+#### Configs
+
+- Run ruff format on config_template.py to resolve formatting issues
+- Replace AsyncContextManager with AbstractAsyncContextManager to fix UP035 lint error
+
 ## [0.13.3] - 2025-04-15
 
 ### Added
