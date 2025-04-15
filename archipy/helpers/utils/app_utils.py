@@ -226,11 +226,11 @@ class AppUtils:
 
     @classmethod
     def create_fastapi_app(
-            cls,
-            config: BaseConfig | None = None,
-            *,
-            configure_exception_handlers: bool = True,
-            lifespan: Callable[..., AbstractAsyncContextManager] | None = None,
+        cls,
+        config: BaseConfig | None = None,
+        *,
+        configure_exception_handlers: bool = True,
+        lifespan: Callable[..., AbstractAsyncContextManager] | None = None,
     ) -> FastAPI:
         """Creates and configures a FastAPI application.
 
