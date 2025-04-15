@@ -3,6 +3,29 @@
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
 
+
+## [0.13.3] - 2025-04-15
+
+### Added
+
+#### CI/CD
+- Implemented comprehensive linting workflow for improved code quality
+- Enhanced GitHub Actions with updated tj-actions/changed-files for better change tracking
+
+#### Documentation
+- Added detailed documentation for range DTOs and their usage patterns
+- Improved API reference documentation with new examples
+
+### Changed
+
+#### Models
+- Enhanced range DTOs with improved type safety and validation
+- Updated range DTOs to support more flexible boundary conditions
+
+### Code Quality
+- Integrated automated linting for consistent code style
+- Improved code formatting and documentation standards
+
 ## [0.13.2] - 2025-04-10
 
 ### Documentation
