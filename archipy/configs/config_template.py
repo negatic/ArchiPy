@@ -249,9 +249,9 @@ class SqlAlchemyConfig(BaseModel):
 
             # Extract username and password
             if parsed.netloc:
-                auth_part = parsed.netloc.split('@')[0] if '@' in parsed.netloc else ''
-                if ':' in auth_part:
-                    username, password = auth_part.split(':', 1)
+                auth_part = parsed.netloc.split("@")[0] if "@" in parsed.netloc else ""
+                if ":" in auth_part:
+                    username, password = auth_part.split(":", 1)
                     if self.USERNAME is None:
                         self.USERNAME = username
                     if self.PASSWORD is None:
@@ -260,9 +260,9 @@ class SqlAlchemyConfig(BaseModel):
                     self.USERNAME = auth_part
 
             # Extract host and port
-            host_part = parsed.netloc.split('@')[-1] if '@' in parsed.netloc else parsed.netloc
-            if ':' in host_part:
-                host, port_str = host_part.split(':', 1)
+            host_part = parsed.netloc.split("@")[-1] if "@" in parsed.netloc else parsed.netloc
+            if ":" in host_part:
+                host, port_str = host_part.split(":", 1)
                 if self.HOST is None:
                     self.HOST = host
                 if self.PORT is None:
@@ -274,7 +274,7 @@ class SqlAlchemyConfig(BaseModel):
                 self.HOST = host_part
 
             # Extract database name
-            if self.DATABASE is None and parsed.path and parsed.path.startswith('/'):
+            if self.DATABASE is None and parsed.path and parsed.path.startswith("/"):
                 self.DATABASE = parsed.path[1:]
 
         return self
