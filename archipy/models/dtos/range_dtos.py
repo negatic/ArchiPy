@@ -22,7 +22,7 @@ class RangeDTO(BaseDTO):
     to: Decimal | None = None
 
     @field_validator("from_", "to", mode="before")
-    def convert_to(self, value: Decimal | str | None) -> Decimal | None:
+    def convert_to(cls, value: Decimal | str | None) -> Decimal | None:
         """Convert string values to Decimal type.
 
         Args:
