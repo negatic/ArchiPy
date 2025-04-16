@@ -14,7 +14,7 @@ from archipy.configs.config_template import SqlAlchemyConfig
 from archipy.models.dtos.pagination_dto import PaginationDTO
 from archipy.models.dtos.sort_dto import SortDTO
 from archipy.models.entities import BaseEntity
-from archipy.models.errors.custom_errors import InternalError, InvalidEntityTypeError
+from archipy.models.errors.custom_errors import InternalError, InvalidArgumentError, InvalidEntityTypeError
 from archipy.models.types.base_types import FilterOperationType
 from archipy.models.types.sort_order_type import SortOrderType
 
@@ -120,9 +120,13 @@ class SqlAlchemySortMixin:
         else:
             sort_column = sort_info.column
 
-        if sort_info.order == SortOrderType.ASCENDING:
+        order_value: str = sort_info.order.value if isinstance(sort_info.order, Enum) else sort_info.order
+        if order_value == SortOrderType.ASCENDING.value:
             return query.order_by(sort_column.asc())
-        return query.order_by(sort_column.desc())
+        elif order_value == SortOrderType.DESCENDING.value:
+            return query.order_by(sort_column.desc())
+        else:
+            raise InvalidArgumentError(argument_name="sort_info.order")
 
 
 class SqlAlchemyAdapter(SqlAlchemyPort, SqlAlchemyPaginationMixin, SqlAlchemySortMixin):
