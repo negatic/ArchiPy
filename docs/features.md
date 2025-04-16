@@ -9,7 +9,7 @@ ArchiPy provides a robust framework for structured Python development, focusing 
 
 ## Adapters & Mocks
 
-- **Common Adapters**: Pre-built for Redis, SQLAlchemy, and email.
+- **Common Adapters**: Pre-built for Redis, SQLAlchemy, email, and Kafka.
 - **Mocks**: Testable mocks (e.g., `redis_mocks`, `sqlalchemy_mocks`) for isolated testing.
 - **Async Support**: Synchronous and asynchronous implementations.
 

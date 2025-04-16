@@ -186,3 +186,36 @@ value = redis.get("key")
     options:
       show_root_heading: true
       show_source: true
+
+### Kafka
+
+Kafka integration for message streaming and event-driven architectures.
+
+```python
+from archipy.adapters.kafka import KafkaAdapter
+
+# Create a Kafka adapter
+kafka = KafkaAdapter()  # Uses global config by default
+
+# Publish a message
+kafka.publish("my-topic", "Hello, Kafka!")
+
+# Consume messages
+def process_message(message: dict[str, Any]) -> None:
+    print(f"Received: {message['value']}")
+
+kafka.consume("my-topic", process_message)
+
+```
+
+For detailed examples and usage guidelines, see the [Kafka Adapter Examples](../examples/adapters/kafka.md).
+
+::: archipy.adapters.kafka.adapters
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.kafka.ports
+    options:
+      show_root_heading: true
+      show_source: true
