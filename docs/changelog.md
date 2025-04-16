@@ -2,29 +2,37 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [0.13.5] - 2025-04-16
 
+### Fixed
 
+#### SQLAlchemy
+
+- Resolved sorting functionality in SQLAlchemy mixin
+- Enhanced query sorting capabilities with improved error handling
 
 ## [0.13.4] - 2025-04-15
 
 ### Added
 
 #### FastAPI Integration
+
 - Implemented lifespan support for FastAPI applications
 - Enhanced application lifecycle management with proper startup and shutdown handlers
 
 #### Database Configuration
+
 - Added automatic database URL generation with validation in SqlAlchemyConfig
 - Improved database connection configuration with enhanced error handling
 
 ### Code Quality
+
 - Integrated new features with comprehensive test coverage
 - Enhanced configuration validation and error reporting
 
 ### Changed
 
 - Update changelogs
-
 
 ### Fixed
 
@@ -38,20 +46,24 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 ### Added
 
 #### CI/CD
+
 - Implemented comprehensive linting workflow for improved code quality
 - Enhanced GitHub Actions with updated tj-actions/changed-files for better change tracking
 
 #### Documentation
+
 - Added detailed documentation for range DTOs and their usage patterns
 - Improved API reference documentation with new examples
 
 ### Changed
 
 #### Models
+
 - Enhanced range DTOs with improved type safety and validation
 - Updated range DTOs to support more flexible boundary conditions
 
 ### Code Quality
+
 - Integrated automated linting for consistent code style
 - Improved code formatting and documentation standards
 
@@ -93,17 +105,17 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 ### Features
 
 - **MinIO Integration**: Full S3-compatible object storage adapter with:
-  - Comprehensive S3 operation support (12 standardized methods)
-  - Built-in TTL caching for performance optimization
-  - Flexible configuration with endpoint and credential management
-  - Clear cache management through `clear_all_caches`
+    - Comprehensive S3 operation support (12 standardized methods)
+    - Built-in TTL caching for performance optimization
+    - Flexible configuration with endpoint and credential management
+    - Clear cache management through `clear_all_caches`
 
 ### Testing
 
 - Added complete BDD test suite for MinIO adapter:
-  - Bucket and object operation validation
-  - Presigned URL generation testing
-  - Bucket policy management verification
+    - Bucket and object operation validation
+    - Presigned URL generation testing
+    - Bucket policy management verification
 
 ### Documentation
 
@@ -116,6 +128,7 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 ```python
 # Initialize the MinIO adapter
 from archipy.adapters.minio.adapters import MinioAdapter
+
 minio = MinioAdapter()
 
 # Create a bucket and upload a file
@@ -131,11 +144,11 @@ download_url = minio.presigned_get_object("my-bucket", "document.pdf", expires=3
 ### Features
 
 - **Keycloak Integration**: Comprehensive authentication and authorization for FastAPI:
-  - Role-based access control with customizable requirements
-  - Resource-based authorization for fine-grained access control
-  - Both synchronous and asynchronous authentication flows
-  - Token validation and introspection
-  - User info extraction capabilities
+    - Role-based access control with customizable requirements
+    - Resource-based authorization for fine-grained access control
+    - Both synchronous and asynchronous authentication flows
+    - Token validation and introspection
+    - User info extraction capabilities
 
 ### Code Quality
 
@@ -150,6 +163,7 @@ from fastapi import FastAPI, Depends
 from archipy.helpers.utils.keycloak_utils import KeycloakUtils
 
 app = FastAPI()
+
 
 @app.get("/api/profile")
 def get_profile(user: dict = Depends(KeycloakUtils.fastapi_auth(
@@ -183,10 +197,10 @@ def get_profile(user: dict = Depends(KeycloakUtils.fastapi_auth(
 ### Features
 
 - **Keycloak Adapter**: New authentication and authorization system:
-  - Asynchronous operations support
-  - Token management and validation
-  - User information retrieval
-  - Comprehensive security features
+    - Asynchronous operations support
+    - Token management and validation
+    - User information retrieval
+    - Comprehensive security features
 
 ### Performance
 
@@ -237,16 +251,16 @@ is_valid = keycloak.validate_token(token)
 ### Features
 
 - **Redis Integration**: New caching and key-value storage system:
-  - Flexible key-value operations
-  - Built-in TTL support
-  - Connection pooling
-  - Comprehensive error handling
+    - Flexible key-value operations
+    - Built-in TTL support
+    - Connection pooling
+    - Comprehensive error handling
 
 - **Email Service**: New email integration system:
-  - Multiple email provider support
-  - Template-based email sending
-  - Attachment handling
-  - Async operation support
+    - Multiple email provider support
+    - Template-based email sending
+    - Attachment handling
+    - Async operation support
 
 ### Configuration
 
@@ -259,6 +273,7 @@ is_valid = keycloak.validate_token(token)
 ```python
 # Initialize the Redis adapter
 from archipy.adapters.redis.adapters import RedisAdapter
+
 redis = RedisAdapter()
 
 # Basic operations
@@ -274,15 +289,15 @@ redis.set("session:token", "abc123", ttl=3600)  # Expires in 1 hour
 ### Security
 
 - **TOTP System**: Comprehensive Time-based One-Time Password implementation:
-  - Secure token generation and validation
-  - Configurable time windows
-  - Built-in expiration handling
-  - RFC compliance
+    - Secure token generation and validation
+    - Configurable time windows
+    - Built-in expiration handling
+    - RFC compliance
 
 - **Multi-Factor Authentication**: Enhanced security framework:
-  - Multiple authentication factor support
-  - Flexible factor configuration
-  - Integration with existing auth systems
+    - Multiple authentication factor support
+    - Flexible factor configuration
+    - Integration with existing auth systems
 
 ### Usage Example
 
@@ -306,17 +321,17 @@ secret_key = TOTPUtils.generate_secret_key_for_totp()
 ### Features
 
 - **Redis Integration**: Comprehensive key-value store and caching system:
-  - Full Redis API implementation
-  - Built-in caching functionality
-  - Performance-optimized operations
-  - Connection pooling support
+    - Full Redis API implementation
+    - Built-in caching functionality
+    - Performance-optimized operations
+    - Connection pooling support
 
 ### Testing
 
 - **Mock Redis Implementation**:
-  - Complete test coverage for Redis operations
-  - Simulated Redis environment for testing
-  - Configurable mock behaviors
+    - Complete test coverage for Redis operations
+    - Simulated Redis environment for testing
+    - Configurable mock behaviors
 
 ### Documentation
 
@@ -347,10 +362,10 @@ secret_key = TOTPUtils.generate_secret_key_for_totp()
 ### Features
 
 - **SQLAlchemy Integration**: Complete ORM implementation:
-  - Robust entity model system
-  - Transaction management with ACID compliance
-  - Connection pooling with configurable settings
-  - Comprehensive database operations support
+    - Robust entity model system
+    - Transaction management with ACID compliance
+    - Connection pooling with configurable settings
+    - Comprehensive database operations support
 
 ### Usage Example
 
@@ -359,11 +374,13 @@ from archipy.adapters.orm.sqlalchemy.adapters import SQLAlchemyAdapter
 from archipy.models.entities.sqlalchemy.base_entities import BaseEntity
 from sqlalchemy import Column, String
 
+
 # Define a model
 class User(BaseEntity):
     __tablename__ = "users"
     name = Column(String(100))
     email = Column(String(100), unique=True)
+
 
 # Use the ORM
 orm = SQLAlchemyAdapter()
@@ -390,10 +407,10 @@ with orm.session() as session:
 ### Features
 
 - **gRPC Integration**: Comprehensive interceptor system:
-  - Client and server-side interceptors
-  - Request/response monitoring
-  - Performance tracing capabilities
-  - Enhanced error management
+    - Client and server-side interceptors
+    - Request/response monitoring
+    - Performance tracing capabilities
+    - Enhanced error management
 
 ### Documentation
 
@@ -415,10 +432,10 @@ with orm.session() as session:
 ### Features
 
 - **FastAPI Integration**: Complete web framework support:
-  - Custom middleware components
-  - Request/response processors
-  - Standardized error handling
-  - Response formatting utilities
+    - Custom middleware components
+    - Request/response processors
+    - Standardized error handling
+    - Response formatting utilities
 
 ### Documentation
 
@@ -431,10 +448,10 @@ with orm.session() as session:
 ### Features
 
 - **Configuration System**: Flexible environment management:
-  - Environment variable support
-  - Type-safe configuration validation
-  - Default value management
-  - Override capabilities
+    - Environment variable support
+    - Type-safe configuration validation
+    - Default value management
+    - Override capabilities
 
 ### Documentation
 
@@ -447,10 +464,10 @@ with orm.session() as session:
 ### Features
 
 - **Core Utilities**: Comprehensive helper functions:
-  - Date/time manipulation with timezone support
-  - String processing and formatting
-  - Common development utilities
-  - Type conversion helpers
+    - Date/time manipulation with timezone support
+    - String processing and formatting
+    - Common development utilities
+    - Type conversion helpers
 
 ### Documentation
 
@@ -463,10 +480,10 @@ with orm.session() as session:
 ### Architecture
 
 - **Hexagonal Architecture**: Core implementation:
-  - Ports and adapters pattern
-  - Clean architecture principles
-  - Domain-driven design
-  - Base entity models
+    - Ports and adapters pattern
+    - Clean architecture principles
+    - Domain-driven design
+    - Base entity models
 
 ### Documentation
 
@@ -479,10 +496,10 @@ with orm.session() as session:
 ### Features
 
 - **Initial Release**: Project foundation:
-  - Core project structure
-  - Basic framework components
-  - Configuration system
-  - CI/CD pipeline with GitHub Actions
+    - Core project structure
+    - Basic framework components
+    - Configuration system
+    - CI/CD pipeline with GitHub Actions
 
 ### Documentation
 
