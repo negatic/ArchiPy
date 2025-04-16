@@ -2,7 +2,7 @@ import logging
 from typing import override
 
 from confluent_kafka import Consumer, KafkaError, Message, Producer, TopicPartition
-from confluent_kafka.admin import AdminClient, ClusterMetadata
+from confluent_kafka.admin import AdminClient, ClusterMetadata, NewTopic
 
 from archipy.adapters.kafka.ports import KafkaAdminPort, KafkaConsumerPort, KafkaProducerPort
 from archipy.configs.base_config import BaseConfig
@@ -20,12 +20,13 @@ logger = logging.getLogger(__name__)
 class KafkaAdminAdapter(KafkaAdminPort):
     """Synchronous Kafka admin adapter."""
 
-    def __init__(self) -> None:
-        """Initialize the admin adapter."""
-        self.client: AdminClient | None = None
+    def __init__(self, kafka_configs: KafkaConfig | None = None) -> None:
+        """Initialize the admin adapter with Kafka configuration.
 
-    def _get_client(self, configs: KafkaConfig) -> AdminClient:
-        """Create and configure AdminClient."""
+        Args:
+            kafka_configs: Optional Kafka configuration. If None, uses global config.
+        """
+        configs: KafkaConfig = kafka_configs or BaseConfig.global_config().KAFKA
         try:
             broker_list_csv = ",".join(configs.BROKERS_LIST)
             config = {"bootstrap.servers": broker_list_csv}
@@ -38,18 +39,33 @@ class KafkaAdminAdapter(KafkaAdminPort):
                     "ssl.endpoint.identification.algorithm": "none",
                     "ssl.ca.pem": configs.CERT_PEM,
                 }
-            return AdminClient(config)
+            self.adapter: AdminClient = AdminClient(config)
         except Exception as e:
             raise InternalError(details=str(e), lang=LanguageType.FA) from e
 
     @override
-    def delete_topic(self, topics: list[str], kafka_configs: KafkaConfig | None = None) -> None:
-        """Delete one or more Kafka topics."""
-        configs: KafkaConfig = kafka_configs or BaseConfig.global_config().KAFKA
-        if not self.client:
-            self.client = self._get_client(configs)
+    def create_topic(self, topic: str, num_partitions: int = 1, replication_factor: int = 1) -> None:
+        """Create a new Kafka topic.
+
+        Args:
+            topic: Name of the topic to create
+            num_partitions: Number of partitions for the topic
+            replication_factor: Replication factor for the topic
+        """
         try:
-            self.client.delete_topics(topics)
+            new_topic = NewTopic(topic, num_partitions, replication_factor)
+            self.adapter.create_topics([new_topic])
+            logger.debug(
+                f"Created topic {topic} with {num_partitions} partitions and replication factor {replication_factor}",
+            )
+        except Exception as e:
+            raise InternalError(details=f"Failed to create topic {topic}", lang=LanguageType.FA) from e
+
+    @override
+    def delete_topic(self, topics: list[str]) -> None:
+        """Delete one or more Kafka topics."""
+        try:
+            self.adapter.delete_topics(topics)
             logger.debug("Deleted topics", topics)
         except Exception as e:
             raise InternalError(details="Failed to delete topics", lang=LanguageType.FA) from e
@@ -59,14 +75,10 @@ class KafkaAdminAdapter(KafkaAdminPort):
         self,
         topic: str | None = None,
         timeout: int = 1,
-        kafka_configs: KafkaConfig | None = None,
     ) -> ClusterMetadata:
         """List Kafka topics."""
-        configs: KafkaConfig = kafka_configs or BaseConfig.global_config().KAFKA
-        if not self.client:
-            self.client = self._get_client(configs)
         try:
-            return self.client.list_topics(topic=topic, timeout=timeout)
+            return self.adapter.list_topics(topic=topic, timeout=timeout)
         except Exception as e:
             raise UnavailableError(service="Kafka", lang=LanguageType.FA) from e
 
@@ -90,7 +102,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
             kafka_configs: Optional Kafka configuration.
         """
         configs: KafkaConfig = kafka_configs or BaseConfig.global_config().KAFKA
-        self.client: Consumer = self._get_client(group_id, configs)
+        self._adapter: Consumer = self._get_adapter(group_id, configs)
         if topic_list and not partition_list:
             self.subscribe(topic_list)
         elif not topic_list and partition_list:
@@ -102,7 +114,8 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
                 lang=LanguageType.FA,
             )
 
-    def _get_client(self, group_id: str, configs: KafkaConfig) -> Consumer:
+    @staticmethod
+    def _get_adapter(group_id: str, configs: KafkaConfig) -> Consumer:
         """Create and configure Consumer."""
         try:
             broker_list_csv = ",".join(configs.BROKERS_LIST)
@@ -131,7 +144,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
         """Consume a batch of messages."""
         try:
             result_list: list[Message] = []
-            messages: list[Message] = self.client.consume(num_messages=messages_number, timeout=timeout)
+            messages: list[Message] = self._adapter.consume(num_messages=messages_number, timeout=timeout)
             for message in messages:
                 if message.error():
                     logger.error("Consumer error", message.error())
@@ -149,7 +162,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
     def poll(self, timeout: int = 1) -> Message | None:
         """Poll for a single message."""
         try:
-            message: Message | None = self.client.poll(timeout)
+            message: Message | None = self._adapter.poll(timeout)
             if message is None:
                 logger.debug("No message received")
                 return None
@@ -167,7 +180,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
     def commit(self, message: Message, asynchronous: bool = True) -> None | list[TopicPartition]:
         """Commit message offset."""
         try:
-            return self.client.commit(message=message, asynchronous=asynchronous)
+            return self._adapter.commit(message=message, asynchronous=asynchronous)
         except Exception as e:
             raise InternalError(details="Failed to commit message", lang=LanguageType.FA) from e
 
@@ -175,7 +188,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
     def subscribe(self, topic_list: list[str]) -> None:
         """Subscribe to topics."""
         try:
-            self.client.subscribe(topic_list)
+            self._adapter.subscribe(topic_list)
             logger.debug("Subscribed to topics", topic_list)
         except Exception as e:
             raise InternalError(
@@ -187,9 +200,9 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
     def assign(self, partition_list: list[TopicPartition]) -> None:
         """Assign partitions."""
         try:
-            self.client.assign(partition_list)
+            self._adapter.assign(partition_list)
             for partition in partition_list:
-                self.client.seek(partition)
+                self._adapter.seek(partition)
             logger.debug("Assigned partitions", partition_list)
         except Exception as e:
             raise InternalError(
@@ -210,9 +223,10 @@ class KafkaProducerAdapter(KafkaProducerPort):
         """
         configs: KafkaConfig = kafka_configs or BaseConfig.global_config().KAFKA
         self.topic = topic_name
-        self.client: Producer = self._get_client(configs)
+        self._adapter: Producer = self._get_adapter(configs)
 
-    def _get_client(self, configs: KafkaConfig) -> Producer:
+    @staticmethod
+    def _get_adapter(configs: KafkaConfig) -> Producer:
         """Create and configure Producer."""
         try:
             broker_list_csv = ",".join(configs.BROKERS_LIST)
@@ -247,6 +261,7 @@ class KafkaProducerAdapter(KafkaProducerPort):
         """Handle delivery result."""
         if error:
             logger.error("Message failed delivery", error)
+            logger.debug("Message = %s", message)
             raise InternalError(
                 details="Message failed delivery",
                 lang=LanguageType.FA,
@@ -258,7 +273,7 @@ class KafkaProducerAdapter(KafkaProducerPort):
         """Produce a message to a topic."""
         try:
             processed_message = self._pre_process_message(message)
-            self.client.produce(self.topic, processed_message, on_delivery=self._delivery_callback)
+            self._adapter.produce(self.topic, processed_message, on_delivery=self._delivery_callback)
         except Exception as e:
             raise InternalError(
                 details="Failed to produce message",
@@ -269,7 +284,7 @@ class KafkaProducerAdapter(KafkaProducerPort):
     def flush(self, timeout: int | None = None) -> None:
         """Flush pending messages."""
         try:
-            self.client.flush(timeout=timeout)
+            self._adapter.flush(timeout=timeout)
         except Exception as e:
             raise InternalError(
                 details="Failed to flush messages",
@@ -277,11 +292,10 @@ class KafkaProducerAdapter(KafkaProducerPort):
             ) from e
 
     @override
-    def validate_healthiness(self, kafka_configs: KafkaConfig | None = None) -> None:
+    def validate_healthiness(self) -> None:
         """Validate producer health."""
-        configs: KafkaConfig = kafka_configs or BaseConfig.global_config().KAFKA
         try:
-            self.list_topics(self.topic, timeout=1, kafka_configs=configs)
+            self.list_topics(self.topic, timeout=1)
         except Exception as e:
             raise UnavailableError(
                 service="Kafka",
@@ -293,14 +307,11 @@ class KafkaProducerAdapter(KafkaProducerPort):
         self,
         topic: str | None = None,
         timeout: int = 1,
-        kafka_configs: KafkaConfig | None = None,
     ) -> ClusterMetadata:
         """List Kafka topics."""
-        configs: KafkaConfig = kafka_configs or BaseConfig.global_config().KAFKA
         try:
-            temp_client = self._get_client(configs)
             topic = topic or self.topic
-            return temp_client.list_topics(topic=topic, timeout=timeout)
+            return self._adapter.list_topics(topic=topic, timeout=timeout)
         except Exception as e:
             raise UnavailableError(
                 service="Kafka",

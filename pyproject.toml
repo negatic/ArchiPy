@@ -301,17 +301,19 @@ plugins = [
 
 [[tool.mypy.overrides]]
 module = [
-    "features.*", # Apply overrides to features files
-    "scripts.*", # Apply overrides to script files
-    "redis.*", # Apply overrides to Redis
-    "grpc.*", # Apply overrides to gRPC
-    "google.protobuf.*", # Apply overrides to protobuf
-    "requests.*", # Apply overrides to requests
-    "jdatetime.*", # Apply overrides to jdatetime
-    "sentry_sdk.*", # Apply overrides to sentry-sdk
     "apscheduler.*", # Apply overrides to apscheduler
+    "archipy.adapters.keycloak.*",
     "archipy.adapters.redis.*",
-    "archipy.adapters.keycloak.*"
+    "confluent_kafka.*", # Apply overrides to Kafka
+    "confluent_kafka.admin.*", # Apply overrides to Kafka
+    "features.*", # Apply overrides to features files
+    "google.protobuf.*", # Apply overrides to protobuf
+    "grpc.*", # Apply overrides to gRPC
+    "jdatetime.*", # Apply overrides to jdatetime
+    "redis.*", # Apply overrides to Redis
+    "requests.*", # Apply overrides to requests
+    "scripts.*", # Apply overrides to script files
+    "sentry_sdk.*", # Apply overrides to sentry-sdk
 ]
 ignore_missing_imports = true
 disable_error_code = ["no-any-return", "misc", "return-value", "arg-type", "type-var", "unused-ignore", "no-untyped-call"]

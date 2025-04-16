@@ -39,7 +39,7 @@ class KeycloakAdapter(KeycloakPort):
         )
 
         # Initialize the OpenID client for authentication
-        self.openid_adapter = self._get_openid_client(self.configs)
+        self._openid_adapter = self._get_openid_client(self.configs)
 
         # Cache for admin client to avoid unnecessary re-authentication
         self._admin_adapter = None
@@ -79,7 +79,7 @@ class KeycloakAdapter(KeycloakPort):
         """Initialize or refresh the admin client."""
         try:
             # Get token using client credentials
-            token = self.openid_adapter.token(grant_type="client_credentials")
+            token = self._openid_adapter.token(grant_type="client_credentials")
 
             # Set token expiry time (current time + expires_in - buffer)
             # Using a 30-second buffer to ensure we refresh before expiration
@@ -131,7 +131,7 @@ class KeycloakAdapter(KeycloakPort):
         try:
             from jwcrypto import jwk
 
-            keys_info = self.openid_adapter.public_key()
+            keys_info = self._openid_adapter.public_key()
             key = f"-----BEGIN PUBLIC KEY-----\n{keys_info}\n-----END PUBLIC KEY-----"
             return jwk.JWK.from_pem(key.encode("utf-8"))
         except Exception as e:
@@ -159,7 +159,7 @@ class KeycloakAdapter(KeycloakPort):
             ValueError: If token acquisition fails
         """
         try:
-            return self.openid_adapter.token(grant_type="password", username=username, password=password)
+            return self._openid_adapter.token(grant_type="password", username=username, password=password)
         except KeycloakError as e:
             raise ValueError(f"Failed to get token: {e!s}")
 
@@ -177,7 +177,7 @@ class KeycloakAdapter(KeycloakPort):
             ValueError: If token refresh fails
         """
         try:
-            return self.openid_adapter.refresh_token(refresh_token)
+            return self._openid_adapter.refresh_token(refresh_token)
         except KeycloakError as e:
             raise ValueError(f"Failed to refresh token: {e!s}")
 
@@ -193,7 +193,7 @@ class KeycloakAdapter(KeycloakPort):
         """
         # Not caching validation results as tokens are time-sensitive
         try:
-            self.openid_adapter.decode_token(
+            self._openid_adapter.decode_token(
                 token,
                 key=self.get_public_key(),
             )
@@ -224,7 +224,7 @@ class KeycloakAdapter(KeycloakPort):
 
     @ttl_cache_decorator(ttl_seconds=30, maxsize=100)  # Cache for 30 seconds
     def _get_userinfo_cached(self, token: str) -> KeycloakUserType:
-        return self.openid_adapter.userinfo(token)
+        return self._openid_adapter.userinfo(token)
 
     @override
     @ttl_cache_decorator(ttl_seconds=300, maxsize=100)  # Cache for 5 minutes
@@ -652,7 +652,7 @@ class KeycloakAdapter(KeycloakPort):
             ValueError: If getting configuration fails
         """
         try:
-            return self.openid_adapter.well_known()
+            return self._openid_adapter.well_known()
         except KeycloakError as e:
             raise ValueError(f"Failed to get well-known config: {e!s}")
 
@@ -668,7 +668,7 @@ class KeycloakAdapter(KeycloakPort):
             ValueError: If getting certificates fails
         """
         try:
-            return self.openid_adapter.certs()
+            return self._openid_adapter.certs()
         except KeycloakError as e:
             raise ValueError(f"Failed to get certificates: {e!s}")
 
@@ -688,7 +688,7 @@ class KeycloakAdapter(KeycloakPort):
         """
         # Authorization codes can only be used once, don't cache
         try:
-            return self.openid_adapter.token(grant_type="authorization_code", code=code, redirect_uri=redirect_uri)
+            return self._openid_adapter.token(grant_type="authorization_code", code=code, redirect_uri=redirect_uri)
         except KeycloakError as e:
             raise ValueError(f"Failed to exchange code for token: {e!s}")
 
@@ -704,7 +704,7 @@ class KeycloakAdapter(KeycloakPort):
         """
         # Tokens are time-sensitive, don't cache
         try:
-            return self.openid_adapter.token(grant_type="client_credentials")
+            return self._openid_adapter.token(grant_type="client_credentials")
         except KeycloakError as e:
             raise ValueError(f"Failed to get client credentials token: {e!s}")
 
@@ -772,7 +772,7 @@ class KeycloakAdapter(KeycloakPort):
         """
         try:
             # Use UMA permissions endpoint to check specific resource and scope
-            permissions = self.openid_adapter.uma_permissions(token, permissions=[f"{resource}#{scope}"])
+            permissions = self._openid_adapter.uma_permissions(token, permissions=[f"{resource}#{scope}"])
 
             # Check if the response indicates permission is granted
             if not permissions or not isinstance(permissions, list):
@@ -912,7 +912,7 @@ class KeycloakAdapter(KeycloakPort):
             ValueError: If logout fails
         """
         try:
-            self.openid_adapter.logout(refresh_token)
+            self._openid_adapter.logout(refresh_token)
         except KeycloakError as e:
             raise ValueError(f"Failed to logout: {e!s}")
 
@@ -930,7 +930,7 @@ class KeycloakAdapter(KeycloakPort):
             ValueError: If token introspection fails
         """
         try:
-            return self.openid_adapter.introspect(token)
+            return self._openid_adapter.introspect(token)
         except KeycloakError as e:
             raise ValueError(f"Failed to introspect token: {e!s}")
 
@@ -948,7 +948,7 @@ class KeycloakAdapter(KeycloakPort):
             ValueError: If token decoding fails
         """
         try:
-            return self.openid_adapter.decode_token(
+            return self._openid_adapter.decode_token(
                 token,
                 key=self.get_public_key(),
             )

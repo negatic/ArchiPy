@@ -145,7 +145,7 @@ class KafkaConfig(BaseModel):
 
     ACKNOWLEDGE_COUNT: int = 1
     AUTO_OFFSET_RESET: str = "earliest"
-    BROKERS_LIST: list[str] = ["localhost:9092"]
+    BROKERS_LIST: list[str] | None = None
     CERT_PEM: str | None = None
     ENABLE_AUTO_COMMIT: bool = False
     MAX_BUFFER_MS: int = 1

@@ -8,6 +8,17 @@ class KafkaAdminPort:
     """Interface for Kafka admin operations."""
 
     @abstractmethod
+    def create_topic(self, topic: str, num_partitions: int = 1, replication_factor: int = 1) -> None:
+        """Create a new Kafka topic.
+
+        Args:
+            topic: Name of the topic to create
+            num_partitions: Number of partitions for the topic
+            replication_factor: Replication factor for the topic
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def delete_topic(self, topics: list[str]) -> None:
         """Delete one or more Kafka topics."""
         raise NotImplementedError

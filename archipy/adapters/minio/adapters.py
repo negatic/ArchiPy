@@ -49,7 +49,7 @@ class MinioAdapter(MinioPort):
         if not endpoint:
             raise InvalidArgumentError(argument_name="endpoint")
 
-        self.client = Minio(
+        self._adapter = Minio(
             endpoint,
             access_key=self.configs.ACCESS_KEY,
             secret_key=self.configs.SECRET_KEY,
@@ -72,7 +72,7 @@ class MinioAdapter(MinioPort):
         try:
             if not bucket_name:
                 raise InvalidArgumentError(argument_name="bucket_name")
-            return self.client.bucket_exists(bucket_name)
+            return self._adapter.bucket_exists(bucket_name)
         except S3Error as e:
             if "NoSuchBucket" in str(e):
                 return False
@@ -84,7 +84,7 @@ class MinioAdapter(MinioPort):
         try:
             if not bucket_name:
                 raise InvalidArgumentError(argument_name="bucket_name")
-            self.client.make_bucket(bucket_name)
+            self._adapter.make_bucket(bucket_name)
             self.clear_all_caches()  # Clear cache since bucket list changed
         except S3Error as e:
             if "BucketAlreadyOwnedByYou" in str(e) or "BucketAlreadyExists" in str(e):
@@ -99,7 +99,7 @@ class MinioAdapter(MinioPort):
         try:
             if not bucket_name:
                 raise InvalidArgumentError(argument_name="bucket_name")
-            self.client.remove_bucket(bucket_name)
+            self._adapter.remove_bucket(bucket_name)
             self.clear_all_caches()  # Clear cache since bucket list changed
         except S3Error as e:
             if "NoSuchBucket" in str(e):
@@ -113,7 +113,7 @@ class MinioAdapter(MinioPort):
     def list_buckets(self) -> list[MinioBucketType]:
         """List all buckets."""
         try:
-            buckets = self.client.list_buckets()
+            buckets = self._adapter.list_buckets()
             return [{"name": b.name, "creation_date": b.creation_date} for b in buckets]
         except S3Error as e:
             if "AccessDenied" in str(e):
@@ -132,7 +132,7 @@ class MinioAdapter(MinioPort):
                         else "bucket_name" if not bucket_name else "object_name" if not object_name else "file_path"
                     ),
                 )
-            self.client.fput_object(bucket_name, object_name, file_path)
+            self._adapter.fput_object(bucket_name, object_name, file_path)
             if hasattr(self.list_objects, "clear_cache"):
                 self.list_objects.clear_cache()  # Clear object list cache
         except S3Error as e:
@@ -154,7 +154,7 @@ class MinioAdapter(MinioPort):
                         else "bucket_name" if not bucket_name else "object_name" if not object_name else "file_path"
                     ),
                 )
-            self.client.fget_object(bucket_name, object_name, file_path)
+            self._adapter.fget_object(bucket_name, object_name, file_path)
         except S3Error as e:
             if "NoSuchBucket" in str(e) or "NoSuchKey" in str(e):
                 raise NotFoundError(resource_type="object") from e
@@ -174,7 +174,7 @@ class MinioAdapter(MinioPort):
                         else "bucket_name" if not bucket_name else "object_name"
                     ),
                 )
-            self.client.remove_object(bucket_name, object_name)
+            self._adapter.remove_object(bucket_name, object_name)
             if hasattr(self.list_objects, "clear_cache"):
                 self.list_objects.clear_cache()  # Clear object list cache
         except S3Error as e:
@@ -197,7 +197,7 @@ class MinioAdapter(MinioPort):
         try:
             if not bucket_name:
                 raise InvalidArgumentError(argument_name="bucket_name")
-            objects = self.client.list_objects(bucket_name, prefix=prefix, recursive=recursive)
+            objects = self._adapter.list_objects(bucket_name, prefix=prefix, recursive=recursive)
             return [
                 {"object_name": obj.object_name, "size": obj.size, "last_modified": obj.last_modified}
                 for obj in objects
@@ -222,7 +222,7 @@ class MinioAdapter(MinioPort):
                         else "bucket_name" if not bucket_name else "object_name"
                     ),
                 )
-            obj = self.client.stat_object(bucket_name, object_name)
+            obj = self._adapter.stat_object(bucket_name, object_name)
         except S3Error as e:
             if "NoSuchBucket" in str(e) or "NoSuchKey" in str(e):
                 raise NotFoundError(resource_type="object") from e
@@ -250,7 +250,7 @@ class MinioAdapter(MinioPort):
                         else "bucket_name" if not bucket_name else "object_name"
                     ),
                 )
-            return self.client.presigned_get_object(bucket_name, object_name, expires=timedelta(seconds=expires))
+            return self._adapter.presigned_get_object(bucket_name, object_name, expires=timedelta(seconds=expires))
         except S3Error as e:
             if "NoSuchBucket" in str(e) or "NoSuchKey" in str(e):
                 raise NotFoundError(resource_type="object") from e
@@ -272,7 +272,7 @@ class MinioAdapter(MinioPort):
                         else "bucket_name" if not bucket_name else "object_name"
                     ),
                 )
-            return self.client.presigned_put_object(bucket_name, object_name, expires=timedelta(seconds=expires))
+            return self._adapter.presigned_put_object(bucket_name, object_name, expires=timedelta(seconds=expires))
         except S3Error as e:
             if "NoSuchBucket" in str(e):
                 raise NotFoundError(resource_type="bucket") from e
@@ -294,7 +294,7 @@ class MinioAdapter(MinioPort):
                         else "bucket_name" if not bucket_name else "policy"
                     ),
                 )
-            self.client.set_bucket_policy(bucket_name, policy)
+            self._adapter.set_bucket_policy(bucket_name, policy)
         except S3Error as e:
             if "NoSuchBucket" in str(e):
                 raise NotFoundError(resource_type="bucket") from e
@@ -311,7 +311,7 @@ class MinioAdapter(MinioPort):
         try:
             if not bucket_name:
                 raise InvalidArgumentError(argument_name="bucket_name")
-            policy = self.client.get_bucket_policy(bucket_name)
+            policy = self._adapter.get_bucket_policy(bucket_name)
         except S3Error as e:
             if "NoSuchBucket" in str(e):
                 raise NotFoundError(resource_type="bucket") from e
