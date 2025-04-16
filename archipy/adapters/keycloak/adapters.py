@@ -12,6 +12,7 @@ from archipy.adapters.keycloak.ports import (
     KeycloakRoleType,
     KeycloakTokenType,
     KeycloakUserType,
+    PublicKeyType,
 )
 from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import KeycloakConfig
@@ -122,7 +123,7 @@ class KeycloakAdapter(KeycloakPort):
 
     @override
     @ttl_cache_decorator(ttl_seconds=3600, maxsize=1)  # Cache for 1 hour, public key rarely changes
-    def get_public_key(self) -> Any:
+    def get_public_key(self) -> PublicKeyType:
         """Get the public key used to verify tokens.
 
         Returns:
@@ -228,7 +229,7 @@ class KeycloakAdapter(KeycloakPort):
             raise ValueError(f"Failed to get user info: {e!s}")
 
     @ttl_cache_decorator(ttl_seconds=30, maxsize=100)  # Cache for 30 seconds
-    def _get_userinfo_cached(self, token):
+    def _get_userinfo_cached(self, token: str) -> KeycloakUserType:
         return self.openid_adapter.userinfo(token)
 
     @override
@@ -1110,7 +1111,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
 
     @override
     @alru_cache(ttl=3600, maxsize=1)  # Cache for 1 hour, public key rarely changes
-    async def get_public_key(self) -> Any:
+    async def get_public_key(self) -> PublicKeyType:
         """Get the public key used to verify tokens.
 
         Returns:
@@ -1206,7 +1207,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         Raises:
             ValueError: If getting user info fails
         """
-        if not self.validate_token(token):
+        if not await self.validate_token(token):
             logger.error("Invalid token provided for userinfo request")
             raise ValueError("Invalid token provided")
         try:
@@ -1216,7 +1217,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             raise ValueError(f"Failed to get user info: {e!s}")
 
     @alru_cache(ttl=30, maxsize=100)  # Cache for 30 seconds
-    async def _get_userinfo_cached(self, token):
+    async def _get_userinfo_cached(self, token: str) -> KeycloakUserType:
         return await self.openid_adapter.a_userinfo(token)
 
     @override

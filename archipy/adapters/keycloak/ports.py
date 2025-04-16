@@ -10,6 +10,10 @@ KeycloakUserType = dict[str, Any]
 KeycloakGroupType = dict[str, Any]
 KeycloakTokenType = dict[str, Any]
 
+# Define a type for the public key return type
+# Using Any for JWK.JWK object, since we don't want to depend on jwcrypto types
+PublicKeyType = Any
+
 
 class KeycloakPort:
     """Interface for Keycloak operations providing a standardized access pattern.
@@ -118,7 +122,7 @@ class KeycloakPort:
         raise NotImplementedError
 
     @abstractmethod
-    def has_any_of_roles(self, token: str, role_names: list[str]) -> bool:
+    def has_any_of_roles(self, token: str, role_names: set[str]) -> bool:
         """Check if a user has any of the specified roles."""
         raise NotImplementedError
 
@@ -185,7 +189,7 @@ class KeycloakPort:
 
     # System Operations
     @abstractmethod
-    def get_public_key(self) -> Any:
+    def get_public_key(self) -> PublicKeyType:
         """Get the public key used to verify tokens."""
         raise NotImplementedError
 
@@ -323,7 +327,7 @@ class AsyncKeycloakPort:
         raise NotImplementedError
 
     @abstractmethod
-    async def has_any_of_roles(self, token: str, role_names: list[str]) -> bool:
+    async def has_any_of_roles(self, token: str, role_names: set[str]) -> bool:
         """Check if a user has any of the specified roles."""
         raise NotImplementedError
 
@@ -390,7 +394,7 @@ class AsyncKeycloakPort:
 
     # System Operations
     @abstractmethod
-    async def get_public_key(self) -> Any:
+    async def get_public_key(self) -> PublicKeyType:
         """Get the public key used to verify tokens."""
         raise NotImplementedError
 
