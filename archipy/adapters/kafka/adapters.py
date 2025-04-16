@@ -18,13 +18,22 @@ logger = logging.getLogger(__name__)
 
 
 class KafkaAdminAdapter(KafkaAdminPort):
-    """Synchronous Kafka admin adapter."""
+    """Synchronous Kafka admin adapter.
+
+    This adapter provides synchronous administrative operations for Kafka topics.
+    It implements the KafkaAdminPort interface and handles topic creation, deletion,
+    and listing operations.
+    """
 
     def __init__(self, kafka_configs: KafkaConfig | None = None) -> None:
-        """Initialize the admin adapter with Kafka configuration.
+        """Initializes the admin adapter with Kafka configuration.
 
         Args:
-            kafka_configs: Optional Kafka configuration. If None, uses global config.
+            kafka_configs (KafkaConfig | None, optional): Kafka configuration. If None,
+                uses global config. Defaults to None.
+
+        Raises:
+            InternalError: If there is an error initializing the admin client.
         """
         configs: KafkaConfig = kafka_configs or BaseConfig.global_config().KAFKA
         try:
@@ -45,25 +54,32 @@ class KafkaAdminAdapter(KafkaAdminPort):
 
     @override
     def create_topic(self, topic: str, num_partitions: int = 1, replication_factor: int = 1) -> None:
-        """Create a new Kafka topic.
+        """Creates a new Kafka topic.
 
         Args:
-            topic: Name of the topic to create
-            num_partitions: Number of partitions for the topic
-            replication_factor: Replication factor for the topic
+            topic (str): Name of the topic to create.
+            num_partitions (int, optional): Number of partitions for the topic. Defaults to 1.
+            replication_factor (int, optional): Replication factor for the topic. Defaults to 1.
+
+        Raises:
+            InternalError: If there is an error creating the topic.
         """
         try:
             new_topic = NewTopic(topic, num_partitions, replication_factor)
             self.adapter.create_topics([new_topic])
-            logger.debug(
-                f"Created topic {topic} with {num_partitions} partitions and replication factor {replication_factor}",
-            )
         except Exception as e:
             raise InternalError(details=f"Failed to create topic {topic}", lang=LanguageType.FA) from e
 
     @override
     def delete_topic(self, topics: list[str]) -> None:
-        """Delete one or more Kafka topics."""
+        """Deletes one or more Kafka topics.
+
+        Args:
+            topics (list[str]): List of topic names to delete.
+
+        Raises:
+            InternalError: If there is an error deleting the topics.
+        """
         try:
             self.adapter.delete_topics(topics)
             logger.debug("Deleted topics", topics)
@@ -76,7 +92,19 @@ class KafkaAdminAdapter(KafkaAdminPort):
         topic: str | None = None,
         timeout: int = 1,
     ) -> ClusterMetadata:
-        """List Kafka topics."""
+        """Lists Kafka topics.
+
+        Args:
+            topic (str | None, optional): Specific topic to list. If None, lists all topics.
+                Defaults to None.
+            timeout (int, optional): Timeout in seconds for the operation. Defaults to 1.
+
+        Returns:
+            ClusterMetadata: Metadata about the Kafka cluster and topics.
+
+        Raises:
+            UnavailableError: If the Kafka service is unavailable.
+        """
         try:
             return self.adapter.list_topics(topic=topic, timeout=timeout)
         except Exception as e:
@@ -84,7 +112,12 @@ class KafkaAdminAdapter(KafkaAdminPort):
 
 
 class KafkaConsumerAdapter(KafkaConsumerPort):
-    """Synchronous Kafka consumer adapter."""
+    """Synchronous Kafka consumer adapter.
+
+    This adapter provides synchronous message consumption from Kafka topics.
+    It implements the KafkaConsumerPort interface and handles message polling,
+    batch consumption, and offset management.
+    """
 
     def __init__(
         self,
@@ -93,13 +126,21 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
         partition_list: list[TopicPartition] | None = None,
         kafka_configs: KafkaConfig | None = None,
     ) -> None:
-        """Initialize with Kafka configuration and subscription.
+        """Initializes the consumer adapter with Kafka configuration and subscription.
 
         Args:
-            group_id: Consumer group ID.
-            topic_list: List of topics to subscribe to.
-            partition_list: List of partitions to assign.
-            kafka_configs: Optional Kafka configuration.
+            group_id (str): Consumer group ID.
+            topic_list (list[str] | None, optional): List of topics to subscribe to.
+                Defaults to None.
+            partition_list (list[TopicPartition] | None, optional): List of partitions
+                to assign. Defaults to None.
+            kafka_configs (KafkaConfig | None, optional): Kafka configuration. If None,
+                uses global config. Defaults to None.
+
+        Raises:
+            InvalidArgumentError: If both topic_list and partition_list are provided or
+                neither is provided.
+            InternalError: If there is an error initializing the consumer.
         """
         configs: KafkaConfig = kafka_configs or BaseConfig.global_config().KAFKA
         self._adapter: Consumer = self._get_adapter(group_id, configs)
@@ -116,7 +157,18 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
 
     @staticmethod
     def _get_adapter(group_id: str, configs: KafkaConfig) -> Consumer:
-        """Create and configure Consumer."""
+        """Creates and configures a Kafka Consumer instance.
+
+        Args:
+            group_id (str): Consumer group ID.
+            configs (KafkaConfig): Kafka configuration.
+
+        Returns:
+            Consumer: Configured Kafka Consumer instance.
+
+        Raises:
+            InternalError: If there is an error creating the consumer.
+        """
         try:
             broker_list_csv = ",".join(configs.BROKERS_LIST)
             config = {
@@ -141,7 +193,19 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
 
     @override
     def batch_consume(self, messages_number: int = 500, timeout: int = 1) -> list[Message]:
-        """Consume a batch of messages."""
+        """Consumes a batch of messages from subscribed topics.
+
+        Args:
+            messages_number (int, optional): Maximum number of messages to consume.
+                Defaults to 500.
+            timeout (int, optional): Timeout in seconds for the operation. Defaults to 1.
+
+        Returns:
+            list[Message]: List of consumed messages.
+
+        Raises:
+            InternalError: If there is an error consuming messages.
+        """
         try:
             result_list: list[Message] = []
             messages: list[Message] = self._adapter.consume(num_messages=messages_number, timeout=timeout)
@@ -160,7 +224,17 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
 
     @override
     def poll(self, timeout: int = 1) -> Message | None:
-        """Poll for a single message."""
+        """Polls for a single message from subscribed topics.
+
+        Args:
+            timeout (int, optional): Timeout in seconds for the operation. Defaults to 1.
+
+        Returns:
+            Message | None: The consumed message or None if no message was received.
+
+        Raises:
+            InternalError: If there is an error polling for messages.
+        """
         try:
             message: Message | None = self._adapter.poll(timeout)
             if message is None:
@@ -178,7 +252,20 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
 
     @override
     def commit(self, message: Message, asynchronous: bool = True) -> None | list[TopicPartition]:
-        """Commit message offset."""
+        """Commits the offset of a consumed message.
+
+        Args:
+            message (Message): The message whose offset should be committed.
+            asynchronous (bool, optional): Whether to commit asynchronously.
+                Defaults to True.
+
+        Returns:
+            None | list[TopicPartition]: None for synchronous commits, or list of committed
+                partitions for asynchronous commits.
+
+        Raises:
+            InternalError: If there is an error committing the message offset.
+        """
         try:
             return self._adapter.commit(message=message, asynchronous=asynchronous)
         except Exception as e:
@@ -186,7 +273,14 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
 
     @override
     def subscribe(self, topic_list: list[str]) -> None:
-        """Subscribe to topics."""
+        """Subscribes to a list of topics.
+
+        Args:
+            topic_list (list[str]): List of topic names to subscribe to.
+
+        Raises:
+            InternalError: If there is an error subscribing to topics.
+        """
         try:
             self._adapter.subscribe(topic_list)
             logger.debug("Subscribed to topics", topic_list)
@@ -198,7 +292,14 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
 
     @override
     def assign(self, partition_list: list[TopicPartition]) -> None:
-        """Assign partitions."""
+        """Assigns specific partitions to the consumer.
+
+        Args:
+            partition_list (list[TopicPartition]): List of partitions to assign.
+
+        Raises:
+            InternalError: If there is an error assigning partitions.
+        """
         try:
             self._adapter.assign(partition_list)
             for partition in partition_list:
@@ -212,14 +313,23 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
 
 
 class KafkaProducerAdapter(KafkaProducerPort):
-    """Synchronous Kafka producer adapter."""
+    """Synchronous Kafka producer adapter.
+
+    This adapter provides synchronous message production to Kafka topics.
+    It implements the KafkaProducerPort interface and handles message production,
+    flushing, and health validation.
+    """
 
     def __init__(self, topic_name: str, kafka_configs: KafkaConfig | None = None) -> None:
-        """Initialize with Kafka configuration and topic.
+        """Initializes the producer adapter with Kafka configuration and topic.
 
         Args:
-            topic_name: Topic to produce to.
-            kafka_configs: Optional Kafka configuration.
+            topic_name (str): Topic to produce to.
+            kafka_configs (KafkaConfig | None, optional): Kafka configuration. If None,
+                uses global config. Defaults to None.
+
+        Raises:
+            InternalError: If there is an error initializing the producer.
         """
         configs: KafkaConfig = kafka_configs or BaseConfig.global_config().KAFKA
         self.topic = topic_name
@@ -227,7 +337,17 @@ class KafkaProducerAdapter(KafkaProducerPort):
 
     @staticmethod
     def _get_adapter(configs: KafkaConfig) -> Producer:
-        """Create and configure Producer."""
+        """Creates and configures a Kafka Producer instance.
+
+        Args:
+            configs (KafkaConfig): Kafka configuration.
+
+        Returns:
+            Producer: Configured Kafka Producer instance.
+
+        Raises:
+            InternalError: If there is an error creating the producer.
+        """
         try:
             broker_list_csv = ",".join(configs.BROKERS_LIST)
             config = {
@@ -253,12 +373,27 @@ class KafkaProducerAdapter(KafkaProducerPort):
 
     @staticmethod
     def _pre_process_message(message: str | bytes) -> bytes:
-        """Convert message to bytes."""
+        """Converts a message to bytes if it's a string.
+
+        Args:
+            message (str | bytes): The message to process.
+
+        Returns:
+            bytes: The message in bytes format.
+        """
         return message if isinstance(message, bytes) else message.encode("utf-8")
 
     @staticmethod
     def _delivery_callback(error: KafkaError | None, message: Message) -> None:
-        """Handle delivery result."""
+        """Handles the delivery result of a produced message.
+
+        Args:
+            error (KafkaError | None): Error if the delivery failed, None if successful.
+            message (Message): The message that was delivered.
+
+        Raises:
+            InternalError: If the message delivery failed.
+        """
         if error:
             logger.error("Message failed delivery", error)
             logger.debug("Message = %s", message)
@@ -270,7 +405,14 @@ class KafkaProducerAdapter(KafkaProducerPort):
 
     @override
     def produce(self, message: str | bytes) -> None:
-        """Produce a message to a topic."""
+        """Produces a message to the configured topic.
+
+        Args:
+            message (str | bytes): The message to produce.
+
+        Raises:
+            InternalError: If there is an error producing the message.
+        """
         try:
             processed_message = self._pre_process_message(message)
             self._adapter.produce(self.topic, processed_message, on_delivery=self._delivery_callback)
@@ -282,7 +424,15 @@ class KafkaProducerAdapter(KafkaProducerPort):
 
     @override
     def flush(self, timeout: int | None = None) -> None:
-        """Flush pending messages."""
+        """Flushes any pending messages to the broker.
+
+        Args:
+            timeout (int | None, optional): Maximum time to wait for messages to be delivered.
+                If None, wait indefinitely. Defaults to None.
+
+        Raises:
+            InternalError: If there is an error flushing messages.
+        """
         try:
             self._adapter.flush(timeout=timeout)
         except Exception as e:
@@ -293,7 +443,11 @@ class KafkaProducerAdapter(KafkaProducerPort):
 
     @override
     def validate_healthiness(self) -> None:
-        """Validate producer health."""
+        """Validates the health of the producer connection.
+
+        Raises:
+            UnavailableError: If the Kafka service is unavailable.
+        """
         try:
             self.list_topics(self.topic, timeout=1)
         except Exception as e:
@@ -308,7 +462,19 @@ class KafkaProducerAdapter(KafkaProducerPort):
         topic: str | None = None,
         timeout: int = 1,
     ) -> ClusterMetadata:
-        """List Kafka topics."""
+        """Lists Kafka topics.
+
+        Args:
+            topic (str | None, optional): Specific topic to list. If None, lists all topics.
+                Defaults to None.
+            timeout (int, optional): Timeout in seconds for the operation. Defaults to 1.
+
+        Returns:
+            ClusterMetadata: Metadata about the Kafka cluster and topics.
+
+        Raises:
+            UnavailableError: If the Kafka service is unavailable.
+        """
         try:
             topic = topic or self.topic
             return self._adapter.list_topics(topic=topic, timeout=timeout)
