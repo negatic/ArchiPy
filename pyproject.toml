@@ -195,7 +195,7 @@ target-version = "py313"
 "archipy/adapters/redis/adapters.py" = ["ANN401", "FBT001", "FBT002", "D107", "RET504", "PGH003"]
 "archipy/adapters/redis/mocks.py" = ["D107", "ARG002", "ARG004", "ANN401"]
 "archipy//helpers/utils/keycloak_utils.py" = ["B008"]
-"archipy/adapters/keycloak/adapters.py" = ["G004", "TRY400", "TRY003", "B904", "BLE001", "TRY300"]
+"archipy/adapters/keycloak/adapters.py" = []
 "features/steps/*" = ["F811"]
 "scripts/*" = ["S603", "S607"]
 
@@ -308,14 +308,11 @@ module = [
     "jdatetime.*", # Apply overrides to jdatetime
     "sentry_sdk.*", # Apply overrides to sentry-sdk
     "apscheduler.*", # Apply overrides to apscheduler
-    "archipy.adapters.redis.*"
+    "archipy.adapters.redis.*",
+    "archipy.adapters.keycloak.*"
 ]
 ignore_missing_imports = true
 disable_error_code = ["no-any-return", "misc", "return-value", "arg-type", "type-var", "unused-ignore", "no-untyped-call"]
-
-[[tool.mypy.overrides]]
-module = ["archipy.adapters.keycloak.*"]
-ignore_errors = true
 
 [tool.config]
 pyproject_root_var = "pyproject"

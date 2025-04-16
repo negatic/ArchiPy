@@ -1,7 +1,7 @@
-from typing import Literal
+from typing import Any, Literal, Self
 from urllib.parse import urlparse
 
-from pydantic import BaseModel, Field, SecretStr, model_validator, PostgresDsn
+from pydantic import BaseModel, Field, PostgresDsn, SecretStr, model_validator
 
 
 class ElasticSearchConfig(BaseModel):
@@ -11,11 +11,11 @@ class ElasticSearchConfig(BaseModel):
     and batch operation parameters.
     """
 
-    SEARCH_HOSTS: list = []
+    SEARCH_HOSTS: list[str] = []
     SEARCH_HTTP_USER_NAME: str | None = None
     SEARCH_HTTP_PASSWORD: str | None = None
     SEARCH_HTTPS_VERIFY_CERTS: bool = False
-    SEARCH_KWARG: dict = {}
+    SEARCH_KWARG: dict[str, Any] = {}
     SEARCH_BATCH_INTERVAL_THRESHOLD_IN_SECONDS: int = 1
     SEARCH_BATCH_DOC_COUNT_THRESHOLD: int = 500
 
@@ -60,13 +60,13 @@ class FastAPIConfig(BaseModel):
     ACCESS_LOG: bool = True
     BACKLOG: int = 2048
     DATE_HEADER: bool = True
-    FORWARDED_ALLOW_IPS: list | None = None
+    FORWARDED_ALLOW_IPS: list[str] | None = None
     LIMIT_CONCURRENCY: int | None = None
     LIMIT_MAX_REQUESTS: int | None = None
     CORS_MIDDLEWARE_ALLOW_CREDENTIALS: bool = True
-    CORS_MIDDLEWARE_ALLOW_HEADERS: list = ["*"]
-    CORS_MIDDLEWARE_ALLOW_METHODS: list = ["*"]
-    CORS_MIDDLEWARE_ALLOW_ORIGINS: list = ["*"]
+    CORS_MIDDLEWARE_ALLOW_HEADERS: list[str] = ["*"]
+    CORS_MIDDLEWARE_ALLOW_METHODS: list[str] = ["*"]
+    CORS_MIDDLEWARE_ALLOW_ORIGINS: list[str] = ["*"]
     PROXY_HEADERS: bool = True
     RELOAD: bool = False
     SERVER_HEADER: bool = True
@@ -145,7 +145,7 @@ class KafkaConfig(BaseModel):
 
     ACKNOWLEDGE_COUNT: int = 1
     AUTO_OFFSET_RESET: str = "earliest"
-    BROKERS_LIST: list = ["localhost:9092"]
+    BROKERS_LIST: list[str] = ["localhost:9092"]
     CERT_PEM: str | None = None
     ENABLE_AUTO_COMMIT: bool = False
     MAX_BUFFER_MS: int = 1
@@ -220,20 +220,18 @@ class SqlAlchemyConfig(BaseModel):
     DB_URL: PostgresDsn | None = None
 
     @model_validator(mode="after")
-    def build_connection_url(self) -> "SqlAlchemyConfig":
+    def build_connection_url(self) -> Self:
         """Build and populate DB_URL if not provided but all component parts are present."""
         if self.DB_URL is not None:
             return self
 
         if all([self.USERNAME, self.HOST, self.PORT, self.DATABASE]):
             password_part = f":{self.PASSWORD}" if self.PASSWORD else ""
-            url_str = f"{self.DRIVER_NAME}://{self.USERNAME}{password_part}@{self.HOST}:{self.PORT}/{self.DATABASE}"
-            self.DB_URL = self.model_construct(DB_URL=url_str).DB_URL
-
+            self.DB_URL = f"{self.DRIVER_NAME}://{self.USERNAME}{password_part}@{self.HOST}:{self.PORT}/{self.DATABASE}"
         return self
 
     @model_validator(mode="after")
-    def extract_connection_parts(self) -> "SqlAlchemyConfig":
+    def extract_connection_parts(self) -> Self:
         """Extract connection parts from DB_URL if provided but component parts are missing."""
         if self.DB_URL is None:
             return self
