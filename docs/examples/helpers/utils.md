@@ -50,7 +50,7 @@ try:
     payload = JWTUtils.verify_access_token(access_token)
     logger.info(f"Token valid for user: {payload['sub']}")
 except (InvalidTokenError, TokenExpiredError) as e:
-    logger.error(f"Invalid token: {e}")
+    logger.exception(f"Invalid token: {e}")
 
 # Get token expiration time
 expiry = JWTUtils.get_token_expiry(access_token)
@@ -118,14 +118,14 @@ try:
     link = FileUtils.create_secure_link("/path/to/document.pdf", minutes=60)
     logger.info(f"Secure link: {link}")
 except (InvalidArgumentError, OutOfRangeError) as e:
-    logger.error(f"Error creating link: {e}")
+    logger.exception(f"Error creating link: {e}")
 
 # Validate file name against allowed extensions
 try:
     is_valid = FileUtils.validate_file_name("document.pdf")
     logger.info(f"File is valid: {is_valid}")
 except InvalidArgumentError as e:
-    logger.error(f"Error validating file: {e}")
+    logger.exception(f"Error validating file: {e}")
 ```
 
 ## base_utils
@@ -148,7 +148,7 @@ try:
     BaseUtils.validate_iranian_national_code_pattern("1234567891")
     logger.info("National code is valid")
 except Exception as e:
-    logger.error(f"Invalid national code: {e}")
+    logger.exception(f"Invalid national code: {e}")
 ```
 
 ## error_utils

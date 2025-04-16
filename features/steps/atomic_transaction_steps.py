@@ -80,7 +80,7 @@ def step_given_database_initialized(context):
             os.remove(db_file)
             logger.info(f"Removed existing database file: {db_file}")
         except Exception as e:
-            logger.error(f"Failed to remove existing database file: {e}")
+            logger.exception(f"Failed to remove existing database file: {e}")
             # Generate a new unique name to avoid conflicts
             db_file = os.path.join(temp_dir, f"test_db_{uuid.uuid4().hex}.sqlite")
             logger.info(f"Using alternative database file: {db_file}")
@@ -133,7 +133,7 @@ def step_given_database_initialized(context):
 
             logger.info("Async adapter and schema setup completed")
         except Exception as e:
-            logger.error(f"Error setting up async adapter: {e}")
+            logger.exception(f"Error setting up async adapter: {e}")
 
 
 @given("test entities are defined")
@@ -504,7 +504,7 @@ def step_when_entity_updated_in_atomic(context):
 
         # Verify we got the entity before updating
         if entity is None:
-            logger.error(f"Entity with UUID {entity_uuid} not found for update")
+            logger.exception(f"Entity with UUID {entity_uuid} not found for update")
             assert False, f"Entity with UUID {entity_uuid} not found for update"
 
         # Store the original description for verification
@@ -548,12 +548,12 @@ def step_then_entity_properties_reflect_updates(context):
 
         # Debug log to help troubleshoot
         if entity is None:
-            logger.error(f"Entity with UUID {entity_uuid} not found during verification")
+            logger.exception(f"Entity with UUID {entity_uuid} not found during verification")
             # List all entities in the database for debugging
             all_entities = session.query(TestEntity).all()
-            logger.error(f"Found {len(all_entities)} entities in database")
+            logger.exception(f"Found {len(all_entities)} entities in database")
             for e in all_entities:
-                logger.error(f"  Entity UUID: {e.test_uuid}, Description: {e.description}")
+                logger.exception(f"  Entity UUID: {e.test_uuid}, Description: {e.description}")
 
         # Verify updates
         assert entity is not None, "Updated entity not found"

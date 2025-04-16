@@ -153,7 +153,7 @@ def safe_run_async(func):
         try:
             scenario_context = get_current_scenario_context(context)
         except AttributeError as e:
-            logger.error(f"Failed to get scenario context: {e}")
+            logger.exception(f"Failed to get scenario context: {e}")
             raise
 
         # Safely get or create an event loop
@@ -176,23 +176,23 @@ def safe_run_async(func):
 
             # Make sure we have the async adapter available
             if not hasattr(scenario_context, "async_adapter") or scenario_context.async_adapter is None:
-                logger.error("No async adapter available in the scenario context")
+                logger.exception("No async adapter available in the scenario context")
                 raise RuntimeError("Async adapter not properly configured")
 
             try:
                 return await func(context, *args, **kwargs)
             except Exception as e:
-                logger.error(f"Error in async function execution: {e}")
+                logger.exception(f"Error in async function execution: {e}")
                 # Print detailed exception info for debugging
                 import traceback
 
-                logger.error(traceback.format_exc())
+                logger.exception(traceback.format_exc())
                 raise
 
         try:
             return loop.run_until_complete(run_func())
         except Exception as e:
-            logger.error(f"Error running async function: {e}")
+            logger.exception(f"Error running async function: {e}")
             raise
 
     return wrapper
@@ -214,7 +214,7 @@ class SafeAsyncContextManager:
         try:
             self.scenario_context = get_current_scenario_context(context)
         except AttributeError as e:
-            self.logger.error(f"Failed to get scenario context: {e}")
+            self.logger.exception(f"Failed to get scenario context: {e}")
             raise
 
     def __enter__(self):
@@ -238,7 +238,7 @@ class SafeAsyncContextManager:
             try:
                 self.loop.run_until_complete(setup_task())
             except Exception as e:
-                self.logger.error(f"Error setting up main task: {e}")
+                self.logger.exception(f"Error setting up main task: {e}")
 
         return self
 
@@ -258,7 +258,7 @@ class SafeAsyncContextManager:
         try:
             return self.loop.run_until_complete(coro)
         except Exception as e:
-            self.logger.error(f"Error running coroutine: {e}")
+            self.logger.exception(f"Error running coroutine: {e}")
             raise
 
 

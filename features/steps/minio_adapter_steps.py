@@ -28,7 +28,7 @@ def step_configured_adapter(context):
         adapter.list_buckets()
         context.logger.info("Successfully connected to MinIO server")
     except Exception as e:
-        context.logger.error(f"Failed to connect to MinIO: {e!s}")
+        context.logger.exception(f"Failed to connect to MinIO: {e!s}")
         raise
 
 

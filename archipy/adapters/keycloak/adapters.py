@@ -94,8 +94,7 @@ class KeycloakAdapter(KeycloakPort):
                 timeout=self.configs.TIMEOUT,
             )
             logger.debug("Admin client initialized successfully")
-        except KeycloakError as e:
-            logger.error(f"Failed to initialize admin client: {e!s}")
+        except KeycloakError:
             self._admin_adapter = None
             self._admin_token_expiry = 0
 
@@ -136,7 +135,6 @@ class KeycloakAdapter(KeycloakPort):
             key = f"-----BEGIN PUBLIC KEY-----\n{keys_info}\n-----END PUBLIC KEY-----"
             return jwk.JWK.from_pem(key.encode("utf-8"))
         except Exception as e:
-            logger.error(f"Failed to get public key: {e!s}")
             raise ValueError(f"Failed to get public key: {e!s}")
 
     @override
@@ -163,7 +161,6 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self.openid_adapter.token(grant_type="password", username=username, password=password)
         except KeycloakError as e:
-            logger.error(f"Failed to get token: {e!s}")
             raise ValueError(f"Failed to get token: {e!s}")
 
     @override
@@ -182,7 +179,6 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self.openid_adapter.refresh_token(refresh_token)
         except KeycloakError as e:
-            logger.error(f"Failed to refresh token: {e!s}")
             raise ValueError(f"Failed to refresh token: {e!s}")
 
     @override
@@ -220,12 +216,10 @@ class KeycloakAdapter(KeycloakPort):
             ValueError: If getting user info fails
         """
         if not self.validate_token(token):
-            logger.error("Invalid token provided for userinfo request")
             raise ValueError("Invalid token provided")
         try:
             return self._get_userinfo_cached(token)
         except KeycloakError as e:
-            logger.error(f"Failed to get user info: {e!s}")
             raise ValueError(f"Failed to get user info: {e!s}")
 
     @ttl_cache_decorator(ttl_seconds=30, maxsize=100)  # Cache for 30 seconds
@@ -251,10 +245,8 @@ class KeycloakAdapter(KeycloakPort):
         except KeycloakGetError as e:
             if e.response_code == 404:
                 return None
-            logger.error(f"Failed to get user by ID: {e!s}")
             raise ValueError(f"Failed to get user by ID: {e!s}")
         except KeycloakError as e:
-            logger.error(f"Failed to get user by ID: {e!s}")
             raise ValueError(f"Failed to get user by ID: {e!s}")
 
     @override
@@ -275,7 +267,6 @@ class KeycloakAdapter(KeycloakPort):
             users = self.admin_adapter.get_users({"username": username})
             return users[0] if users else None
         except KeycloakError as e:
-            logger.error(f"Failed to get user by username: {e!s}")
             raise ValueError(f"Failed to get user by username: {e!s}")
 
     @override
@@ -296,7 +287,6 @@ class KeycloakAdapter(KeycloakPort):
             users = self.admin_adapter.get_users({"email": email})
             return users[0] if users else None
         except KeycloakError as e:
-            logger.error(f"Failed to get user by email: {e!s}")
             raise ValueError(f"Failed to get user by email: {e!s}")
 
     @override
@@ -316,7 +306,6 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self.admin_adapter.get_realm_roles_of_user(user_id)
         except KeycloakError as e:
-            logger.error(f"Failed to get user roles: {e!s}")
             raise ValueError(f"Failed to get user roles: {e!s}")
 
     @override
@@ -337,7 +326,6 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self.admin_adapter.get_client_roles_of_user(user_id, client_id)
         except KeycloakError as e:
-            logger.error(f"Failed to get client roles: {e!s}")
             raise ValueError(f"Failed to get client roles: {e!s}")
 
     @override
@@ -459,7 +447,6 @@ class KeycloakAdapter(KeycloakPort):
 
             return user_id
         except KeycloakError as e:
-            logger.error(f"Failed to create user: {e!s}")
             raise ValueError(f"Failed to create user: {e!s}")
 
     @override
@@ -481,7 +468,6 @@ class KeycloakAdapter(KeycloakPort):
             self.clear_all_caches()
 
         except KeycloakError as e:
-            logger.error(f"Failed to update user: {e!s}")
             raise ValueError(f"Failed to update user: {e!s}")
 
     @override
@@ -500,7 +486,6 @@ class KeycloakAdapter(KeycloakPort):
         try:
             self.admin_adapter.set_user_password(user_id, password, temporary)
         except KeycloakError as e:
-            logger.error(f"Failed to reset password: {e!s}")
             raise ValueError(f"Failed to reset password: {e!s}")
 
     @override
@@ -526,7 +511,6 @@ class KeycloakAdapter(KeycloakPort):
                 self.get_user_roles.clear_cache()
 
         except KeycloakError as e:
-            logger.error(f"Failed to assign realm role: {e!s}")
             raise ValueError(f"Failed to assign realm role: {e!s}")
 
     @override
@@ -552,7 +536,6 @@ class KeycloakAdapter(KeycloakPort):
                 self.get_user_roles.clear_cache()
 
         except KeycloakError as e:
-            logger.error(f"Failed to remove realm role: {e!s}")
             raise ValueError(f"Failed to remove realm role: {e!s}")
 
     @override
@@ -581,7 +564,6 @@ class KeycloakAdapter(KeycloakPort):
                 self.get_client_roles_for_user.clear_cache()
 
         except KeycloakError as e:
-            logger.error(f"Failed to assign client role: {e!s}")
             raise ValueError(f"Failed to assign client role: {e!s}")
 
     @override
@@ -613,7 +595,6 @@ class KeycloakAdapter(KeycloakPort):
             created_role = self.admin_adapter.get_realm_role(role_name)
             return created_role
         except KeycloakError as e:
-            logger.error(f"Failed to create realm role: {e!s}")
             raise ValueError(f"Failed to create realm role: {e!s}")
 
     @override
@@ -639,7 +620,6 @@ class KeycloakAdapter(KeycloakPort):
                 self.get_user_roles.clear_cache()
 
         except KeycloakError as e:
-            logger.error(f"Failed to delete realm role: {e!s}")
             raise ValueError(f"Failed to delete realm role: {e!s}")
 
     @override
@@ -658,7 +638,6 @@ class KeycloakAdapter(KeycloakPort):
             service_account_id = self.admin_adapter.get_client_service_account_user(client_id).get("id")
             return service_account_id
         except KeycloakError as e:
-            logger.error(f"Failed to get service account ID: {e!s}")
             raise ValueError(f"Failed to get service account ID: {e!s}")
 
     @override
@@ -675,7 +654,6 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self.openid_adapter.well_known()
         except KeycloakError as e:
-            logger.error(f"Failed to get well-known config: {e!s}")
             raise ValueError(f"Failed to get well-known config: {e!s}")
 
     @override
@@ -692,7 +670,6 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self.openid_adapter.certs()
         except KeycloakError as e:
-            logger.error(f"Failed to get certificates: {e!s}")
             raise ValueError(f"Failed to get certificates: {e!s}")
 
     @override
@@ -713,7 +690,6 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self.openid_adapter.token(grant_type="authorization_code", code=code, redirect_uri=redirect_uri)
         except KeycloakError as e:
-            logger.error(f"Failed to exchange code for token: {e!s}")
             raise ValueError(f"Failed to exchange code for token: {e!s}")
 
     @override
@@ -730,7 +706,6 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self.openid_adapter.token(grant_type="client_credentials")
         except KeycloakError as e:
-            logger.error(f"Failed to get client credentials token: {e!s}")
             raise ValueError(f"Failed to get client credentials token: {e!s}")
 
     @override
@@ -781,7 +756,6 @@ class KeycloakAdapter(KeycloakPort):
 
             return users[:max_results]
         except KeycloakError as e:
-            logger.error(f"Failed to search users: {e!s}")
             raise ValueError(f"Failed to search users: {e!s}")
 
     @override
@@ -814,8 +788,7 @@ class KeycloakAdapter(KeycloakPort):
         except KeycloakError as e:
             logger.debug(f"Permission check failed with Keycloak error: {e!s}")
             return False
-        except Exception as e:
-            logger.error(f"Unexpected error in permission check: {e!s}")
+        except Exception:
             return False
 
     @override
@@ -836,7 +809,6 @@ class KeycloakAdapter(KeycloakPort):
             client = self.admin_adapter.get_client(client_id)
             return client.get("secret", "")
         except KeycloakError as e:
-            logger.error(f"Failed to get client secret: {e!s}")
             raise ValueError(f"Failed to get client secret: {e!s}")
 
     @override
@@ -856,7 +828,6 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self.admin_adapter.get_client_id(client_name)
         except KeycloakError as e:
-            logger.error(f"Failed to get client ID: {e!s}")
             raise ValueError(f"Failed to get client ID: {e!s}")
 
     @override
@@ -873,7 +844,6 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self.admin_adapter.get_realm_roles()
         except KeycloakError as e:
-            logger.error(f"Failed to get realm roles: {e!s}")
             raise ValueError(f"Failed to get realm roles: {e!s}")
 
     @override
@@ -892,7 +862,6 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self.admin_adapter.get_realm_role(role_name)
         except KeycloakError as e:
-            logger.error(f"Failed to get realm role: {e!s}")
             raise ValueError(f"Failed to get realm role: {e!s}")
 
     @override
@@ -915,7 +884,6 @@ class KeycloakAdapter(KeycloakPort):
             if hasattr(self.get_client_roles_for_user, "clear_cache"):
                 self.get_client_roles_for_user.clear_cache()
         except KeycloakError as e:
-            logger.error(f"Failed to remove client role: {e!s}")
             raise ValueError(f"Failed to remove client role: {e!s}")
 
     @override
@@ -931,7 +899,6 @@ class KeycloakAdapter(KeycloakPort):
         try:
             self.admin_adapter.user_logout(user_id)
         except KeycloakError as e:
-            logger.error(f"Failed to clear user sessions: {e!s}")
             raise ValueError(f"Failed to clear user sessions: {e!s}")
 
     @override
@@ -947,7 +914,6 @@ class KeycloakAdapter(KeycloakPort):
         try:
             self.openid_adapter.logout(refresh_token)
         except KeycloakError as e:
-            logger.error(f"Failed to logout: {e!s}")
             raise ValueError(f"Failed to logout: {e!s}")
 
     @override
@@ -966,7 +932,6 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self.openid_adapter.introspect(token)
         except KeycloakError as e:
-            logger.error(f"Failed to introspect token: {e!s}")
             raise ValueError(f"Failed to introspect token: {e!s}")
 
     @override
@@ -988,7 +953,6 @@ class KeycloakAdapter(KeycloakPort):
                 key=self.get_public_key(),
             )
         except KeycloakError as e:
-            logger.error(f"Failed to get token info: {e!s}")
             raise ValueError(f"Failed to get token info: {e!s}")
 
     @override
@@ -1005,7 +969,6 @@ class KeycloakAdapter(KeycloakPort):
             self.admin_adapter.delete_user(user_id=user_id)
             logger.info(f"Successfully deleted user with ID {user_id}")
         except Exception as e:
-            logger.error(f"Failed to delete user with ID {user_id}: {e!s}")
             raise ValueError(f"Failed to delete user: {e!s}")
 
 
@@ -1082,8 +1045,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
                 timeout=self.configs.TIMEOUT,
             )
             logger.debug("Admin client initialized successfully")
-        except KeycloakError as e:
-            logger.error(f"Failed to initialize admin client: {e!s}")
+        except KeycloakError:
             self._admin_adapter = None
             self._admin_token_expiry = 0
 
@@ -1124,7 +1086,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             key = f"-----BEGIN PUBLIC KEY-----\n{keys_info}\n-----END PUBLIC KEY-----"
             return jwk.JWK.from_pem(key.encode("utf-8"))
         except Exception as e:
-            logger.error(f"Failed to get public key: {e!s}")
             raise ValueError(f"Failed to get public key: {e!s}")
 
     @override
@@ -1151,7 +1112,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             return await self.openid_adapter.a_token(grant_type="password", username=username, password=password)
         except KeycloakError as e:
-            logger.error(f"Failed to get token: {e!s}")
             raise ValueError(f"Failed to get token: {e!s}")
 
     @override
@@ -1170,7 +1130,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             return await self.openid_adapter.a_refresh_token(refresh_token)
         except KeycloakError as e:
-            logger.error(f"Failed to refresh token: {e!s}")
             raise ValueError(f"Failed to refresh token: {e!s}")
 
     @override
@@ -1208,12 +1167,10 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             ValueError: If getting user info fails
         """
         if not await self.validate_token(token):
-            logger.error("Invalid token provided for userinfo request")
             raise ValueError("Invalid token provided")
         try:
             return await self._get_userinfo_cached(token)
         except KeycloakError as e:
-            logger.error(f"Failed to get user info: {e!s}")
             raise ValueError(f"Failed to get user info: {e!s}")
 
     @alru_cache(ttl=30, maxsize=100)  # Cache for 30 seconds
@@ -1239,10 +1196,8 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         except KeycloakGetError as e:
             if e.response_code == 404:
                 return None
-            logger.error(f"Failed to get user by ID: {e!s}")
             raise ValueError(f"Failed to get user by ID: {e!s}")
         except KeycloakError as e:
-            logger.error(f"Failed to get user by ID: {e!s}")
             raise ValueError(f"Failed to get user by ID: {e!s}")
 
     @override
@@ -1263,7 +1218,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             users = await self.admin_adapter.a_get_users({"username": username})
             return users[0] if users else None
         except KeycloakError as e:
-            logger.error(f"Failed to get user by username: {e!s}")
             raise ValueError(f"Failed to get user by username: {e!s}")
 
     @override
@@ -1284,7 +1238,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             users = await self.admin_adapter.a_get_users({"email": email})
             return users[0] if users else None
         except KeycloakError as e:
-            logger.error(f"Failed to get user by email: {e!s}")
             raise ValueError(f"Failed to get user by email: {e!s}")
 
     @override
@@ -1304,7 +1257,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             return await self.admin_adapter.a_get_realm_roles_of_user(user_id)
         except KeycloakError as e:
-            logger.error(f"Failed to get user roles: {e!s}")
             raise ValueError(f"Failed to get user roles: {e!s}")
 
     @override
@@ -1325,7 +1277,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             return await self.admin_adapter.a_get_client_roles_of_user(user_id, client_id)
         except KeycloakError as e:
-            logger.error(f"Failed to get client roles: {e!s}")
             raise ValueError(f"Failed to get client roles: {e!s}")
 
     @override
@@ -1447,7 +1398,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
 
             return user_id
         except KeycloakError as e:
-            logger.error(f"Failed to create user: {e!s}")
             raise ValueError(f"Failed to create user: {e!s}")
 
     @override
@@ -1469,7 +1419,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             self.clear_all_caches()
 
         except KeycloakError as e:
-            logger.error(f"Failed to update user: {e!s}")
             raise ValueError(f"Failed to update user: {e!s}")
 
     @override
@@ -1488,7 +1437,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             await self.admin_adapter.a_set_user_password(user_id, password, temporary)
         except KeycloakError as e:
-            logger.error(f"Failed to reset password: {e!s}")
             raise ValueError(f"Failed to reset password: {e!s}")
 
     @override
@@ -1514,7 +1462,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
                 self.get_user_roles.clear_cache()
 
         except KeycloakError as e:
-            logger.error(f"Failed to assign realm role: {e!s}")
             raise ValueError(f"Failed to assign realm role: {e!s}")
 
     @override
@@ -1540,7 +1487,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
                 self.get_user_roles.clear_cache()
 
         except KeycloakError as e:
-            logger.error(f"Failed to remove realm role: {e!s}")
             raise ValueError(f"Failed to remove realm role: {e!s}")
 
     @override
@@ -1569,7 +1515,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
                 self.get_client_roles_for_user.clear_cache()
 
         except KeycloakError as e:
-            logger.error(f"Failed to assign client role: {e!s}")
             raise ValueError(f"Failed to assign client role: {e!s}")
 
     @override
@@ -1601,7 +1546,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             created_role = await self.admin_adapter.a_get_realm_role(role_name)
             return created_role
         except KeycloakError as e:
-            logger.error(f"Failed to create realm role: {e!s}")
             raise ValueError(f"Failed to create realm role: {e!s}")
 
     @override
@@ -1627,7 +1571,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
                 self.get_user_roles.clear_cache()
 
         except KeycloakError as e:
-            logger.error(f"Failed to delete realm role: {e!s}")
             raise ValueError(f"Failed to delete realm role: {e!s}")
 
     @override
@@ -1646,7 +1589,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             service_account = await self.admin_adapter.a_get_client_service_account_user(client_id)
             return service_account.get("id")
         except KeycloakError as e:
-            logger.error(f"Failed to get service account ID: {e!s}")
             raise ValueError(f"Failed to get service account ID: {e!s}")
 
     @override
@@ -1663,7 +1605,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             return await self.openid_adapter.a_well_known()
         except KeycloakError as e:
-            logger.error(f"Failed to get well-known config: {e!s}")
             raise ValueError(f"Failed to get well-known config: {e!s}")
 
     @override
@@ -1680,7 +1621,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             return await self.openid_adapter.a_certs()
         except KeycloakError as e:
-            logger.error(f"Failed to get certificates: {e!s}")
             raise ValueError(f"Failed to get certificates: {e!s}")
 
     @override
@@ -1705,7 +1645,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
                 redirect_uri=redirect_uri,
             )
         except KeycloakError as e:
-            logger.error(f"Failed to exchange code for token: {e!s}")
             raise ValueError(f"Failed to exchange code for token: {e!s}")
 
     @override
@@ -1722,7 +1661,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             return await self.openid_adapter.a_token(grant_type="client_credentials")
         except KeycloakError as e:
-            logger.error(f"Failed to get client credentials token: {e!s}")
             raise ValueError(f"Failed to get client credentials token: {e!s}")
 
     @override
@@ -1773,7 +1711,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
 
             return users[:max_results]
         except KeycloakError as e:
-            logger.error(f"Failed to search users: {e!s}")
             raise ValueError(f"Failed to search users: {e!s}")
 
     @override
@@ -1806,8 +1743,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         except KeycloakError as e:
             logger.debug(f"Permission check failed with Keycloak error: {e!s}")
             return False
-        except Exception as e:
-            logger.error(f"Unexpected error in permission check: {e!s}")
+        except Exception:
             return False
 
     @override
@@ -1828,7 +1764,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             client = await self.admin_adapter.a_get_client(client_id)
             return client.get("secret", "")
         except KeycloakError as e:
-            logger.error(f"Failed to get client secret: {e!s}")
             raise ValueError(f"Failed to get client secret: {e!s}")
 
     @override
@@ -1848,7 +1783,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             return await self.admin_adapter.a_get_client_id(client_name)
         except KeycloakError as e:
-            logger.error(f"Failed to get client ID: {e!s}")
             raise ValueError(f"Failed to get client ID: {e!s}")
 
     @override
@@ -1865,7 +1799,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             return await self.admin_adapter.a_get_realm_roles()
         except KeycloakError as e:
-            logger.error(f"Failed to get realm roles: {e!s}")
             raise ValueError(f"Failed to get realm roles: {e!s}")
 
     @override
@@ -1884,7 +1817,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             return await self.admin_adapter.a_get_realm_role(role_name)
         except KeycloakError as e:
-            logger.error(f"Failed to get realm role: {e!s}")
             raise ValueError(f"Failed to get realm role: {e!s}")
 
     @override
@@ -1907,7 +1839,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             if hasattr(self.get_client_roles_for_user, "clear_cache"):
                 self.get_client_roles_for_user.clear_cache()
         except KeycloakError as e:
-            logger.error(f"Failed to remove client role: {e!s}")
             raise ValueError(f"Failed to remove client role: {e!s}")
 
     @override
@@ -1923,7 +1854,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             await self.admin_adapter.a_user_logout(user_id)
         except KeycloakError as e:
-            logger.error(f"Failed to clear user sessions: {e!s}")
             raise ValueError(f"Failed to clear user sessions: {e!s}")
 
     @override
@@ -1939,7 +1869,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             await self.openid_adapter.a_logout(refresh_token)
         except KeycloakError as e:
-            logger.error(f"Failed to logout: {e!s}")
             raise ValueError(f"Failed to logout: {e!s}")
 
     @override
@@ -1958,7 +1887,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             return await self.openid_adapter.a_introspect(token)
         except KeycloakError as e:
-            logger.error(f"Failed to introspect token: {e!s}")
             raise ValueError(f"Failed to introspect token: {e!s}")
 
     @override
@@ -1980,7 +1908,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
                 key=await self.get_public_key(),
             )
         except KeycloakError as e:
-            logger.error(f"Failed to get token info: {e!s}")
             raise ValueError(f"Failed to get token info: {e!s}")
 
     @override
@@ -1997,5 +1924,4 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             await self.admin_adapter.a_delete_user(user_id=user_id)
             logger.info(f"Successfully deleted user with ID {user_id}")
         except Exception as e:
-            logger.error(f"Failed to delete user with ID {user_id}: {e!s}")
             raise ValueError(f"Failed to delete user: {e!s}")

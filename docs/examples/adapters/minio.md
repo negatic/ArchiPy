@@ -170,11 +170,11 @@ try:
 except AlreadyExistsError:
     logger.warning("Bucket already exists")
 except PermissionDeniedError:
-    logger.error("Permission denied to create bucket")
+    logger.exception("Permission denied to create bucket")
 except InvalidArgumentError as e:
-    logger.error(f"Invalid argument: {e}")
+    logger.exception(f"Invalid argument: {e}")
 except InternalError as e:
-    logger.error(f"Internal error: {e}")
+    logger.exception(f"Internal error: {e}")
 ```
 
 ## Performance Optimization

@@ -63,7 +63,7 @@ def before_scenario(context: Context, scenario: Scenario):
     try:
         scenario_context.store("test_config", BaseConfig.global_config())
     except Exception as e:
-        logger.error(f"Error setting global config: {e}")
+        logger.exception(f"Error setting global config: {e}")
 
     # Set up async test environment if needed
     if "async" in scenario.name.lower() or any("async" in tag.lower() for tag in scenario.tags):
@@ -74,7 +74,7 @@ def before_scenario(context: Context, scenario: Scenario):
             asyncio.set_event_loop(loop)
             scenario_context.store("_async_test_loop", loop)
         except Exception as e:
-            logger.error(f"Error setting up async environment: {e}")
+            logger.exception(f"Error setting up async environment: {e}")
 
 
 def after_scenario(context: Context, scenario: Scenario):

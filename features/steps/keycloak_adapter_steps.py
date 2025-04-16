@@ -88,7 +88,7 @@ def step_user_exists(context, username, password):
             scenario_context.store(f"user_id_{username}", user_id)
         context.logger.info(f"Created user {username} with ID {scenario_context.get(f'user_id_{username}')}")
     except Exception as e:
-        context.logger.error(f"Failed to create user {username}: {e!s}")
+        context.logger.exception(f"Failed to create user {username}: {e!s}")
         raise
 
 
@@ -132,7 +132,7 @@ def step_request_token(context, username, password, adapter_type):
         context.logger.info(f"Requested token for {username}")
     except Exception as e:
         scenario_context.store("token_error", str(e))
-        context.logger.error(f"Token request failed: {e!s}")
+        context.logger.exception(f"Token request failed: {e!s}")
 
 
 @when("I refresh the token using {adapter_type} adapter")

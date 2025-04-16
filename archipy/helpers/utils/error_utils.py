@@ -66,7 +66,7 @@ class ErrorUtils:
             exception (BaseException): The exception to capture and report.
         """
         # Always log the exception locally
-        logging.exception("An exception occurred: %s", str(exception))
+        logging.exception("An exception occurred")
         config: Any = BaseConfig.global_config()
 
         # Report exception to Sentry if enabled

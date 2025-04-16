@@ -74,7 +74,6 @@ class MinioAdapter(MinioPort):
                 raise InvalidArgumentError(argument_name="bucket_name")
             return self.client.bucket_exists(bucket_name)
         except S3Error as e:
-            logger.exception("Failed to check bucket existence")
             if "NoSuchBucket" in str(e):
                 return False
             raise InternalError(details=f"Failed to check bucket existence: {e}") from e
@@ -88,7 +87,6 @@ class MinioAdapter(MinioPort):
             self.client.make_bucket(bucket_name)
             self.clear_all_caches()  # Clear cache since bucket list changed
         except S3Error as e:
-            logger.exception("Failed to create bucket")
             if "BucketAlreadyOwnedByYou" in str(e) or "BucketAlreadyExists" in str(e):
                 raise AlreadyExistsError(resource_type="bucket") from e
             if "AccessDenied" in str(e):
@@ -104,7 +102,6 @@ class MinioAdapter(MinioPort):
             self.client.remove_bucket(bucket_name)
             self.clear_all_caches()  # Clear cache since bucket list changed
         except S3Error as e:
-            logger.exception("Failed to remove bucket")
             if "NoSuchBucket" in str(e):
                 raise NotFoundError(resource_type="bucket") from e
             if "AccessDenied" in str(e):
@@ -119,7 +116,6 @@ class MinioAdapter(MinioPort):
             buckets = self.client.list_buckets()
             return [{"name": b.name, "creation_date": b.creation_date} for b in buckets]
         except S3Error as e:
-            logger.exception("Failed to list buckets")
             if "AccessDenied" in str(e):
                 raise PermissionDeniedError(additional_data={"details": "Permission denied to list buckets"}) from e
             raise InternalError(details=f"Failed to list buckets: {e}") from e
@@ -140,7 +136,6 @@ class MinioAdapter(MinioPort):
             if hasattr(self.list_objects, "clear_cache"):
                 self.list_objects.clear_cache()  # Clear object list cache
         except S3Error as e:
-            logger.exception("Failed to upload object")
             if "NoSuchBucket" in str(e):
                 raise NotFoundError(resource_type="bucket") from e
             if "AccessDenied" in str(e):
@@ -161,7 +156,6 @@ class MinioAdapter(MinioPort):
                 )
             self.client.fget_object(bucket_name, object_name, file_path)
         except S3Error as e:
-            logger.exception("Failed to download object")
             if "NoSuchBucket" in str(e) or "NoSuchKey" in str(e):
                 raise NotFoundError(resource_type="object") from e
             if "AccessDenied" in str(e):
@@ -184,7 +178,6 @@ class MinioAdapter(MinioPort):
             if hasattr(self.list_objects, "clear_cache"):
                 self.list_objects.clear_cache()  # Clear object list cache
         except S3Error as e:
-            logger.exception("Failed to remove object")
             if "NoSuchBucket" in str(e) or "NoSuchKey" in str(e):
                 raise NotFoundError(resource_type="object") from e
             if "AccessDenied" in str(e):
@@ -210,7 +203,6 @@ class MinioAdapter(MinioPort):
                 for obj in objects
             ]
         except S3Error as e:
-            logger.exception("Failed to list objects")
             if "NoSuchBucket" in str(e):
                 raise NotFoundError(resource_type="bucket") from e
             if "AccessDenied" in str(e):
@@ -232,7 +224,6 @@ class MinioAdapter(MinioPort):
                 )
             obj = self.client.stat_object(bucket_name, object_name)
         except S3Error as e:
-            logger.exception("Failed to get object stats")
             if "NoSuchBucket" in str(e) or "NoSuchKey" in str(e):
                 raise NotFoundError(resource_type="object") from e
             if "AccessDenied" in str(e):
@@ -261,7 +252,6 @@ class MinioAdapter(MinioPort):
                 )
             return self.client.presigned_get_object(bucket_name, object_name, expires=timedelta(seconds=expires))
         except S3Error as e:
-            logger.exception("Failed to generate presigned GET URL")
             if "NoSuchBucket" in str(e) or "NoSuchKey" in str(e):
                 raise NotFoundError(resource_type="object") from e
             if "AccessDenied" in str(e):
@@ -284,7 +274,6 @@ class MinioAdapter(MinioPort):
                 )
             return self.client.presigned_put_object(bucket_name, object_name, expires=timedelta(seconds=expires))
         except S3Error as e:
-            logger.exception("Failed to generate presigned PUT URL")
             if "NoSuchBucket" in str(e):
                 raise NotFoundError(resource_type="bucket") from e
             if "AccessDenied" in str(e):
@@ -307,7 +296,6 @@ class MinioAdapter(MinioPort):
                 )
             self.client.set_bucket_policy(bucket_name, policy)
         except S3Error as e:
-            logger.exception("Failed to set bucket policy")
             if "NoSuchBucket" in str(e):
                 raise NotFoundError(resource_type="bucket") from e
             if "AccessDenied" in str(e):
@@ -325,7 +313,6 @@ class MinioAdapter(MinioPort):
                 raise InvalidArgumentError(argument_name="bucket_name")
             policy = self.client.get_bucket_policy(bucket_name)
         except S3Error as e:
-            logger.exception("Failed to get bucket policy")
             if "NoSuchBucket" in str(e):
                 raise NotFoundError(resource_type="bucket") from e
             if "AccessDenied" in str(e):

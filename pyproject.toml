@@ -25,6 +25,7 @@ fakeredis = ["fakeredis (>=2.27.0,<3.0.0)"]
 fastapi = ["fastapi[all] (>=0.115.12)"]
 grpc = ["grpcio (>=1.71.0)", "grpcio-health-checking (>=1.71.0)", "protobuf (>=5.29.4)"]
 jwt = ["pyjwt (>=2.10.1)"]
+kafka = ["confluent-kafka (>=2.9.0,<3.0.0)"]
 kavenegar = ["kavenegar (>=1.1.2)"]
 keycloak = ["python-keycloak (>=5.3.1,<6.0.0)", "cachetools (>=5.5.2,<6.0.0)", "async-lru (>=2.0.5,<3.0.0)"]
 minio = ["minio (>=7.2.5,<8.0.0)", "cachetools (>=5.5.2,<6.0.0)", "async-lru (>=2.0.5,<3.0.0)"]
@@ -124,24 +125,24 @@ extend-exclude = '''
 fix = true
 
 lint.select = [
-    "A",  # flake8-builtins
-    "B",  # flake8-bugbear
-    "BLE",  # flake8-blind-except
-    "C901",  # complex-structure
-    "D",  # pydocstyle
-    "E",  # pycodestyle errors
-    "F",  # pyflakes
-    "G",  # flake8-logging-format
-    "I",  # isort
-    "ASYNC",  # flake8-async
-    "S",  # flake8-bandit
-    "T10",  # flake8-debugger
-    "T20",  # flake8-print
-    "W",  # pycodestyle warnings
-    "RUF",  # Ruff-specific rules
-    "TRY",  # tryceratops
-    "ERA",  # eradicate
-    "ANN",  # flake8-annotations
+    "A", # flake8-builtins
+    "B", # flake8-bugbear
+    "BLE", # flake8-blind-except
+    "C901", # complex-structure
+    "D", # pydocstyle
+    "E", # pycodestyle errors
+    "F", # pyflakes
+    "G", # flake8-logging-format
+    "I", # isort
+    "ASYNC", # flake8-async
+    "S", # flake8-bandit
+    "T10", # flake8-debugger
+    "T20", # flake8-print
+    "W", # pycodestyle warnings
+    "RUF", # Ruff-specific rules
+    "TRY", # tryceratops
+    "ERA", # eradicate
+    "ANN", # flake8-annotations
     "UP", # pyupgrade
     "ICN", # flake8-import-conventions
 ]
@@ -161,11 +162,11 @@ lint.ignore = [
     "S301", # Ignore pickle usage (equivalent to bandit's B301)
     "D100", # Missing docstring in public module
     "D104", # Missing docstring in public package
-     "TRY301",  # Abstract raise into a function
-    "ANN002",  # Missing type annotation for *args
-    "ANN003",  # Missing type annotation for **kwargs
-    "ANN101",  # Missing type annotation for self in method
-    "ANN102",  # Missing type annotation for cls in classmethod
+    "TRY301", # Abstract raise into a function
+    "ANN002", # Missing type annotation for *args
+    "ANN003", # Missing type annotation for **kwargs
+    "ANN101", # Missing type annotation for self in method
+    "ANN102", # Missing type annotation for cls in classmethod
 ]
 
 # Define source directories
@@ -195,7 +196,8 @@ target-version = "py313"
 "archipy/adapters/redis/adapters.py" = ["ANN401", "FBT001", "FBT002", "D107", "RET504", "PGH003"]
 "archipy/adapters/redis/mocks.py" = ["D107", "ARG002", "ARG004", "ANN401"]
 "archipy//helpers/utils/keycloak_utils.py" = ["B008"]
-"archipy/adapters/keycloak/adapters.py" = []
+"archipy/adapters/keycloak/adapters.py" = ["BLE001"]
+"archipy/adapters/kafka/adapters.py" = ["BLE001"]
 "features/steps/*" = ["F811"]
 "scripts/*" = ["S603", "S607"]
 
@@ -293,8 +295,8 @@ warn_unused_ignores = true
 # Enable Pydantic plugin for better type checking
 plugins = [
     "pydantic.mypy", # Pydantic plugin for better type checking
-#    "sqlalchemy.ext.mypy.plugin", # SQLAlchemy plugin for ORM type checking
-#    "fastapi.mypy", # FastAPI plugin for route and dependency type checking
+    #    "sqlalchemy.ext.mypy.plugin", # SQLAlchemy plugin for ORM type checking
+    #    "fastapi.mypy", # FastAPI plugin for route and dependency type checking
 ]
 
 [[tool.mypy.overrides]]
