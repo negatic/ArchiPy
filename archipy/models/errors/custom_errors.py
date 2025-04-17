@@ -643,7 +643,7 @@ class InvalidPasswordError(BaseError):
 
 
 class InsufficientBalanceError(BaseError):
-    """Exception raised when a password does not meet the security requirements."""
+    """Exception raised when an operation fails due to insufficient account balance."""
 
     def __init__(
         self,
