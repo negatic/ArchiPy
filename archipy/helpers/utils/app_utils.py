@@ -230,7 +230,7 @@ class AppUtils:
         config: BaseConfig | None = None,
         *,
         configure_exception_handlers: bool = True,
-        configure_common_responses: bool = True,
+        include_common_responses: bool = True,
         lifespan: Callable[..., AbstractAsyncContextManager] | None = None,
     ) -> FastAPI:
         """Create and configure a FastAPI application.
@@ -238,7 +238,7 @@ class AppUtils:
         Args:
             config (BaseConfig | None, optional): Custom configuration. If not provided, uses global config.
             configure_exception_handlers (bool, optional): Whether to configure exception handlers. Defaults to True.
-            configure_common_responses (bool, optional): Whether to configure common response definitions for all endpoints.
+            include_common_responses (bool, optional): Whether to configure common response definitions for all endpoints.
                                                 Defaults to True.
             lifespan (Callable[..., AbstractAsyncContextManager] | None, optional): Custom lifespan context manager for the app.
                                                                           Defaults to None.
@@ -259,7 +259,7 @@ class AppUtils:
             swagger_ui_parameters=config.FASTAPI.SWAGGER_UI_PARAMS,
             docs_url=config.FASTAPI.DOCS_URL,
             redocs_url=config.FASTAPI.RE_DOCS_URL,
-            responses=cast(dict[int | str, Any], common_responses) if configure_common_responses else None,
+            responses=cast(dict[int | str, Any], common_responses) if include_common_responses else None,
             lifespan=lifespan,
         )
 
