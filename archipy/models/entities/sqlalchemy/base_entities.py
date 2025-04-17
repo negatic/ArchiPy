@@ -1,7 +1,8 @@
+from datetime import datetime
 from typing import ClassVar
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey
-from sqlalchemy.orm import DeclarativeBase, Synonym
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, text
+from sqlalchemy.orm import DeclarativeBase, Mapped, Synonym
 
 from archipy.helpers.utils.base_utils import BaseUtils
 
@@ -21,7 +22,7 @@ class BaseEntity(DeclarativeBase):
     """
 
     __abstract__ = True
-    created_at = Column(DateTime(), default=BaseUtils.get_datetime_now, nullable=False)
+    created_at: Mapped[datetime] = Column(DateTime(), server_default=text("CURRENT_TIMESTAMP"), nullable=False)
 
     @classmethod
     def _is_abstract(cls) -> bool:
