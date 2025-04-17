@@ -640,3 +640,20 @@ class InvalidPasswordError(BaseError):
             error: The error detail or message.
         """
         super().__init__(error, lang, additional_data={"requirements": requirements} if requirements else None)
+
+
+class InsufficientBalanceError(BaseError):
+    """Exception raised when a password does not meet the security requirements."""
+
+    def __init__(
+        self,
+        lang: LanguageType = LanguageType.FA,
+        error: ErrorDetailDTO = ErrorMessageType.INSUFFICIENT_BALANCE.value,
+    ) -> None:
+        """Initializes the exception.
+
+        Args:
+            lang: Language code for the error message (defaults to Persian).
+            error: The error detail or message.
+        """
+        super().__init__(error, lang)

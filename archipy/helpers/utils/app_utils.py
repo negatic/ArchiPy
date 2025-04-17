@@ -255,7 +255,7 @@ class AppUtils:
             swagger_ui_parameters=config.FASTAPI.SWAGGER_UI_PARAMS,
             docs_url=config.FASTAPI.DOCS_URL,
             redocs_url=config.FASTAPI.RE_DOCS_URL,
-            responses=cast(dict[int | str, Any], common_responses),
+            responses=cast(dict[int | str, Any], common_responses) if configure_exception_handlers else None,
             lifespan=lifespan,
         )
 
