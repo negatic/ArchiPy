@@ -31,10 +31,10 @@ class KeycloakUtils:
         cls,
         resource_type_param: str | None = None,
         resource_type: str | None = None,
-        required_roles: set[str] | None = None,
+        required_roles: frozenset[str] | None = None,
         all_roles_required: bool = False,
-        required_permissions: list[tuple[str, str]] | None = None,
-        admin_roles: set[str] | None = None,
+        required_permissions: tuple[tuple[str, str], ...] | None = None,
+        admin_roles: frozenset[str] | None = None,
         lang: LanguageType = DEFAULT_LANG,
     ) -> Callable:
         """FastAPI decorator for Keycloak authentication and resource-based authorization.
@@ -61,7 +61,7 @@ class KeycloakUtils:
             keycloak: KeycloakAdapter = Depends(cls._get_keycloak_adapter),
         ) -> dict:
             if token is None:
-                raise UnauthenticatedError
+                raise UnauthenticatedError(lang=lang)
             token_str = token.credentials  # Extract the token string
             # Validate token
             if not keycloak.validate_token(token_str):
@@ -86,7 +86,10 @@ class KeycloakUtils:
                 # Check if resource exists
                 resource_user = keycloak.get_user_by_id(resource_uuid)
                 if not resource_user:
-                    raise PermissionDeniedError(lang=lang)
+                    raise PermissionDeniedError(
+                        lang=lang,
+                        additional_data={"resource_type": resource_type, "resource_id": resource_uuid},
+                    )
 
                 # Authorization check: either owns the resource or has admin privileges
                 has_admin_privileges = admin_roles and keycloak.has_any_of_roles(token_str, admin_roles)
@@ -100,9 +103,15 @@ class KeycloakUtils:
             if required_roles:
                 if all_roles_required:
                     if not keycloak.has_all_roles(token_str, required_roles):
-                        raise PermissionDeniedError(lang=lang)
+                        raise PermissionDeniedError(
+                            lang=lang,
+                            additional_data={"required_roles": required_roles},
+                        )
                 elif not keycloak.has_any_of_roles(token_str, required_roles):
-                    raise PermissionDeniedError(lang=lang)
+                    raise PermissionDeniedError(
+                        lang=lang,
+                        additional_data={"required_roles": required_roles},
+                    )
 
             # Check permissions if specified
             if required_permissions:
@@ -125,10 +134,10 @@ class KeycloakUtils:
         cls,
         resource_type_param: str | None = None,
         resource_type: str | None = None,
-        required_roles: set[str] | None = None,
+        required_roles: frozenset[str] | None = None,
         all_roles_required: bool = False,
-        required_permissions: list[tuple[str, str]] | None = None,
-        admin_roles: set[str] | None = None,
+        required_permissions: tuple[tuple[str, str], ...] | None = None,
+        admin_roles: frozenset[str] | None = None,
         lang: LanguageType = DEFAULT_LANG,
     ) -> Callable:
         """FastAPI async decorator for Keycloak authentication and resource-based authorization.
@@ -155,7 +164,7 @@ class KeycloakUtils:
             keycloak: AsyncKeycloakAdapter = Depends(cls._get_async_keycloak_adapter),
         ) -> dict:
             if token is None:
-                raise UnauthenticatedError
+                raise UnauthenticatedError(lang=lang)
             token_str = token.credentials  # Extract the token string
 
             # Validate token
@@ -182,7 +191,10 @@ class KeycloakUtils:
                 # Check if resource exists
                 resource_user = await keycloak.get_user_by_id(resource_uuid)
                 if not resource_user:
-                    raise PermissionDeniedError(lang=lang)
+                    raise PermissionDeniedError(
+                        lang=lang,
+                        additional_data={"resource_type": resource_type, "resource_id": resource_uuid},
+                    )
 
                 # Authorization check: either owns the resource or has admin privileges
                 has_admin_privileges = admin_roles and await keycloak.has_any_of_roles(token_str, admin_roles)
@@ -196,9 +208,15 @@ class KeycloakUtils:
             if required_roles:
                 if all_roles_required:
                     if not await keycloak.has_all_roles(token_str, required_roles):
-                        raise PermissionDeniedError(lang=lang)
+                        raise PermissionDeniedError(
+                            lang=lang,
+                            additional_data={"required_roles": required_roles},
+                        )
                 elif not await keycloak.has_any_of_roles(token_str, required_roles):
-                    raise PermissionDeniedError(lang=lang)
+                    raise PermissionDeniedError(
+                        lang=lang,
+                        additional_data={"required_roles": required_roles},
+                    )
 
             # Check permissions if specified
             if required_permissions:

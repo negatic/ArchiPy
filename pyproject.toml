@@ -126,47 +126,48 @@ fix = true
 
 lint.select = [
     "A", # flake8-builtins
+    "ANN", # flake8-annotations
+    "ASYNC", # flake8-async
     "B", # flake8-bugbear
     "BLE", # flake8-blind-except
     "C901", # complex-structure
     "D", # pydocstyle
     "E", # pycodestyle errors
+    "ERA", # eradicate
     "F", # pyflakes
     "G", # flake8-logging-format
     "I", # isort
-    "ASYNC", # flake8-async
+    "ICN", # flake8-import-conventions
+    "RUF", # Ruff-specific rules
     "S", # flake8-bandit
     "T10", # flake8-debugger
     "T20", # flake8-print
-    "W", # pycodestyle warnings
-    "RUF", # Ruff-specific rules
     "TRY", # tryceratops
-    "ERA", # eradicate
-    "ANN", # flake8-annotations
     "UP", # pyupgrade
-    "ICN", # flake8-import-conventions
+    "W", # pycodestyle warnings
 ]
 
 # Explicitly ignore specific rules
 lint.ignore = [
-    "C901", # Function is too complex (McCabe complexity)
-    "RUF001", "RUF003", # String contains ambiguous characters
-    "PLR2004", # Magic value used in comparison
-    "Q000", # Allow single quotes (conflicts with Black's double-quote preference)
-    "TCH002", # Type-checking import issues
-    "PLR0913", # Too many arguments in function (e.g., FastAPI Swagger)
-    "E501", # Line too long (handled by Black)
-    "F811", # Redefinition of unused function
-    "S101", # Ignore assert used (equivalent to bandit's B101)
-    "S403", # Ignore pickle usage (equivalent to bandit's B403)
-    "S301", # Ignore pickle usage (equivalent to bandit's B301)
-    "D100", # Missing docstring in public module
-    "D104", # Missing docstring in public package
-    "TRY301", # Abstract raise into a function
     "ANN002", # Missing type annotation for *args
     "ANN003", # Missing type annotation for **kwargs
     "ANN101", # Missing type annotation for self in method
     "ANN102", # Missing type annotation for cls in classmethod
+    "C901", # Function is too complex (McCabe complexity)
+    "D100", # Missing docstring in public module
+    "D104", # Missing docstring in public package
+    "E501", # Line too long (handled by Black)
+    "F811", # Redefinition of unused function
+    "G004", # Logging statement uses f-string
+    "PLR0913", # Too many arguments in function (e.g., FastAPI Swagger)
+    "PLR2004", # Magic value used in comparison
+    "Q000", # Allow single quotes (conflicts with Black's double-quote preference)
+    "RUF001", "RUF003", # String contains ambiguous characters
+    "S101", # Ignore assert used (equivalent to bandit's B101)
+    "S301", # Ignore pickle usage (equivalent to bandit's B301)
+    "S403", # Ignore pickle usage (equivalent to bandit's B403)
+    "TCH002", # Type-checking import issues
+    "TRY301", # Abstract raise into a function
 ]
 
 # Define source directories

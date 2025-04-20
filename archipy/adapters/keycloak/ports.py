@@ -122,12 +122,12 @@ class KeycloakPort:
         raise NotImplementedError
 
     @abstractmethod
-    def has_any_of_roles(self, token: str, role_names: set[str]) -> bool:
+    def has_any_of_roles(self, token: str, role_names: frozenset[str]) -> bool:
         """Check if a user has any of the specified roles."""
         raise NotImplementedError
 
     @abstractmethod
-    def has_all_roles(self, token: str, role_names: set[str]) -> bool:
+    def has_all_roles(self, token: str, role_names: frozenset[str]) -> bool:
         """Check if a user has all of the specified roles."""
         raise NotImplementedError
 
@@ -327,12 +327,12 @@ class AsyncKeycloakPort:
         raise NotImplementedError
 
     @abstractmethod
-    async def has_any_of_roles(self, token: str, role_names: set[str]) -> bool:
+    async def has_any_of_roles(self, token: str, role_names: frozenset[str]) -> bool:
         """Check if a user has any of the specified roles."""
         raise NotImplementedError
 
     @abstractmethod
-    async def has_all_roles(self, token: str, role_names: set[str]) -> bool:
+    async def has_all_roles(self, token: str, role_names: frozenset[str]) -> bool:
         """Check if a user has all of the specified roles."""
         raise NotImplementedError
 

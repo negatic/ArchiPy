@@ -17,6 +17,13 @@ from archipy.adapters.keycloak.ports import (
 from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import KeycloakConfig
 from archipy.helpers.decorators.cache import ttl_cache_decorator
+from archipy.models.errors.custom_errors import (
+    InternalError,
+    InvalidTokenError,
+    NotFoundError,
+    UnauthenticatedError,
+    UnavailableError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -94,9 +101,10 @@ class KeycloakAdapter(KeycloakPort):
                 timeout=self.configs.TIMEOUT,
             )
             logger.debug("Admin client initialized successfully")
-        except KeycloakError:
+        except KeycloakError as e:
             self._admin_adapter = None
             self._admin_token_expiry = 0
+            raise UnavailableError(service="Keycloak") from e
 
     @property
     def admin_adapter(self) -> KeycloakAdmin:
@@ -109,14 +117,14 @@ class KeycloakAdapter(KeycloakPort):
             ValueError: If admin client is not available
         """
         if not self.configs.CLIENT_SECRET_KEY:
-            raise ValueError("Admin client not available, provide client_secret_key to use admin features")
+            raise UnauthenticatedError()
 
         # Check if token is about to expire and refresh if needed
         if self._admin_adapter is None or time.time() >= self._admin_token_expiry:
             self._initialize_admin_client()
 
         if self._admin_adapter is None:
-            raise ValueError("Failed to initialize admin client")
+            raise UnavailableError(service="Keycloak")
 
         return self._admin_adapter
 
@@ -135,7 +143,7 @@ class KeycloakAdapter(KeycloakPort):
             key = f"-----BEGIN PUBLIC KEY-----\n{keys_info}\n-----END PUBLIC KEY-----"
             return jwk.JWK.from_pem(key.encode("utf-8"))
         except Exception as e:
-            raise ValueError(f"Failed to get public key: {e!s}")
+            raise InternalError() from e
 
     @override
     def get_token(self, username: str, password: str) -> KeycloakTokenType:
@@ -161,7 +169,7 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self._openid_adapter.token(grant_type="password", username=username, password=password)
         except KeycloakError as e:
-            raise ValueError(f"Failed to get token: {e!s}")
+            raise UnauthenticatedError() from e
 
     @override
     def refresh_token(self, refresh_token: str) -> KeycloakTokenType:
@@ -179,7 +187,7 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self._openid_adapter.refresh_token(refresh_token)
         except KeycloakError as e:
-            raise ValueError(f"Failed to refresh token: {e!s}")
+            raise InvalidTokenError() from e
 
     @override
     def validate_token(self, token: str) -> bool:
@@ -197,10 +205,11 @@ class KeycloakAdapter(KeycloakPort):
                 token,
                 key=self.get_public_key(),
             )
-            return True
         except Exception as e:
             logger.debug(f"Token validation failed: {e!s}")
             return False
+        else:
+            return True
 
     @override
     def get_userinfo(self, token: str) -> KeycloakUserType:
@@ -216,11 +225,11 @@ class KeycloakAdapter(KeycloakPort):
             ValueError: If getting user info fails
         """
         if not self.validate_token(token):
-            raise ValueError("Invalid token provided")
+            raise InvalidTokenError()
         try:
             return self._get_userinfo_cached(token)
         except KeycloakError as e:
-            raise ValueError(f"Failed to get user info: {e!s}")
+            raise InternalError() from e
 
     @ttl_cache_decorator(ttl_seconds=30, maxsize=100)  # Cache for 30 seconds
     def _get_userinfo_cached(self, token: str) -> KeycloakUserType:
@@ -245,9 +254,9 @@ class KeycloakAdapter(KeycloakPort):
         except KeycloakGetError as e:
             if e.response_code == 404:
                 return None
-            raise ValueError(f"Failed to get user by ID: {e!s}")
+            raise InternalError() from e
         except KeycloakError as e:
-            raise ValueError(f"Failed to get user by ID: {e!s}")
+            raise InternalError() from e
 
     @override
     @ttl_cache_decorator(ttl_seconds=300, maxsize=100)  # Cache for 5 minutes
@@ -267,7 +276,7 @@ class KeycloakAdapter(KeycloakPort):
             users = self.admin_adapter.get_users({"username": username})
             return users[0] if users else None
         except KeycloakError as e:
-            raise ValueError(f"Failed to get user by username: {e!s}")
+            raise InternalError() from e
 
     @override
     @ttl_cache_decorator(ttl_seconds=300, maxsize=100)  # Cache for 5 minutes
@@ -287,7 +296,7 @@ class KeycloakAdapter(KeycloakPort):
             users = self.admin_adapter.get_users({"email": email})
             return users[0] if users else None
         except KeycloakError as e:
-            raise ValueError(f"Failed to get user by email: {e!s}")
+            raise InternalError() from e
 
     @override
     @ttl_cache_decorator(ttl_seconds=300, maxsize=100)  # Cache for 5 minutes
@@ -306,7 +315,7 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self.admin_adapter.get_realm_roles_of_user(user_id)
         except KeycloakError as e:
-            raise ValueError(f"Failed to get user roles: {e!s}")
+            raise InternalError() from e
 
     @override
     @ttl_cache_decorator(ttl_seconds=300, maxsize=100)  # Cache for 5 minutes
@@ -326,104 +335,7 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self.admin_adapter.get_client_roles_of_user(user_id, client_id)
         except KeycloakError as e:
-            raise ValueError(f"Failed to get client roles: {e!s}")
-
-    @override
-    def has_role(self, token: str, role_name: str) -> bool:
-        """Check if a user has a specific role.
-
-        Args:
-            token: Access token
-            role_name: Role name to check
-
-        Returns:
-            True if user has the role, False otherwise
-        """
-        # Not caching this result as token validation is time-sensitive
-        try:
-            user_info = self.get_userinfo(token)
-
-            # Check realm roles
-            realm_access = user_info.get("realm_access", {})
-            roles = realm_access.get("roles", [])
-            if role_name in roles:
-                return True
-
-            # Check client roles
-            resource_access = user_info.get("resource_access", {})
-            for client in resource_access.values():
-                client_roles = client.get("roles", [])
-                if role_name in client_roles:
-                    return True
-
-            return False
-        except Exception as e:
-            logger.debug(f"Role check failed: {e!s}")
-            return False
-
-    @override
-    def has_any_of_roles(self, token: str, role_names: set[str]) -> bool:
-        """Check if a user has any of the specified roles.
-
-        Args:
-            token: Access token
-            role_names: Set of role names to check
-
-        Returns:
-            True if user has any of the roles, False otherwise
-        """
-        try:
-            user_info = self.get_userinfo(token)
-
-            # Check realm roles
-            realm_access = user_info.get("realm_access", {})
-            roles = set(realm_access.get("roles", []))
-            if role_names.intersection(roles):
-                return True
-
-            # Check client roles
-            resource_access = user_info.get("resource_access", {})
-            for client in resource_access.values():
-                client_roles = set(client.get("roles", []))
-                if role_names.intersection(client_roles):
-                    return True
-
-            return False
-        except Exception as e:
-            logger.debug(f"Role check failed: {e!s}")
-            return False
-
-    @override
-    def has_all_roles(self, token: str, role_names: set[str]) -> bool:
-        """Check if a user has all of the specified roles.
-
-        Args:
-            token: Access token
-            role_names: Set of role names to check
-
-        Returns:
-            True if user has all of the roles, False otherwise
-        """
-        try:
-            user_info = self.get_userinfo(token)
-
-            # Get all user roles
-            all_roles = set()
-
-            # Add realm roles
-            realm_access = user_info.get("realm_access", {})
-            all_roles.update(realm_access.get("roles", []))
-
-            # Add client roles
-            resource_access = user_info.get("resource_access", {})
-            for client in resource_access.values():
-                all_roles.update(client.get("roles", []))
-
-            # Check if all required roles are present
-            return role_names.issubset(all_roles)
-        except Exception as e:
-            logger.debug(f"All roles check failed: {e!s}")
-            return False
+            raise InternalError() from e
 
     @override
     def create_user(self, user_data: dict[str, Any]) -> str:
@@ -445,9 +357,10 @@ class KeycloakAdapter(KeycloakPort):
             # Clear related caches
             self.clear_all_caches()
 
-            return user_id
         except KeycloakError as e:
-            raise ValueError(f"Failed to create user: {e!s}")
+            raise InternalError() from e
+        else:
+            return user_id
 
     @override
     def update_user(self, user_id: str, user_data: dict[str, Any]) -> None:
@@ -468,7 +381,7 @@ class KeycloakAdapter(KeycloakPort):
             self.clear_all_caches()
 
         except KeycloakError as e:
-            raise ValueError(f"Failed to update user: {e!s}")
+            raise InternalError() from e
 
     @override
     def reset_password(self, user_id: str, password: str, temporary: bool = False) -> None:
@@ -486,7 +399,7 @@ class KeycloakAdapter(KeycloakPort):
         try:
             self.admin_adapter.set_user_password(user_id, password, temporary)
         except KeycloakError as e:
-            raise ValueError(f"Failed to reset password: {e!s}")
+            raise InternalError() from e
 
     @override
     def assign_realm_role(self, user_id: str, role_name: str) -> None:
@@ -511,7 +424,7 @@ class KeycloakAdapter(KeycloakPort):
                 self.get_user_roles.clear_cache()
 
         except KeycloakError as e:
-            raise ValueError(f"Failed to assign realm role: {e!s}")
+            raise InternalError() from e
 
     @override
     def remove_realm_role(self, user_id: str, role_name: str) -> None:
@@ -536,7 +449,7 @@ class KeycloakAdapter(KeycloakPort):
                 self.get_user_roles.clear_cache()
 
         except KeycloakError as e:
-            raise ValueError(f"Failed to remove realm role: {e!s}")
+            raise InternalError() from e
 
     @override
     def assign_client_role(self, user_id: str, client_id: str, role_name: str) -> None:
@@ -564,7 +477,7 @@ class KeycloakAdapter(KeycloakPort):
                 self.get_client_roles_for_user.clear_cache()
 
         except KeycloakError as e:
-            raise ValueError(f"Failed to assign client role: {e!s}")
+            raise InternalError() from e
 
     @override
     def create_realm_role(self, role_name: str, description: str | None = None) -> dict[str, Any]:
@@ -592,10 +505,9 @@ class KeycloakAdapter(KeycloakPort):
             if hasattr(self.get_realm_roles, "clear_cache"):
                 self.get_realm_roles.clear_cache()
 
-            created_role = self.admin_adapter.get_realm_role(role_name)
-            return created_role
+            return self.admin_adapter.get_realm_role(role_name)
         except KeycloakError as e:
-            raise ValueError(f"Failed to create realm role: {e!s}")
+            raise InternalError() from e
 
     @override
     def delete_realm_role(self, role_name: str) -> None:
@@ -620,7 +532,7 @@ class KeycloakAdapter(KeycloakPort):
                 self.get_user_roles.clear_cache()
 
         except KeycloakError as e:
-            raise ValueError(f"Failed to delete realm role: {e!s}")
+            raise InternalError() from e
 
     @override
     @ttl_cache_decorator(ttl_seconds=3600, maxsize=1)  # Cache for 1 hour
@@ -635,10 +547,9 @@ class KeycloakAdapter(KeycloakPort):
         """
         try:
             client_id = self.get_client_id(self.configs.CLIENT_ID)
-            service_account_id = self.admin_adapter.get_client_service_account_user(client_id).get("id")
-            return service_account_id
+            return self.admin_adapter.get_client_service_account_user(client_id).get("id")
         except KeycloakError as e:
-            raise ValueError(f"Failed to get service account ID: {e!s}")
+            raise InternalError() from e
 
     @override
     @ttl_cache_decorator(ttl_seconds=3600, maxsize=1)  # Cache for 1 hour
@@ -654,7 +565,7 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self._openid_adapter.well_known()
         except KeycloakError as e:
-            raise ValueError(f"Failed to get well-known config: {e!s}")
+            raise InternalError() from e
 
     @override
     @ttl_cache_decorator(ttl_seconds=3600, maxsize=1)  # Cache for 1 hour
@@ -670,7 +581,7 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self._openid_adapter.certs()
         except KeycloakError as e:
-            raise ValueError(f"Failed to get certificates: {e!s}")
+            raise InternalError() from e
 
     @override
     def get_token_from_code(self, code: str, redirect_uri: str) -> KeycloakTokenType:
@@ -690,7 +601,7 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self._openid_adapter.token(grant_type="authorization_code", code=code, redirect_uri=redirect_uri)
         except KeycloakError as e:
-            raise ValueError(f"Failed to exchange code for token: {e!s}")
+            raise InvalidTokenError() from e
 
     @override
     def get_client_credentials_token(self) -> KeycloakTokenType:
@@ -706,7 +617,7 @@ class KeycloakAdapter(KeycloakPort):
         try:
             return self._openid_adapter.token(grant_type="client_credentials")
         except KeycloakError as e:
-            raise ValueError(f"Failed to get client credentials token: {e!s}")
+            raise UnauthenticatedError() from e
 
     @override
     @ttl_cache_decorator(ttl_seconds=30, maxsize=50)  # Cache for 30 seconds with limited entries
@@ -756,7 +667,286 @@ class KeycloakAdapter(KeycloakPort):
 
             return users[:max_results]
         except KeycloakError as e:
-            raise ValueError(f"Failed to search users: {e!s}")
+            raise InternalError() from e
+
+    @override
+    @ttl_cache_decorator(ttl_seconds=3600, maxsize=50)  # Cache for 1 hour
+    def get_client_secret(self, client_id: str) -> str:
+        """Get client secret.
+
+        Args:
+            client_id: Client ID
+
+        Returns:
+            Client secret
+
+        Raises:
+            ValueError: If getting secret fails
+        """
+        try:
+            client = self.admin_adapter.get_client(client_id)
+            return client.get("secret", "")
+        except KeycloakError as e:
+            raise InternalError() from e
+
+    @override
+    @ttl_cache_decorator(ttl_seconds=3600, maxsize=50)  # Cache for 1 hour
+    def get_client_id(self, client_name: str) -> str:
+        """Get client ID by client name.
+
+        Args:
+            client_name: Name of the client
+
+        Returns:
+            Client ID
+
+        Raises:
+            ValueError: If client not found
+        """
+        try:
+            return self.admin_adapter.get_client_id(client_name)
+        except KeycloakError as e:
+            raise NotFoundError(resource_type="client") from e
+
+    @override
+    @ttl_cache_decorator(ttl_seconds=300, maxsize=1)  # Cache for 5 minutes
+    def get_realm_roles(self) -> list[dict[str, Any]]:
+        """Get all realm roles.
+
+        Returns:
+            List of realm roles
+
+        Raises:
+            ValueError: If getting roles fails
+        """
+        try:
+            return self.admin_adapter.get_realm_roles()
+        except KeycloakError as e:
+            raise InternalError() from e
+
+    @override
+    @ttl_cache_decorator(ttl_seconds=300, maxsize=1)  # Cache for 5 minutes
+    def get_realm_role(self, role_name: str) -> dict:
+        """Get realm role.
+
+        Args:
+            role_name: Role name
+        Returns:
+            A realm role
+
+        Raises:
+            ValueError: If getting role fails
+        """
+        try:
+            return self.admin_adapter.get_realm_role(role_name)
+        except KeycloakError as e:
+            raise NotFoundError(resource_type="role") from e
+
+    @override
+    def remove_client_role(self, user_id: str, client_id: str, role_name: str) -> None:
+        """Remove a client-specific role from a user.
+
+        Args:
+            user_id: User's ID
+            client_id: Client ID
+            role_name: Role name to remove
+
+        Raises:
+            ValueError: If role removal fails
+        """
+        try:
+            client = self.admin_adapter.get_client_id(client_id)
+            role = self.admin_adapter.get_client_role(client, role_name)
+            self.admin_adapter.delete_client_roles_of_user(user_id, client, [role])
+
+            if hasattr(self.get_client_roles_for_user, "clear_cache"):
+                self.get_client_roles_for_user.clear_cache()
+        except KeycloakError as e:
+            raise InternalError() from e
+
+    @override
+    def clear_user_sessions(self, user_id: str) -> None:
+        """Clear all sessions for a user.
+
+        Args:
+            user_id: User's ID
+
+        Raises:
+            ValueError: If clearing sessions fails
+        """
+        try:
+            self.admin_adapter.user_logout(user_id)
+        except KeycloakError as e:
+            raise InternalError() from e
+
+    @override
+    def logout(self, refresh_token: str) -> None:
+        """Logout user by invalidating their refresh token.
+
+        Args:
+            refresh_token: Refresh token to invalidate
+
+        Raises:
+            ValueError: If logout fails
+        """
+        try:
+            self._openid_adapter.logout(refresh_token)
+        except KeycloakError as e:
+            raise InternalError() from e
+
+    @override
+    def introspect_token(self, token: str) -> dict[str, Any]:
+        """Introspect token to get detailed information about it.
+
+        Args:
+            token: Access token
+
+        Returns:
+            Token introspection details
+
+        Raises:
+            ValueError: If token introspection fails
+        """
+        try:
+            return self._openid_adapter.introspect(token)
+        except KeycloakError as e:
+            raise InvalidTokenError() from e
+
+    @override
+    def get_token_info(self, token: str) -> dict[str, Any]:
+        """Decode token to get its claims.
+
+        Args:
+            token: Access token
+
+        Returns:
+            Dictionary of token claims
+
+        Raises:
+            ValueError: If token decoding fails
+        """
+        try:
+            return self._openid_adapter.decode_token(
+                token,
+                key=self.get_public_key(),
+            )
+        except KeycloakError as e:
+            raise InvalidTokenError() from e
+
+    @override
+    def delete_user(self, user_id: str) -> None:
+        """Delete a user from Keycloak by their ID.
+
+        Args:
+            user_id: The ID of the user to delete
+
+        Raises:
+            ValueError: If the deletion fails
+        """
+        try:
+            self.admin_adapter.delete_user(user_id=user_id)
+            logger.info(f"Successfully deleted user with ID {user_id}")
+        except Exception as e:
+            raise InternalError() from e
+
+    @override
+    def has_role(self, token: str, role_name: str) -> bool:
+        """Check if a user has a specific role.
+
+        Args:
+            token: Access token
+            role_name: Role name to check
+
+        Returns:
+            True if user has the role, False otherwise
+        """
+        # Not caching this result as token validation is time-sensitive
+        try:
+            user_info = self.get_userinfo(token)
+
+            # Check realm roles
+            realm_access = user_info.get("realm_access", {})
+            roles = realm_access.get("roles", [])
+            if role_name in roles:
+                return True
+
+            # Check client roles
+            resource_access = user_info.get("resource_access", {})
+            for client in resource_access.values():
+                client_roles = client.get("roles", [])
+                if role_name in client_roles:
+                    return True
+
+        except Exception as e:
+            logger.debug(f"Role check failed: {e!s}")
+            return False
+        else:
+            return False
+
+    @override
+    def has_any_of_roles(self, token: str, role_names: frozenset[str]) -> bool:
+        """Check if a user has any of the specified roles.
+
+        Args:
+            token: Access token
+            role_names: Set of role names to check
+
+        Returns:
+            True if user has any of the roles, False otherwise
+        """
+        try:
+            user_info = self.get_userinfo(token)
+
+            # Check realm roles
+            realm_access = user_info.get("realm_access", {})
+            roles = set(realm_access.get("roles", []))
+            if role_names.intersection(roles):
+                return True
+
+            # Check client roles
+            resource_access = user_info.get("resource_access", {})
+            for client in resource_access.values():
+                client_roles = set(client.get("roles", []))
+                if role_names.intersection(client_roles):
+                    return True
+
+        except Exception as e:
+            logger.debug(f"Role check failed: {e!s}")
+            return False
+        else:
+            return False
+
+    @override
+    def has_all_roles(self, token: str, role_names: frozenset[str]) -> bool:
+        """Check if a user has all of the specified roles.
+
+        Args:
+            token: Access token
+            role_names: Set of role names to check
+
+        Returns:
+            True if user has all of the roles, False otherwise
+        """
+        try:
+            user_info = self.get_userinfo(token)
+
+            # Get all user roles
+            all_roles = set()
+
+            # Add realm roles
+            realm_access = user_info.get("realm_access", {})
+            all_roles.update(realm_access.get("roles", []))
+
+            # Add client roles
+            resource_access = user_info.get("resource_access", {})
+            for client in resource_access.values():
+                all_roles.update(client.get("roles", []))
+
+            # Check if all required roles are present
+            return role_names.issubset(all_roles)
+        except Exception as e:
+            logger.debug(f"All roles check failed: {e!s}")
+            return False
 
     @override
     def check_permissions(self, token: str, resource: str, scope: str) -> bool:
@@ -784,192 +974,13 @@ class KeycloakAdapter(KeycloakPort):
                 if perm.get("rsname") == resource and scope in perm.get("scopes", []):
                     return True
 
-            return False
         except KeycloakError as e:
             logger.debug(f"Permission check failed with Keycloak error: {e!s}")
             return False
         except Exception:
             return False
-
-    @override
-    @ttl_cache_decorator(ttl_seconds=3600, maxsize=50)  # Cache for 1 hour
-    def get_client_secret(self, client_id: str) -> str:
-        """Get client secret.
-
-        Args:
-            client_id: Client ID
-
-        Returns:
-            Client secret
-
-        Raises:
-            ValueError: If getting secret fails
-        """
-        try:
-            client = self.admin_adapter.get_client(client_id)
-            return client.get("secret", "")
-        except KeycloakError as e:
-            raise ValueError(f"Failed to get client secret: {e!s}")
-
-    @override
-    @ttl_cache_decorator(ttl_seconds=3600, maxsize=50)  # Cache for 1 hour
-    def get_client_id(self, client_name: str) -> str:
-        """Get client ID by client name.
-
-        Args:
-            client_name: Name of the client
-
-        Returns:
-            Client ID
-
-        Raises:
-            ValueError: If client not found
-        """
-        try:
-            return self.admin_adapter.get_client_id(client_name)
-        except KeycloakError as e:
-            raise ValueError(f"Failed to get client ID: {e!s}")
-
-    @override
-    @ttl_cache_decorator(ttl_seconds=300, maxsize=1)  # Cache for 5 minutes
-    def get_realm_roles(self) -> list[dict[str, Any]]:
-        """Get all realm roles.
-
-        Returns:
-            List of realm roles
-
-        Raises:
-            ValueError: If getting roles fails
-        """
-        try:
-            return self.admin_adapter.get_realm_roles()
-        except KeycloakError as e:
-            raise ValueError(f"Failed to get realm roles: {e!s}")
-
-    @override
-    @ttl_cache_decorator(ttl_seconds=300, maxsize=1)  # Cache for 5 minutes
-    def get_realm_role(self, role_name: str) -> dict:
-        """Get realm role.
-
-        Args:
-            role_name: Role name
-        Returns:
-            A realm role
-
-        Raises:
-            ValueError: If getting role fails
-        """
-        try:
-            return self.admin_adapter.get_realm_role(role_name)
-        except KeycloakError as e:
-            raise ValueError(f"Failed to get realm role: {e!s}")
-
-    @override
-    def remove_client_role(self, user_id: str, client_id: str, role_name: str) -> None:
-        """Remove a client-specific role from a user.
-
-        Args:
-            user_id: User's ID
-            client_id: Client ID
-            role_name: Role name to remove
-
-        Raises:
-            ValueError: If role removal fails
-        """
-        try:
-            client = self.admin_adapter.get_client_id(client_id)
-            role = self.admin_adapter.get_client_role(client, role_name)
-            self.admin_adapter.delete_client_roles_of_user(user_id, client, [role])
-
-            if hasattr(self.get_client_roles_for_user, "clear_cache"):
-                self.get_client_roles_for_user.clear_cache()
-        except KeycloakError as e:
-            raise ValueError(f"Failed to remove client role: {e!s}")
-
-    @override
-    def clear_user_sessions(self, user_id: str) -> None:
-        """Clear all sessions for a user.
-
-        Args:
-            user_id: User's ID
-
-        Raises:
-            ValueError: If clearing sessions fails
-        """
-        try:
-            self.admin_adapter.user_logout(user_id)
-        except KeycloakError as e:
-            raise ValueError(f"Failed to clear user sessions: {e!s}")
-
-    @override
-    def logout(self, refresh_token: str) -> None:
-        """Logout user by invalidating their refresh token.
-
-        Args:
-            refresh_token: Refresh token to invalidate
-
-        Raises:
-            ValueError: If logout fails
-        """
-        try:
-            self._openid_adapter.logout(refresh_token)
-        except KeycloakError as e:
-            raise ValueError(f"Failed to logout: {e!s}")
-
-    @override
-    def introspect_token(self, token: str) -> dict[str, Any]:
-        """Introspect token to get detailed information about it.
-
-        Args:
-            token: Access token
-
-        Returns:
-            Token introspection details
-
-        Raises:
-            ValueError: If token introspection fails
-        """
-        try:
-            return self._openid_adapter.introspect(token)
-        except KeycloakError as e:
-            raise ValueError(f"Failed to introspect token: {e!s}")
-
-    @override
-    def get_token_info(self, token: str) -> dict[str, Any]:
-        """Decode token to get its claims.
-
-        Args:
-            token: Access token
-
-        Returns:
-            Dictionary of token claims
-
-        Raises:
-            ValueError: If token decoding fails
-        """
-        try:
-            return self._openid_adapter.decode_token(
-                token,
-                key=self.get_public_key(),
-            )
-        except KeycloakError as e:
-            raise ValueError(f"Failed to get token info: {e!s}")
-
-    @override
-    def delete_user(self, user_id: str) -> None:
-        """Delete a user from Keycloak by their ID.
-
-        Args:
-            user_id: The ID of the user to delete
-
-        Raises:
-            ValueError: If the deletion fails
-        """
-        try:
-            self.admin_adapter.delete_user(user_id=user_id)
-            logger.info(f"Successfully deleted user with ID {user_id}")
-        except Exception as e:
-            raise ValueError(f"Failed to delete user: {e!s}")
+        else:
+            return False
 
 
 class AsyncKeycloakAdapter(AsyncKeycloakPort):
@@ -1045,9 +1056,10 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
                 timeout=self.configs.TIMEOUT,
             )
             logger.debug("Admin client initialized successfully")
-        except KeycloakError:
+        except KeycloakError as e:
             self._admin_adapter = None
             self._admin_token_expiry = 0
+            raise UnavailableError(service="Keycloak") from e
 
     @property
     def admin_adapter(self) -> KeycloakAdmin:
@@ -1060,14 +1072,14 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             ValueError: If admin client is not available
         """
         if not self.configs.CLIENT_SECRET_KEY:
-            raise ValueError("Admin client not available, provide client_secret_key to use admin features")
+            raise UnauthenticatedError()
 
         # Check if token is about to expire and refresh if needed
         if self._admin_adapter is None or time.time() >= self._admin_token_expiry:
             self._initialize_admin_client()
 
         if self._admin_adapter is None:
-            raise ValueError("Failed to initialize admin client")
+            raise UnavailableError(service="Keycloak")
 
         return self._admin_adapter
 
@@ -1086,7 +1098,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             key = f"-----BEGIN PUBLIC KEY-----\n{keys_info}\n-----END PUBLIC KEY-----"
             return jwk.JWK.from_pem(key.encode("utf-8"))
         except Exception as e:
-            raise ValueError(f"Failed to get public key: {e!s}")
+            raise InternalError() from e
 
     @override
     async def get_token(self, username: str, password: str) -> KeycloakTokenType:
@@ -1112,7 +1124,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             return await self.openid_adapter.a_token(grant_type="password", username=username, password=password)
         except KeycloakError as e:
-            raise ValueError(f"Failed to get token: {e!s}")
+            raise UnauthenticatedError() from e
 
     @override
     async def refresh_token(self, refresh_token: str) -> KeycloakTokenType:
@@ -1130,7 +1142,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             return await self.openid_adapter.a_refresh_token(refresh_token)
         except KeycloakError as e:
-            raise ValueError(f"Failed to refresh token: {e!s}")
+            raise InvalidTokenError() from e
 
     @override
     async def validate_token(self, token: str) -> bool:
@@ -1148,10 +1160,11 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
                 token,
                 key=await self.get_public_key(),
             )
-            return True
         except Exception as e:
             logger.debug(f"Token validation failed: {e!s}")
             return False
+        else:
+            return True
 
     @override
     async def get_userinfo(self, token: str) -> KeycloakUserType:
@@ -1167,11 +1180,11 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             ValueError: If getting user info fails
         """
         if not await self.validate_token(token):
-            raise ValueError("Invalid token provided")
+            raise InvalidTokenError()
         try:
             return await self._get_userinfo_cached(token)
         except KeycloakError as e:
-            raise ValueError(f"Failed to get user info: {e!s}")
+            raise InternalError() from e
 
     @alru_cache(ttl=30, maxsize=100)  # Cache for 30 seconds
     async def _get_userinfo_cached(self, token: str) -> KeycloakUserType:
@@ -1196,9 +1209,9 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         except KeycloakGetError as e:
             if e.response_code == 404:
                 return None
-            raise ValueError(f"Failed to get user by ID: {e!s}")
+            raise InternalError() from e
         except KeycloakError as e:
-            raise ValueError(f"Failed to get user by ID: {e!s}")
+            raise InternalError() from e
 
     @override
     @alru_cache(ttl=300, maxsize=100)  # Cache for 5 minutes
@@ -1218,7 +1231,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             users = await self.admin_adapter.a_get_users({"username": username})
             return users[0] if users else None
         except KeycloakError as e:
-            raise ValueError(f"Failed to get user by username: {e!s}")
+            raise InternalError() from e
 
     @override
     @alru_cache(ttl=300, maxsize=100)  # Cache for 5 minutes
@@ -1238,7 +1251,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             users = await self.admin_adapter.a_get_users({"email": email})
             return users[0] if users else None
         except KeycloakError as e:
-            raise ValueError(f"Failed to get user by email: {e!s}")
+            raise InternalError() from e
 
     @override
     @alru_cache(ttl=300, maxsize=100)  # Cache for 5 minutes
@@ -1257,7 +1270,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             return await self.admin_adapter.a_get_realm_roles_of_user(user_id)
         except KeycloakError as e:
-            raise ValueError(f"Failed to get user roles: {e!s}")
+            raise InternalError() from e
 
     @override
     @alru_cache(ttl=300, maxsize=100)  # Cache for 5 minutes
@@ -1277,104 +1290,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             return await self.admin_adapter.a_get_client_roles_of_user(user_id, client_id)
         except KeycloakError as e:
-            raise ValueError(f"Failed to get client roles: {e!s}")
-
-    @override
-    async def has_role(self, token: str, role_name: str) -> bool:
-        """Check if a user has a specific role.
-
-        Args:
-            token: Access token
-            role_name: Role name to check
-
-        Returns:
-            True if user has the role, False otherwise
-        """
-        # Not caching this result as token validation is time-sensitive
-        try:
-            user_info = await self.get_userinfo(token)
-
-            # Check realm roles
-            realm_access = user_info.get("realm_access", {})
-            roles = realm_access.get("roles", [])
-            if role_name in roles:
-                return True
-
-            # Check client roles
-            resource_access = user_info.get("resource_access", {})
-            for client in resource_access.values():
-                client_roles = client.get("roles", [])
-                if role_name in client_roles:
-                    return True
-
-            return False
-        except Exception as e:
-            logger.debug(f"Role check failed: {e!s}")
-            return False
-
-    @override
-    async def has_any_of_roles(self, token: str, role_names: set[str]) -> bool:
-        """Check if a user has any of the specified roles.
-
-        Args:
-            token: Access token
-            role_names: Set of role names to check
-
-        Returns:
-            True if user has any of the roles, False otherwise
-        """
-        try:
-            user_info = await self.get_userinfo(token)
-
-            # Check realm roles
-            realm_access = user_info.get("realm_access", {})
-            roles = set(realm_access.get("roles", []))
-            if role_names.intersection(roles):
-                return True
-
-            # Check client roles
-            resource_access = user_info.get("resource_access", {})
-            for client in resource_access.values():
-                client_roles = set(client.get("roles", []))
-                if role_names.intersection(client_roles):
-                    return True
-
-            return False
-        except Exception as e:
-            logger.debug(f"Role check failed: {e!s}")
-            return False
-
-    @override
-    async def has_all_roles(self, token: str, role_names: set[str]) -> bool:
-        """Check if a user has all of the specified roles.
-
-        Args:
-            token: Access token
-            role_names: Set of role names to check
-
-        Returns:
-            True if user has all of the roles, False otherwise
-        """
-        try:
-            user_info = await self.get_userinfo(token)
-
-            # Get all user roles
-            all_roles = set()
-
-            # Add realm roles
-            realm_access = user_info.get("realm_access", {})
-            all_roles.update(realm_access.get("roles", []))
-
-            # Add client roles
-            resource_access = user_info.get("resource_access", {})
-            for client in resource_access.values():
-                all_roles.update(client.get("roles", []))
-
-            # Check if all required roles are present
-            return role_names.issubset(all_roles)
-        except Exception as e:
-            logger.debug(f"All roles check failed: {e!s}")
-            return False
+            raise InternalError() from e
 
     @override
     async def create_user(self, user_data: dict[str, Any]) -> str:
@@ -1395,10 +1311,10 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
 
             # Clear related caches
             self.clear_all_caches()
-
-            return user_id
         except KeycloakError as e:
-            raise ValueError(f"Failed to create user: {e!s}")
+            raise InternalError() from e
+        else:
+            return user_id
 
     @override
     async def update_user(self, user_id: str, user_data: dict[str, Any]) -> None:
@@ -1419,7 +1335,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             self.clear_all_caches()
 
         except KeycloakError as e:
-            raise ValueError(f"Failed to update user: {e!s}")
+            raise InternalError() from e
 
     @override
     async def reset_password(self, user_id: str, password: str, temporary: bool = False) -> None:
@@ -1437,7 +1353,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             await self.admin_adapter.a_set_user_password(user_id, password, temporary)
         except KeycloakError as e:
-            raise ValueError(f"Failed to reset password: {e!s}")
+            raise InternalError() from e
 
     @override
     async def assign_realm_role(self, user_id: str, role_name: str) -> None:
@@ -1462,7 +1378,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
                 self.get_user_roles.clear_cache()
 
         except KeycloakError as e:
-            raise ValueError(f"Failed to assign realm role: {e!s}")
+            raise InternalError() from e
 
     @override
     async def remove_realm_role(self, user_id: str, role_name: str) -> None:
@@ -1487,7 +1403,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
                 self.get_user_roles.clear_cache()
 
         except KeycloakError as e:
-            raise ValueError(f"Failed to remove realm role: {e!s}")
+            raise InternalError() from e
 
     @override
     async def assign_client_role(self, user_id: str, client_id: str, role_name: str) -> None:
@@ -1515,7 +1431,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
                 self.get_client_roles_for_user.clear_cache()
 
         except KeycloakError as e:
-            raise ValueError(f"Failed to assign client role: {e!s}")
+            raise InternalError() from e
 
     @override
     async def create_realm_role(self, role_name: str, description: str | None = None) -> dict[str, Any]:
@@ -1544,9 +1460,10 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
                 self.get_realm_roles.clear_cache()
 
             created_role = await self.admin_adapter.a_get_realm_role(role_name)
-            return created_role
         except KeycloakError as e:
-            raise ValueError(f"Failed to create realm role: {e!s}")
+            raise InternalError() from e
+        else:
+            return created_role
 
     @override
     async def delete_realm_role(self, role_name: str) -> None:
@@ -1571,7 +1488,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
                 self.get_user_roles.clear_cache()
 
         except KeycloakError as e:
-            raise ValueError(f"Failed to delete realm role: {e!s}")
+            raise InternalError() from e
 
     @override
     @alru_cache(ttl=3600, maxsize=1)  # Cache for 1 hour
@@ -1589,7 +1506,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             service_account = await self.admin_adapter.a_get_client_service_account_user(client_id)
             return service_account.get("id")
         except KeycloakError as e:
-            raise ValueError(f"Failed to get service account ID: {e!s}")
+            raise InternalError() from e
 
     @override
     @alru_cache(ttl=3600, maxsize=1)  # Cache for 1 hour
@@ -1605,7 +1522,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             return await self.openid_adapter.a_well_known()
         except KeycloakError as e:
-            raise ValueError(f"Failed to get well-known config: {e!s}")
+            raise InternalError() from e
 
     @override
     @alru_cache(ttl=3600, maxsize=1)  # Cache for 1 hour
@@ -1621,7 +1538,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             return await self.openid_adapter.a_certs()
         except KeycloakError as e:
-            raise ValueError(f"Failed to get certificates: {e!s}")
+            raise InternalError() from e
 
     @override
     async def get_token_from_code(self, code: str, redirect_uri: str) -> KeycloakTokenType:
@@ -1645,7 +1562,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
                 redirect_uri=redirect_uri,
             )
         except KeycloakError as e:
-            raise ValueError(f"Failed to exchange code for token: {e!s}")
+            raise InvalidTokenError() from e
 
     @override
     async def get_client_credentials_token(self) -> KeycloakTokenType:
@@ -1661,7 +1578,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
         try:
             return await self.openid_adapter.a_token(grant_type="client_credentials")
         except KeycloakError as e:
-            raise ValueError(f"Failed to get client credentials token: {e!s}")
+            raise UnauthenticatedError() from e
 
     @override
     @alru_cache(ttl=30, maxsize=50)  # Cache for 30 seconds with limited entries
@@ -1711,7 +1628,284 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
 
             return users[:max_results]
         except KeycloakError as e:
-            raise ValueError(f"Failed to search users: {e!s}")
+            raise InternalError() from e
+
+    @override
+    @alru_cache(ttl=3600, maxsize=50)  # Cache for 1 hour
+    async def get_client_secret(self, client_id: str) -> str:
+        """Get client secret.
+
+        Args:
+            client_id: Client ID
+
+        Returns:
+            Client secret
+
+        Raises:
+            ValueError: If getting secret fails
+        """
+        try:
+            client = await self.admin_adapter.a_get_client(client_id)
+            return client.get("secret", "")
+        except KeycloakError as e:
+            raise InternalError() from e
+
+    @override
+    @alru_cache(ttl=3600, maxsize=50)  # Cache for 1 hour
+    async def get_client_id(self, client_name: str) -> str:
+        """Get client ID by client name.
+
+        Args:
+            client_name: Name of the client
+
+        Returns:
+            Client ID
+
+        Raises:
+            ValueError: If client not found
+        """
+        try:
+            return await self.admin_adapter.a_get_client_id(client_name)
+        except KeycloakError as e:
+            raise NotFoundError(resource_type="client") from e
+
+    @override
+    @alru_cache(ttl=300, maxsize=1)  # Cache for 5 minutes
+    async def get_realm_roles(self) -> list[dict[str, Any]]:
+        """Get all realm roles.
+
+        Returns:
+            List of realm roles
+
+        Raises:
+            ValueError: If getting roles fails
+        """
+        try:
+            return await self.admin_adapter.a_get_realm_roles()
+        except KeycloakError as e:
+            raise InternalError() from e
+
+    @override
+    @alru_cache(ttl=300, maxsize=1)  # Cache for 5 minutes
+    async def get_realm_role(self, role_name: str) -> dict:
+        """Get realm role.
+
+        Args:
+            role_name: Role name
+        Returns:
+            A realm role
+
+        Raises:
+            ValueError: If getting role fails
+        """
+        try:
+            return await self.admin_adapter.a_get_realm_role(role_name)
+        except KeycloakError as e:
+            raise NotFoundError(resource_type="role") from e
+
+    @override
+    async def remove_client_role(self, user_id: str, client_id: str, role_name: str) -> None:
+        """Remove a client-specific role from a user.
+
+        Args:
+            user_id: User's ID
+            client_id: Client ID
+            role_name: Role name to remove
+
+        Raises:
+            ValueError: If role removal fails
+        """
+        try:
+            client = await self.admin_adapter.a_get_client_id(client_id)
+            role = await self.admin_adapter.a_get_client_role(client, role_name)
+            await self.admin_adapter.a_delete_client_roles_of_user(user_id, client, [role])
+
+            if hasattr(self.get_client_roles_for_user, "clear_cache"):
+                self.get_client_roles_for_user.clear_cache()
+        except KeycloakError as e:
+            raise InternalError() from e
+
+    @override
+    async def clear_user_sessions(self, user_id: str) -> None:
+        """Clear all sessions for a user.
+
+        Args:
+            user_id: User's ID
+
+        Raises:
+            ValueError: If clearing sessions fails
+        """
+        try:
+            await self.admin_adapter.a_user_logout(user_id)
+        except KeycloakError as e:
+            raise InternalError() from e
+
+    @override
+    async def logout(self, refresh_token: str) -> None:
+        """Logout user by invalidating their refresh token.
+
+        Args:
+            refresh_token: Refresh token to invalidate
+
+        Raises:
+            ValueError: If logout fails
+        """
+        try:
+            await self.openid_adapter.a_logout(refresh_token)
+        except KeycloakError as e:
+            raise InternalError() from e
+
+    @override
+    async def introspect_token(self, token: str) -> dict[str, Any]:
+        """Introspect token to get detailed information about it.
+
+        Args:
+            token: Access token
+
+        Returns:
+            Token introspection details
+
+        Raises:
+            ValueError: If token introspection fails
+        """
+        try:
+            return await self.openid_adapter.a_introspect(token)
+        except KeycloakError as e:
+            raise InvalidTokenError() from e
+
+    @override
+    async def get_token_info(self, token: str) -> dict[str, Any]:
+        """Decode token to get its claims.
+
+        Args:
+            token: Access token
+
+        Returns:
+            Dictionary of token claims
+
+        Raises:
+            ValueError: If token decoding fails
+        """
+        try:
+            return await self.openid_adapter.a_decode_token(
+                token,
+                key=await self.get_public_key(),
+            )
+        except KeycloakError as e:
+            raise InvalidTokenError() from e
+
+    @override
+    async def delete_user(self, user_id: str) -> None:
+        """Delete a user from Keycloak by their ID.
+
+        Args:
+            user_id: The ID of the user to delete
+
+        Raises:
+            ValueError: If the deletion fails
+        """
+        try:
+            await self.admin_adapter.a_delete_user(user_id=user_id)
+            logger.info(f"Successfully deleted user with ID {user_id}")
+        except Exception as e:
+            raise InternalError() from e
+
+    @override
+    async def has_role(self, token: str, role_name: str) -> bool:
+        """Check if a user has a specific role.
+
+        Args:
+            token: Access token
+            role_name: Role name to check
+
+        Returns:
+            True if user has the role, False otherwise
+        """
+        # Not caching this result as token validation is time-sensitive
+        try:
+            user_info = await self.get_userinfo(token)
+
+            # Check realm roles
+            realm_access = user_info.get("realm_access", {})
+            roles = realm_access.get("roles", [])
+            if role_name in roles:
+                return True
+
+            # Check client roles
+            resource_access = user_info.get("resource_access", {})
+            for client in resource_access.values():
+                client_roles = client.get("roles", [])
+                if role_name in client_roles:
+                    return True
+        except Exception as e:
+            logger.debug(f"Role check failed: {e!s}")
+            return False
+        else:
+            return False
+
+    @override
+    async def has_any_of_roles(self, token: str, role_names: frozenset[str]) -> bool:
+        """Check if a user has any of the specified roles.
+
+        Args:
+            token: Access token
+            role_names: Set of role names to check
+
+        Returns:
+            True if user has any of the roles, False otherwise
+        """
+        try:
+            user_info = await self.get_userinfo(token)
+
+            # Check realm roles
+            realm_access = user_info.get("realm_access", {})
+            roles = set(realm_access.get("roles", []))
+            if role_names.intersection(roles):
+                return True
+
+            # Check client roles
+            resource_access = user_info.get("resource_access", {})
+            for client in resource_access.values():
+                client_roles = set(client.get("roles", []))
+                if role_names.intersection(client_roles):
+                    return True
+        except Exception as e:
+            logger.debug(f"Role check failed: {e!s}")
+            return False
+        else:
+            return False
+
+    @override
+    async def has_all_roles(self, token: str, role_names: frozenset[str]) -> bool:
+        """Check if a user has all of the specified roles.
+
+        Args:
+            token: Access token
+            role_names: Set of role names to check
+
+        Returns:
+            True if user has all of the roles, False otherwise
+        """
+        try:
+            user_info = await self.get_userinfo(token)
+
+            # Get all user roles
+            all_roles = set()
+
+            # Add realm roles
+            realm_access = user_info.get("realm_access", {})
+            all_roles.update(realm_access.get("roles", []))
+
+            # Add client roles
+            resource_access = user_info.get("resource_access", {})
+            for client in resource_access.values():
+                all_roles.update(client.get("roles", []))
+
+            # Check if all required roles are present
+            return role_names.issubset(all_roles)
+        except Exception as e:
+            logger.debug(f"All roles check failed: {e!s}")
+            return False
 
     @override
     async def check_permissions(self, token: str, resource: str, scope: str) -> bool:
@@ -1739,189 +1933,10 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
                 if perm.get("rsname") == resource and scope in perm.get("scopes", []):
                     return True
 
-            return False
         except KeycloakError as e:
             logger.debug(f"Permission check failed with Keycloak error: {e!s}")
             return False
         except Exception:
             return False
-
-    @override
-    @alru_cache(ttl=3600, maxsize=50)  # Cache for 1 hour
-    async def get_client_secret(self, client_id: str) -> str:
-        """Get client secret.
-
-        Args:
-            client_id: Client ID
-
-        Returns:
-            Client secret
-
-        Raises:
-            ValueError: If getting secret fails
-        """
-        try:
-            client = await self.admin_adapter.a_get_client(client_id)
-            return client.get("secret", "")
-        except KeycloakError as e:
-            raise ValueError(f"Failed to get client secret: {e!s}")
-
-    @override
-    @alru_cache(ttl=3600, maxsize=50)  # Cache for 1 hour
-    async def get_client_id(self, client_name: str) -> str:
-        """Get client ID by client name.
-
-        Args:
-            client_name: Name of the client
-
-        Returns:
-            Client ID
-
-        Raises:
-            ValueError: If client not found
-        """
-        try:
-            return await self.admin_adapter.a_get_client_id(client_name)
-        except KeycloakError as e:
-            raise ValueError(f"Failed to get client ID: {e!s}")
-
-    @override
-    @alru_cache(ttl=300, maxsize=1)  # Cache for 5 minutes
-    async def get_realm_roles(self) -> list[dict[str, Any]]:
-        """Get all realm roles.
-
-        Returns:
-            List of realm roles
-
-        Raises:
-            ValueError: If getting roles fails
-        """
-        try:
-            return await self.admin_adapter.a_get_realm_roles()
-        except KeycloakError as e:
-            raise ValueError(f"Failed to get realm roles: {e!s}")
-
-    @override
-    @alru_cache(ttl=300, maxsize=1)  # Cache for 5 minutes
-    async def get_realm_role(self, role_name: str) -> dict:
-        """Get realm role.
-
-        Args:
-            role_name: Role name
-        Returns:
-            A realm role
-
-        Raises:
-            ValueError: If getting role fails
-        """
-        try:
-            return await self.admin_adapter.a_get_realm_role(role_name)
-        except KeycloakError as e:
-            raise ValueError(f"Failed to get realm role: {e!s}")
-
-    @override
-    async def remove_client_role(self, user_id: str, client_id: str, role_name: str) -> None:
-        """Remove a client-specific role from a user.
-
-        Args:
-            user_id: User's ID
-            client_id: Client ID
-            role_name: Role name to remove
-
-        Raises:
-            ValueError: If role removal fails
-        """
-        try:
-            client = await self.admin_adapter.a_get_client_id(client_id)
-            role = await self.admin_adapter.a_get_client_role(client, role_name)
-            await self.admin_adapter.a_delete_client_roles_of_user(user_id, client, [role])
-
-            if hasattr(self.get_client_roles_for_user, "clear_cache"):
-                self.get_client_roles_for_user.clear_cache()
-        except KeycloakError as e:
-            raise ValueError(f"Failed to remove client role: {e!s}")
-
-    @override
-    async def clear_user_sessions(self, user_id: str) -> None:
-        """Clear all sessions for a user.
-
-        Args:
-            user_id: User's ID
-
-        Raises:
-            ValueError: If clearing sessions fails
-        """
-        try:
-            await self.admin_adapter.a_user_logout(user_id)
-        except KeycloakError as e:
-            raise ValueError(f"Failed to clear user sessions: {e!s}")
-
-    @override
-    async def logout(self, refresh_token: str) -> None:
-        """Logout user by invalidating their refresh token.
-
-        Args:
-            refresh_token: Refresh token to invalidate
-
-        Raises:
-            ValueError: If logout fails
-        """
-        try:
-            await self.openid_adapter.a_logout(refresh_token)
-        except KeycloakError as e:
-            raise ValueError(f"Failed to logout: {e!s}")
-
-    @override
-    async def introspect_token(self, token: str) -> dict[str, Any]:
-        """Introspect token to get detailed information about it.
-
-        Args:
-            token: Access token
-
-        Returns:
-            Token introspection details
-
-        Raises:
-            ValueError: If token introspection fails
-        """
-        try:
-            return await self.openid_adapter.a_introspect(token)
-        except KeycloakError as e:
-            raise ValueError(f"Failed to introspect token: {e!s}")
-
-    @override
-    async def get_token_info(self, token: str) -> dict[str, Any]:
-        """Decode token to get its claims.
-
-        Args:
-            token: Access token
-
-        Returns:
-            Dictionary of token claims
-
-        Raises:
-            ValueError: If token decoding fails
-        """
-        try:
-            return await self.openid_adapter.a_decode_token(
-                token,
-                key=await self.get_public_key(),
-            )
-        except KeycloakError as e:
-            raise ValueError(f"Failed to get token info: {e!s}")
-
-    @override
-    async def delete_user(self, user_id: str) -> None:
-        """Delete a user from Keycloak by their ID.
-
-        Args:
-            user_id: The ID of the user to delete
-
-        Raises:
-            ValueError: If the deletion fails
-        """
-        try:
-            await self.admin_adapter.a_delete_user(user_id=user_id)
-            logger.info(f"Successfully deleted user with ID {user_id}")
-        except Exception as e:
-            raise ValueError(f"Failed to delete user: {e!s}")
+        else:
+            return False
