@@ -196,6 +196,14 @@ class ErrorMessageType(Enum):
         grpc_status=StatusCode.CANCELLED if GRPC_AVAILABLE else None,
     )
 
+    INSUFFICIENT_BALANCE = ErrorDetailDTO.create_error_detail(
+        code="INSUFFICIENT_BALANCE",
+        message_en="Insufficient balance for operation",
+        message_fa="عدم موجودی کافی برای عملیات.",
+        http_status=HTTPStatus.PAYMENT_REQUIRED if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.FAILED_PRECONDITION if GRPC_AVAILABLE else None,
+    )
+
     # System Errors (500, 501, 503)
     INVALID_ENTITY_TYPE = ErrorDetailDTO.create_error_detail(
         code="INVALID_ENTITY",
