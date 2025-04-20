@@ -2,6 +2,43 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+
+
+## [0.14.1] - 2025-04-20
+
+### Fixed
+
+- Fix keycloak linter errors
+- Merge pull request #34 from Mohammadreza-kh94/fix/server-default-value
+- Fix "DEFAULT" server_default value in BaseEntity timestamps
+
+
+## [0.14.2] - 2025-04-20
+
+### Fixed
+
+#### Keycloak
+- Resolved linter errors in Keycloak integration
+- Enhanced code quality in authentication components
+
+#### Code Quality
+- Improved type safety in Keycloak adapters
+- Enhanced error handling in authentication flows
+
+
+## [0.14.1] - 2025-04-20
+
+### Fixed
+
+#### Database
+- Resolved "DEFAULT" server_default value issue in BaseEntity timestamps
+- Enhanced timestamp handling in database entities
+
+#### Code Quality
+- Improved database entity configuration
+- Enhanced type safety in entity definitions
+
+
 ## [0.14.0] - 2025-04-16
 
 ### Added
