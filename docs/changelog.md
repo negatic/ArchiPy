@@ -3,6 +3,25 @@
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
 
+
+## [0.14.3] - 2025-04-26
+
+### Added
+
+#### Adapters
+
+- Major database adapter refactoring
+
+### Changed
+
+- Update dependencies
+
+
+### Fixed
+
+- Fix capture exeptrioin in all senario
+
+
 ## [1.0.0] - 2025-04-20
 
 ### Architecture
