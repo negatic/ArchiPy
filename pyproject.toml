@@ -35,6 +35,7 @@ redis = ["redis (>=5.2.1)"]
 scheduler = ["apscheduler (>=3.11.0)"]
 sentry = ["sentry-sdk (>=2.24.1)"]
 sqlalchemy = ["sqlalchemy (>=2.0.39)"]
+starrocks = ["starrocks (>=1.2.2,<2.0.0)"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"

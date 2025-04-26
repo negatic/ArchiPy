@@ -11,6 +11,130 @@ The `adapters` module provides standardized interfaces to external systems and s
 
 ## Available Adapters
 
+### Database Adapters
+
+The database adapters provide standardized interfaces for different database systems using SQLAlchemy. Each database type has its own dedicated adapter implementation.
+
+#### Base SQLAlchemy Components
+
+The base SQLAlchemy components provide the core functionality used by all database-specific adapters:
+
+::: archipy.adapters.base.sqlalchemy.adapters
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.base.sqlalchemy.ports
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.base.sqlalchemy.session_managers
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.base.sqlalchemy.session_manager_registry
+    options:
+      show_root_heading: true
+      show_source: true
+
+#### PostgreSQL
+
+PostgreSQL database adapter with SQLAlchemy integration.
+
+```python
+from archipy.adapters.postgres.sqlalchemy.adapters import PostgresSQLAlchemyAdapter, AsyncPostgresSQLAlchemyAdapter
+
+# Create an ORM adapter (uses global config)
+orm_adapter = PostgresSQLAlchemyAdapter()
+
+# Use the adapter
+users = orm_adapter.query(User).filter(User.active == True).all()
+```
+
+::: archipy.adapters.postgres.sqlalchemy.adapters
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.postgres.sqlalchemy.ports
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.postgres.sqlalchemy.session_managers
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.postgres.sqlalchemy.session_manager_registry
+    options:
+      show_root_heading: true
+      show_source: true
+
+#### SQLite
+
+SQLite database adapter with SQLAlchemy integration.
+
+```python
+from archipy.adapters.sqlite.sqlalchemy.adapters import SqliteSQLAlchemyAdapter, AsyncSqliteSQLAlchemyAdapter
+
+# Create an ORM adapter (uses global config)
+orm_adapter = SqliteSQLAlchemyAdapter()
+```
+
+::: archipy.adapters.sqlite.sqlalchemy.adapters
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.sqlite.sqlalchemy.ports
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.sqlite.sqlalchemy.session_managers
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.sqlite.sqlalchemy.session_manager_registry
+    options:
+      show_root_heading: true
+      show_source: true
+
+#### StarRocks
+
+StarRocks database adapter with SQLAlchemy integration.
+
+```python
+from archipy.adapters.starrocks.sqlalchemy.adapters import StarrocksSQLAlchemyAdapter, AsyncStarrocksSQLAlchemyAdapter
+
+# Create an ORM adapter (uses global config)
+orm_adapter = StarrocksSQLAlchemyAdapter()
+```
+
+::: archipy.adapters.starrocks.sqlalchemy.adapters
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.starrocks.sqlalchemy.ports
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.starrocks.sqlalchemy.session_managers
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.starrocks.sqlalchemy.session_manager_registry
+    options:
+      show_root_heading: true
+      show_source: true
+
 ### Email
 
 Email sending functionality with standardized interface.
@@ -121,124 +245,6 @@ For detailed examples and usage guidelines, see the [MinIO Adapter Examples](../
       show_root_heading: true
       show_source: true
 
-### ORM
-
-Object-Relational Mapping adapters, primarily for SQLAlchemy integration. The ORM adapters are now organized into database-specific implementations:
-
-#### PostgreSQL
-
-```python
-from archipy.adapters.postgres.sqlalchemy.adapters import PostgresSQLAlchemyAdapter, AsyncPostgresSQLAlchemyAdapter
-
-# Create an ORM adapter (uses global config)
-orm_adapter = PostgresSQLAlchemyAdapter()
-
-# Use the adapter
-users = orm_adapter.query(User).filter(User.active == True).all()
-```
-
-::: archipy.adapters.postgres.sqlalchemy.adapters
-    options:
-      show_root_heading: true
-      show_source: true
-
-::: archipy.adapters.postgres.sqlalchemy.ports
-    options:
-      show_root_heading: true
-      show_source: true
-
-::: archipy.adapters.postgres.sqlalchemy.session_managers
-    options:
-      show_root_heading: true
-      show_source: true
-
-::: archipy.adapters.postgres.sqlalchemy.session_manager_registry
-    options:
-      show_root_heading: true
-      show_source: true
-
-#### SQLite
-
-```python
-from archipy.adapters.sqlite.sqlalchemy.adapters import SqliteSQLAlchemyAdapter, AsyncSqliteSQLAlchemyAdapter
-
-# Create an ORM adapter (uses global config)
-orm_adapter = SqliteSQLAlchemyAdapter()
-```
-
-::: archipy.adapters.sqlite.sqlalchemy.adapters
-    options:
-      show_root_heading: true
-      show_source: true
-
-::: archipy.adapters.sqlite.sqlalchemy.ports
-    options:
-      show_root_heading: true
-      show_source: true
-
-::: archipy.adapters.sqlite.sqlalchemy.session_managers
-    options:
-      show_root_heading: true
-      show_source: true
-
-::: archipy.adapters.sqlite.sqlalchemy.session_manager_registry
-    options:
-      show_root_heading: true
-      show_source: true
-
-#### StarRocks
-
-```python
-from archipy.adapters.starrocks.sqlalchemy.adapters import StarrocksSQLAlchemyAdapter, AsyncStarrocksSQLAlchemyAdapter
-
-# Create an ORM adapter (uses global config)
-orm_adapter = StarrocksSQLAlchemyAdapter()
-```
-
-::: archipy.adapters.starrocks.sqlalchemy.adapters
-    options:
-      show_root_heading: true
-      show_source: true
-
-::: archipy.adapters.starrocks.sqlalchemy.ports
-    options:
-      show_root_heading: true
-      show_source: true
-
-::: archipy.adapters.starrocks.sqlalchemy.session_managers
-    options:
-      show_root_heading: true
-      show_source: true
-
-::: archipy.adapters.starrocks.sqlalchemy.session_manager_registry
-    options:
-      show_root_heading: true
-      show_source: true
-
-#### Base SQLAlchemy Components
-
-The base SQLAlchemy components provide the core functionality used by all database-specific adapters:
-
-::: archipy.adapters.base.sqlalchemy.adapters
-    options:
-      show_root_heading: true
-      show_source: true
-
-::: archipy.adapters.base.sqlalchemy.ports
-    options:
-      show_root_heading: true
-      show_source: true
-
-::: archipy.adapters.base.sqlalchemy.session_managers
-    options:
-      show_root_heading: true
-      show_source: true
-
-::: archipy.adapters.base.sqlalchemy.session_manager_registry
-    options:
-      show_root_heading: true
-      show_source: true
-
 ### Redis
 
 Redis integration for caching and key-value storage.
@@ -248,12 +254,6 @@ from archipy.adapters.redis import RedisAdapter, AsyncRedisAdapter
 
 # Create a Redis adapter (uses global config)
 redis = RedisAdapter()
-
-# Set value
-redis.set("key", "value", ex=3600)  # expires in 1 hour
-
-# Get value
-value = redis.get("key")
 ```
 
 ::: archipy.adapters.redis.adapters
@@ -262,11 +262,6 @@ value = redis.get("key")
       show_source: true
 
 ::: archipy.adapters.redis.ports
-    options:
-      show_root_heading: true
-      show_source: true
-
-::: archipy.adapters.redis.mocks
     options:
       show_root_heading: true
       show_source: true

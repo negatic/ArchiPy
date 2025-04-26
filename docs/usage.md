@@ -24,7 +24,7 @@ BaseConfig.set_global(config)
 from uuid import uuid4
 from sqlalchemy import Column, String, ForeignKey
 from sqlalchemy.orm import relationship
-from archipy.models.entities import BaseEntity
+from archipy.models.entities.sqlalchemy.base_entities import BaseEntity
 
 class User(BaseEntity):
     __tablename__ = "users"
@@ -71,6 +71,8 @@ BaseEntity.metadata.create_all(db_adapter.session_manager.engine)
 
 ```python
 from sqlalchemy import select
+from archipy.models.dtos.pagination_dto import PaginationDTO
+from archipy.models.dtos.sort_dto import SortDTO
 
 class UserRepository:
     def __init__(self, db_adapter):
@@ -84,17 +86,35 @@ class UserRepository:
         query = select(User).where(User.username == username)
         users, _ = self.db_adapter.execute_search_query(User, query)
         return users[0] if users else None
+
+    def search_users(self, search_term: str | None = None,
+                    pagination: PaginationDTO | None = None,
+                    sort: SortDTO | None = None):
+        query = select(User)
+        if search_term:
+            query = query.where(User.username.ilike(f"%{search_term}%"))
+        return self.db_adapter.execute_search_query(User, query, pagination, sort)
 ```
 
 5. Implement your business logic:
 
 ```python
+from archipy.models.errors.custom_errors import AlreadyExistsError
+
 class UserService:
     def __init__(self, user_repository):
         self.user_repository = user_repository
 
     def register_user(self, username, email):
-        # Business logic here (validation, etc.)
+        # Check if user exists
+        existing_user = self.user_repository.get_by_username(username)
+        if existing_user:
+            raise AlreadyExistsError(
+                resource_type="user",
+                additional_data={"username": username}
+            )
+
+        # Create new user
         return self.user_repository.create(username, email)
 ```
 
@@ -103,7 +123,7 @@ class UserService:
 For caching or other Redis operations:
 
 ```python
-from archipy.adapters.redis.adapters import RedisAdapter
+from archipy.adapters.redis.adapters import RedisAdapter, AsyncRedisAdapter
 
 # Create Redis adapter (uses global config)
 redis_adapter = RedisAdapter()
@@ -122,6 +142,47 @@ def get_cached_user(user_id):
     return json.loads(data) if data else None
 ```
 
+## Working with Keycloak
+
+For authentication and authorization:
+
+```python
+from archipy.adapters.keycloak.adapters import KeycloakAdapter, AsyncKeycloakAdapter
+
+# Create Keycloak adapter (uses global config)
+keycloak = KeycloakAdapter()
+
+# Authenticate user
+token = keycloak.get_token("username", "password")
+
+# Validate token
+is_valid = keycloak.validate_token(token["access_token"])
+
+# Get user info
+user_info = keycloak.get_userinfo(token["access_token"])
+```
+
+## Working with MinIO
+
+For object storage operations:
+
+```python
+from archipy.adapters.minio.adapters import MinioAdapter
+
+# Create MinIO adapter (uses global config)
+minio = MinioAdapter()
+
+# Create bucket
+if not minio.bucket_exists("my-bucket"):
+    minio.make_bucket("my-bucket")
+
+# Upload file
+minio.put_object("my-bucket", "document.pdf", "/path/to/file.pdf")
+
+# Generate download URL
+download_url = minio.presigned_get_object("my-bucket", "document.pdf", expires=3600)
+```
+
 ## Working with FastAPI
 
 Integrate with FastAPI:
@@ -129,6 +190,8 @@ Integrate with FastAPI:
 ```python
 from fastapi import FastAPI, Depends, HTTPException
 from archipy.helpers.utils.app_utils import AppUtils
+from archipy.helpers.utils.keycloak_utils import KeycloakUtils
+from archipy.models.errors.custom_errors import BaseError
 
 # Create FastAPI app
 app = AppUtils.create_fastapi_app(BaseConfig.global_config())
@@ -138,14 +201,22 @@ def get_user_service():
     user_repo = UserRepository(db_adapter)
     return UserService(user_repo)
 
-# Define routes
+# Define routes with authentication
 @app.post("/users/")
-def create_user(username: str, email: str, service: UserService = Depends(get_user_service)):
+def create_user(
+    username: str,
+    email: str,
+    service: UserService = Depends(get_user_service),
+    user: dict = Depends(KeycloakUtils.fastapi_auth(required_roles={"admin"}))
+):
     try:
         user = service.register_user(username, email)
         return {"id": str(user.test_uuid), "username": user.username}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except BaseError as e:
+        raise HTTPException(
+            status_code=e.http_status_code or 400,
+            detail=e.to_dict()
+        )
 ```
 
 ## Examples
@@ -161,52 +232,74 @@ from archipy.configs.base_config import BaseConfig
 class MyAppConfig(BaseConfig):
     database_url: str = "sqlite:///example.db"
     redis_host: str = "localhost"
+    keycloak_url: str = "http://localhost:8080"
+    minio_endpoint: str = "localhost:9000"
 
 config = MyAppConfig()
 print(config.database_url)  # "sqlite:///example.db"
 ```
 
-### Adapters & Mocks
+### Database Operations
 
-Use adapters for external systems with mocks for testing:
-
-```python
-from archipy.adapters.redis.adapters import AsyncRedisAdapter
-from archipy.adapters.redis.mocks import AsyncRedisMock
-
-# Production use
-redis = AsyncRedisAdapter()
-await redis.set("key", "value", ex=3600)
-print(await redis.get("key"))  # "value"
-
-# Testing with mock
-mock_redis = AsyncRedisMock()
-await mock_redis.set("key", "test")
-print(await mock_redis.get("key"))  # "test"
-```
-
-### Entities & DTOs
-
-Standardize data models:
+Use database adapters with transactions:
 
 ```python
-from sqlalchemy import Column, Integer, String
-from archipy.models.entities.sqlalchemy.base_entities import BaseEntity
-from archipy.models.dtos.base_dtos import BaseDTO
+from archipy.helpers.decorators.sqlalchemy_atomic import (
+    postgres_sqlalchemy_atomic_decorator,
+    async_postgres_sqlalchemy_atomic_decorator,
+    sqlite_sqlalchemy_atomic_decorator,
+    async_sqlite_sqlalchemy_atomic_decorator,
+    starrocks_sqlalchemy_atomic_decorator,
+    async_starrocks_sqlalchemy_atomic_decorator
+)
 
-# Entity
-class User(BaseEntity):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True)
-    name = Column(String(100))
+# Synchronous PostgreSQL transaction
+@postgres_sqlalchemy_atomic_decorator
+def create_user_with_posts(username, email, posts):
+    user = User(username=username, email=email)
+    db_adapter.create(user)
 
-# DTO
-class UserDTO(BaseDTO):
-    id: int
-    name: str
+    for post in posts:
+        post.author_id = user.test_uuid
+        db_adapter.create(post)
 
-user = UserDTO(id=1, name="Alice")
-print(user.model_dump())  # {'id': 1, 'name': 'Alice'}
+    return user
+
+# Asynchronous PostgreSQL transaction
+@async_postgres_sqlalchemy_atomic_decorator
+async def async_create_user_with_posts(username, email, posts):
+    user = User(username=username, email=email)
+    await db_adapter.create(user)
+
+    for post in posts:
+        post.author_id = user.test_uuid
+        await db_adapter.create(post)
+
+    return user
+
+# Synchronous SQLite transaction
+@sqlite_sqlalchemy_atomic_decorator
+def create_sqlite_user(username, email):
+    user = User(username=username, email=email)
+    return db_adapter.create(user)
+
+# Asynchronous SQLite transaction
+@async_sqlite_sqlalchemy_atomic_decorator
+async def async_create_sqlite_user(username, email):
+    user = User(username=username, email=email)
+    return await db_adapter.create(user)
+
+# Synchronous StarRocks transaction
+@starrocks_sqlalchemy_atomic_decorator
+def create_starrocks_user(username, email):
+    user = User(username=username, email=email)
+    return db_adapter.create(user)
+
+# Asynchronous StarRocks transaction
+@async_starrocks_sqlalchemy_atomic_decorator
+async def async_create_starrocks_user(username, email):
+    user = User(username=username, email=email)
+    return await db_adapter.create(user)
 ```
 
 ### Helper Utilities
@@ -216,39 +309,23 @@ Simplify tasks with utilities and decorators:
 ```python
 from archipy.helpers.utils.datetime_utils import get_utc_now
 from archipy.helpers.decorators.retry import retry
+from archipy.helpers.decorators.singleton import singleton
 
 # Utility
 now = get_utc_now()
 print(now)  # Current UTC time
 
-# Decorator
+# Retry decorator
 @retry(max_attempts=3, delay=1)
 def risky_operation():
     # Simulated failure
     raise ValueError("Try again")
 
-try:
-    risky_operation()
-except ValueError as e:
-    print(f"Failed after retries: {e}")
-```
-
-### BDD Testing
-
-Validate features with `behave`:
-
-```bash
-# Run BDD tests
-make behave
-```
-
-Example feature file (`features/app_utils.feature`):
-
-```gherkin
-Feature: Application Utilities
-  Scenario: Get UTC time
-    When I get the current UTC time
-    Then the result should be a valid datetime
+# Singleton decorator
+@singleton
+class DatabaseManager:
+    def __init__(self):
+        self.adapter = PostgresSQLAlchemyAdapter()
 ```
 
 ### Async Operations
@@ -261,10 +338,14 @@ from archipy.adapters.postgres.sqlalchemy.adapters import AsyncPostgresSQLAlchem
 
 async def fetch_users():
     adapter = AsyncPostgresSQLAlchemyAdapter()
-    users = await adapter.execute_search_query(User, pagination=None, sort_info=None)
+    users, total = await adapter.execute_search_query(
+        User,
+        pagination=PaginationDTO(page=1, size=10),
+        sort=SortDTO(field="username", order="asc")
+    )
     return users
 
-users, total = asyncio.run(fetch_users())
+users = asyncio.run(fetch_users())
 print(users)  # List of User entities
 ```
 

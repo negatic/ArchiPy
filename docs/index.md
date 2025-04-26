@@ -1,56 +1,34 @@
-# Welcome to ArchiPy
+# ArchiPy Documentation
 
-![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)
+![ArchiPy Logo](assets/logo.jpg)
 
-<div style="float: right; margin-left: 20px;">
-    <img src="assets/logo.jpg" alt="ArchiPy Logo" width="150"/>
-</div>
+ArchiPy is a Python framework designed to provide a standardized, scalable, and maintainable architecture for modern applications. Built with Python 3.13+, it offers a suite of tools, utilities, and best practices to streamline development workflows while adhering to clean architecture principles and modern Python practices.
 
-**Architecture + Python – Structured Development Simplified**
+## Goals
 
-ArchiPy provides a clean architecture framework for Python applications that:
+ArchiPy is built with the following objectives in mind:
 
-* Standardizes configuration management
-* Offers pluggable adapters with testing mocks
-* Enforces consistent data models
-* Promotes maintainable code organization
-* Simplifies testing with BDD support
+1. **Database Integration** - Provide robust, type-safe database adapters for PostgreSQL, SQLite, and StarRocks
+2. **Configuration Management** - Simplify and standardize configuration handling with validation
+3. **Service Integration** - Offer ready-to-use adapters for common services (Redis, Email, Keycloak, MinIO, Kafka)
+4. **Data Standardization** - Enforce consistency in data modeling with modern type hints
+5. **Development Efficiency** - Provide comprehensive utilities and helpers for common tasks
+6. **Quality Assurance** - Enable robust testing and code quality enforcement
 
-## Quick Start
+## Features
 
-```bash
-# Install using pip
-pip install archipy
+- **Database Integration**: Dedicated adapters for PostgreSQL, SQLite, and StarRocks with SQLAlchemy integration
+- **Configuration Management**: Type-safe configuration with environment variable support
+- **Service Adapters**: Pre-built adapters for Redis, Email, Keycloak, MinIO, and Kafka
+- **Data Standardization**: Base entities, DTOs, and modern type hints
+- **Helper Utilities**: Decorators, interceptors, and security utilities
+- **Testing & Quality**: BDD testing and automated code quality tools
+- **Performance & Scalability**: Connection pooling, caching, and async support
 
-# Or with poetry
-poetry add archipy
-```
+## Quick Links
 
-## Key Features
-
-ArchiPy is a comprehensive framework designed to streamline Python application development through clean architecture principles:
-
-- **Modular Adapters**: Plug-and-play implementations with ready-to-use mocks for databases, Redis, email, and more
-- **Robust Configuration**: Type-safe configuration management with environment variable support
-- **Standardized Models**: Consistent data modeling with DTOs, entities, and well-defined types
-- **Development Helpers**: Decorators, metaclasses, and utilities to accelerate development
-- **BDD Testing**: Integrated Behave support for behavior-driven development
-
-## Project Structure
-
-```
-archipy/
-│
-├── adapters/          # Interfaces to external systems
-├── configs/           # Configuration management
-├── helpers/           # Development utilities
-│   ├── decorators/    # Function/method decorators
-│   ├── interceptors/  # Communication interceptors
-│   ├── metaclasses/   # Class creators and modifiers
-│   └── utils/         # General-purpose utilities
-└── models/            # Domain objects
-    ├── dtos/          # Data Transfer Objects
-    ├── entities/      # Business entities
-    ├── errors/        # Error definitions
-    └── types/         # Type definitions
-```
+- [Installation Guide](installation.md)
+- [Architecture Overview](architecture.md)
+- [API Reference](api_reference/index.md)
+- [Examples](examples/index.md)
+- [Contributing](contributing.md)

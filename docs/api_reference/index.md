@@ -9,7 +9,10 @@ Welcome to the ArchiPy API reference documentation. This section provides detail
 The adapters module provides standardized interfaces to external systems:
 
 - [Adapters Documentation](adapters.md)
-- [ORM Adapters](adapters.md#orm)
+- [Database Adapters](adapters.md#database-adapters)
+  - [PostgreSQL](adapters.md#postgresql)
+  - [SQLite](adapters.md#sqlite)
+  - [StarRocks](adapters.md#starrocks)
 - [Redis Adapters](adapters.md#redis)
 - [Email Adapters](adapters.md#email)
 - [Keycloak Adapters](adapters.md#keycloak)
@@ -51,12 +54,19 @@ The ArchiPy source code is organized into the following structure:
 ```
 archipy/
 ├── adapters/           # External system integrations
+│   ├── base/          # Base adapter implementations
+│   │   └── sqlalchemy/  # Base SQLAlchemy components
 │   ├── email/         # Email service adapters
 │   ├── keycloak/      # Keycloak authentication adapters
 │   ├── kafka/         # Kafka message streaming adapters
 │   ├── minio/         # MinIO object storage adapters
-│   ├── orm/           # Database ORM adapters
-│   └── redis/         # Redis adapters
+│   ├── postgres/      # PostgreSQL database adapters
+│   │   └── sqlalchemy/  # PostgreSQL SQLAlchemy components
+│   ├── redis/         # Redis adapters
+│   ├── sqlite/        # SQLite database adapters
+│   │   └── sqlalchemy/  # SQLite SQLAlchemy components
+│   └── starrocks/     # StarRocks database adapters
+│       └── sqlalchemy/  # StarRocks SQLAlchemy components
 ├── configs/           # Configuration management
 │   ├── base_config.py
 │   └── templates/

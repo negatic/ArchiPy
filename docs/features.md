@@ -2,44 +2,81 @@
 
 ArchiPy provides a robust framework for structured Python development, focusing on standardization, testability, and productivity.
 
+## Database Integration
+
+- **Multi-Database Support**: Dedicated adapters for PostgreSQL, SQLite, and StarRocks
+- **SQLAlchemy Integration**: Standardized ORM implementation with:
+  - Base SQLAlchemy components for common functionality
+  - Database-specific session management
+  - Enhanced transaction handling with atomic decorators
+  - Connection pooling and lifecycle management
+
 ## Configuration Management
 
-- **Standardized Configs**: Use `base_config` and `config_template` for consistent setup.
-- **Injection**: Seamlessly inject configurations into components.
+- **Standardized Configs**: Use `base_config` and `config_template` for consistent setup
+- **Injection**: Seamlessly inject configurations into components
+- **Environment Management**: Flexible environment variable handling with validation
+- **Type Safety**: Configuration validation with Pydantic models
 
 ## Adapters & Mocks
 
-- **Common Adapters**: Pre-built for Redis, SQLAlchemy, email, and Kafka.
-- **Mocks**: Testable mocks (e.g., `redis_mocks`, `sqlalchemy_mocks`) for isolated testing.
-- **Async Support**: Synchronous and asynchronous implementations.
+- **Database Adapters**: Dedicated implementations for PostgreSQL, SQLite, and StarRocks
+- **Service Adapters**: Pre-built for Redis, Email, Keycloak, MinIO, and Kafka
+- **Mocks**: Testable mocks for isolated testing
+- **Async Support**: Synchronous and asynchronous implementations
+- **Ports & Adapters Pattern**: Clean architecture with dependency inversion
 
 ## Data Standardization
 
-- **Base Entities**: Standardized SQLAlchemy entities (`base_entities.py`).
-- **DTOs**: Pydantic-based DTOs (e.g., `pagination_dto`, `error_dto`).
-- **Type Safety**: Enforced via `pydantic` and `mypy`.
+- **Base Entities**: Standardized SQLAlchemy entities with timestamp handling
+- **DTOs**: Pydantic-based DTOs for data transfer:
+  - Pagination and sorting
+  - Error handling
+  - Search and range operations
+  - Email and attachment handling
+- **Type Safety**: Enforced via Pydantic and modern Python type hints
 
 ## Helper Utilities
 
-- **Utilities**: Tools like `datetime_utils`, `jwt_utils`, `password_utils`, and `totp_utils`.
-- **Decorators**: `retry`, `singleton`, `sqlalchemy_atomic`, etc.
-- **Interceptors**: Rate limiting (FastAPI), tracing (gRPC).
-- **Enhanced Security**: Cryptographically secure implementations with `secrets` module.
-- **Type Safety**: Consistent type checking and casting for robust interfaces.
+- **Decorators**:
+  - Retry mechanism for resilient operations
+  - Singleton pattern implementation
+  - SQLAlchemy atomic transactions
+  - TTL caching for performance optimization
+- **Interceptors**:
+  - FastAPI rate limiting
+  - gRPC tracing and monitoring
+- **Security**:
+  - Keycloak integration for authentication
+  - TOTP implementation
+  - Password utilities with secure hashing
+  - JWT handling
+- **Type Safety**: Consistent type checking and casting
 
-## BDD Testing
+## Testing & Quality
 
-- **Behave Integration**: Pre-configured for sync/async scenarios.
-- **Feature Files**: Examples like `app_utils.feature`, `totp_utils.feature`.
-- **Step Definitions**: Comprehensive steps for testing (e.g., `jwt_utils_steps.py`).
+- **BDD Testing**:
+  - Behave integration for sync/async scenarios
+  - Comprehensive feature files
+  - Step definitions for common operations
+- **Code Quality**:
+  - Automated linting with ruff
+  - Type checking with mypy
+  - Code formatting with black
+  - Pre-commit hooks for quality assurance
 
 ## Best Practices & Tooling
 
-- **Poetry**: Dependency management for reproducible builds.
-- **Pre-commit**: Automated checks with `ruff`, `black`, and `mypy`.
-- **Structure**: Clean architecture with `pyproject.toml` for modern Python development.
+- **Poetry**: Modern dependency management
+- **Pre-commit**: Automated code quality checks
+- **Clean Architecture**: Hexagonal design pattern
+- **Modular Design**: Optional dependencies for flexibility
+- **Comprehensive Documentation**: API reference and usage examples
 
-## Modular Design
+## Performance & Scalability
 
-- **Optional Dependencies**: Install only what you need (e.g., `archipy[redis]`).
-- **Extensible**: Add custom adapters and helpers easily.
+- **Connection Pooling**: Optimized database connections
+- **Caching**: Redis integration for performance
+- **Async Support**: Non-blocking operations
+- **Resource Management**: Proper cleanup and lifecycle handling
+- **Error Recovery**: Robust error handling and retry mechanisms

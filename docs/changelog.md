@@ -3,24 +3,36 @@
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
 
+## [1.0.2] - 2025-04-20
 
-## [0.14.3] - 2025-04-26
+### Documentation
 
-### Added
+#### API Reference
+- Updated adapter documentation with new architecture details
+- Enhanced API reference structure and organization
+- Added comprehensive usage examples
 
-#### Adapters
+#### General Documentation
+- Improved installation guide with detailed setup instructions
+- Enhanced feature documentation with clear examples
+- Updated usage guide with new architecture patterns
 
-- Major database adapter refactoring
+#### Code Quality
+- Updated dependencies in poetry.lock and pyproject.toml
+- Enhanced documentation consistency and clarity
 
-### Changed
-
-- Update dependencies
-
+## [1.0.1] - 2025-04-20
 
 ### Fixed
 
-- Fix capture exeptrioin in all senario
+#### Error Handling
+- Enhanced exception capture in all scenarios
+- Improved error handling robustness across components
+- Added comprehensive error logging
 
+#### Code Quality
+- Strengthened error recovery mechanisms
+- Enhanced error reporting and debugging capabilities
 
 ## [1.0.0] - 2025-04-20
 
@@ -67,13 +79,22 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 - Optimized connection pooling implementation
 
 
-## [0.14.1] - 2025-04-20
+## [0.14.3] - 2025-04-26
+
+### Added
+
+#### Adapters
+
+- Major database adapter refactoring
+
+### Changed
+
+- Update dependencies
+
 
 ### Fixed
 
-- Fix keycloak linter errors
-- Merge pull request #34 from Mohammadreza-kh94/fix/server-default-value
-- Fix "DEFAULT" server_default value in BaseEntity timestamps
+- Fix capture exeptrioin in all senario
 
 
 ## [0.14.2] - 2025-04-20
