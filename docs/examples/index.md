@@ -4,7 +4,6 @@ This section contains practical examples of using ArchiPy components.
 
 ## Adapters
 
-- [Database Adapters](adapters/index.md)
 - [PostgreSQL](adapters/postgres.md)
 - [SQLite](adapters/sqlite.md)
 - [StarRocks](adapters/starrocks.md)
