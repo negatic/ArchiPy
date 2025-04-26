@@ -167,6 +167,7 @@ lint.ignore = [
     "S301", # Ignore pickle usage (equivalent to bandit's B301)
     "S403", # Ignore pickle usage (equivalent to bandit's B403)
     "TCH002", # Type-checking import issues
+    "TRY003", #Avoid specifying long messages outside the exception class
     "TRY301", # Abstract raise into a function
 ]
 

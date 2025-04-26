@@ -117,7 +117,7 @@ nav:
           - Email: examples/adapters/email.md
           - Keycloak: examples/adapters/keycloak.md
           - MinIO: examples/adapters/minio.md
-          - ORM: examples/adapters/orm.md
+          - ORM: examples/adapters/postgres.md
           - Redis: examples/adapters/redis.md
       - Helpers:
           - Overview: examples/helpers/index.md

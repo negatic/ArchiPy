@@ -1,102 +1,353 @@
 # Models
 
-## Overview
+The `models` module provides core data structures and types used throughout the application, following clean architecture principles.
 
-The models module standardizes data structures with base entities, DTOs, errors, and types, ensuring consistency across the application.
-
-## Data Transfer Objects (DTOs)
-
-> **Note**: For practical examples of using DTOs with utilities, see the [Utils Examples](../examples/helpers/utils.md).
+## DTOs (Data Transfer Objects)
 
 ### Base DTOs
 
-Documentation for `archipy.models.dtos.base_dtos`.
-*Includes all members, undocumented members, and shows inheritance.*
+Base classes for all DTOs with common functionality.
+
+```python
+from archipy.models.dtos.base_dtos import BaseDTO
+from pydantic import BaseModel
+
+class UserDTO(BaseDTO):
+    id: str
+    username: str
+    email: str
+    created_at: datetime
+```
+
+::: archipy.models.dtos.base_dtos
+    options:
+      show_root_heading: true
+      show_source: true
 
 ### Email DTOs
 
-Documentation for `archipy.models.dtos.email_dtos`.
-*Includes all members, undocumented members, and shows inheritance.*
+DTOs for email-related operations.
 
-### Error DTO
+```python
+from archipy.models.dtos.email_dtos import EmailAttachmentDTO
 
-Documentation for `archipy.models.dtos.error_dto`.
-*Includes all members, undocumented members, and shows inheritance.*
+attachment = EmailAttachmentDTO(
+    filename="document.pdf",
+    content_type="application/pdf",
+    content=b"..."
+)
+```
+
+::: archipy.models.dtos.email_dtos
+    options:
+      show_root_heading: true
+      show_source: true
+
+### Error DTOs
+
+Standardized error response format.
+
+```python
+from archipy.models.dtos.error_dto import ErrorDetailDTO
+
+error = ErrorDetailDTO(
+    code="USER_NOT_FOUND",
+    message="User not found",
+    details={"user_id": "123"}
+)
+```
+
+::: archipy.models.dtos.error_dto
+    options:
+      show_root_heading: true
+      show_source: true
 
 ### Pagination DTO
 
-Documentation for `archipy.models.dtos.pagination_dto`.
-*Includes all members, undocumented members, and shows inheritance.*
+Handles pagination parameters for queries.
+
+```python
+from archipy.models.dtos.pagination_dto import PaginationDTO
+
+pagination = PaginationDTO(
+    page=1,
+    page_size=10,
+    total_items=100
+)
+```
+
+::: archipy.models.dtos.pagination_dto
+    options:
+      show_root_heading: true
+      show_source: true
 
 ### Range DTOs
 
-Documentation for `archipy.models.dtos.range_dtos`.
-*Includes all members, undocumented members, and shows inheritance.*
+Handles range-based queries and filters.
+
+```python
+from archipy.models.dtos.range_dtos import (
+    RangeDTO,
+    IntegerRangeDTO,
+    DateRangeDTO,
+    DatetimeRangeDTO
+)
+
+# Integer range
+int_range = IntegerRangeDTO(start=1, end=100)
+
+# Date range
+date_range = DateRangeDTO(
+    start=date(2023, 1, 1),
+    end=date(2023, 12, 31)
+)
+
+# Datetime range
+dt_range = DatetimeRangeDTO(
+    start=datetime(2023, 1, 1),
+    end=datetime(2023, 12, 31)
+)
+```
+
+::: archipy.models.dtos.range_dtos
+    options:
+      show_root_heading: true
+      show_source: true
 
 ### Search Input DTO
 
-Documentation for `archipy.models.dtos.search_input_dto`.
-*Includes all members, undocumented members, and shows inheritance.*
+Standardized search parameters.
+
+```python
+from archipy.models.dtos.search_input_dto import SearchInputDTO
+
+search = SearchInputDTO[str](
+    query="john",
+    filters={"active": True},
+    pagination=pagination
+)
+```
+
+::: archipy.models.dtos.search_input_dto
+    options:
+      show_root_heading: true
+      show_source: true
 
 ### Sort DTO
 
-Documentation for `archipy.models.dtos.sort_dto`.
-*Includes all members, undocumented members, and shows inheritance.*
+Handles sorting parameters for queries.
+
+```python
+from archipy.models.dtos.sort_dto import SortDTO
+
+sort = SortDTO[str](
+    field="created_at",
+    order="desc"
+)
+```
+
+::: archipy.models.dtos.sort_dto
+    options:
+      show_root_heading: true
+      show_source: true
 
 ## Entities
 
 ### SQLAlchemy Base Entities
 
-Documentation for `archipy.models.entities.sqlalchemy.base_entities`.
-*Includes all members, undocumented members, and shows inheritance.*
+Base classes for SQLAlchemy entities with various mixins for different capabilities.
+
+```python
+from archipy.models.entities.sqlalchemy.base_entities import (
+    BaseEntity,
+    UpdatableEntity,
+    DeletableEntity,
+    AdminEntity,
+    ManagerEntity,
+    UpdatableDeletableEntity,
+    ArchivableEntity,
+    UpdatableAdminEntity,
+    UpdatableManagerEntity,
+    ArchivableDeletableEntity,
+    UpdatableDeletableAdminEntity,
+    UpdatableDeletableManagerEntity,
+    ArchivableAdminEntity,
+    ArchivableManagerEntity,
+    UpdatableManagerAdminEntity,
+    ArchivableManagerAdminEntity,
+    ArchivableDeletableAdminEntity,
+    ArchivableDeletableManagerEntity,
+    UpdatableDeletableManagerAdminEntity,
+    ArchivableDeletableManagerAdminEntity
+)
+from sqlalchemy import Column, String
+
+# Basic entity
+class User(BaseEntity):
+    __tablename__ = "users"
+    username = Column(String(100), unique=True)
+    email = Column(String(255), unique=True)
+
+# Entity with update tracking
+class Post(UpdatableEntity):
+    __tablename__ = "posts"
+    title = Column(String(200))
+    content = Column(String)
+
+# Entity with soft deletion
+class Comment(DeletableEntity):
+    __tablename__ = "comments"
+    text = Column(String)
+
+# Entity with admin tracking
+class AdminLog(AdminEntity):
+    __tablename__ = "admin_logs"
+    action = Column(String)
+
+# Entity with manager tracking
+class ManagerLog(ManagerEntity):
+    __tablename__ = "manager_logs"
+    action = Column(String)
+```
+
+::: archipy.models.entities.sqlalchemy.base_entities
+    options:
+      show_root_heading: true
+      show_source: true
 
 ## Errors
 
 ### Custom Errors
 
-Documentation for `archipy.models.errors.custom_errors`.
-*Includes all members, undocumented members, and shows inheritance.*
+Application-specific error classes.
+
+```python
+from archipy.models.errors.custom_errors import (
+    BaseError,
+    InvalidTokenError,
+    InvalidEntityTypeError
+)
+
+class UserNotFoundError(BaseError):
+    def __init__(self, user_id: str):
+        super().__init__(
+            code="USER_NOT_FOUND",
+            message=f"User with ID {user_id} not found"
+        )
+```
+
+::: archipy.models.errors.custom_errors
+    options:
+      show_root_heading: true
+      show_source: true
 
 ## Types
 
 ### Base Types
 
 Documentation for `archipy.models.types.base_types`.
-*Includes all members, undocumented members, and shows inheritance.*
+Documentation for `archipy.models.types.base_types`.
+
+::: archipy.models.types.base_types
+    options:
+      show_root_heading: true
+      show_source: true
 
 ### Email Types
 
-Documentation for `archipy.models.types.email_types`.
-*Includes all members, undocumented members, and shows inheritance.*
+Email-related type definitions.
+
+::: archipy.models.types.email_types
+    options:
+      show_root_heading: true
+      show_source: true
 
 ### Exception Message Types
 
-Documentation for `archipy.models.types.exception_message_types`.
-*Includes all members, undocumented members, and shows inheritance.*
+Standardized error message types.
+
+```python
+from archipy.models.types.exception_message_types import ErrorMessageType
+
+error_type: ErrorMessageType = ErrorMessageType.ERROR
+```
+
+::: archipy.models.types.exception_message_types
+    options:
+      show_root_heading: true
+      show_source: true
 
 ### Language Type
 
-Documentation for `archipy.models.types.language_type`.
-*Includes all members, undocumented members, and shows inheritance.*
+Language code type definitions.
+
+```python
+from archipy.models.types.language_type import LanguageType
+
+language: LanguageType = LanguageType.EN
+```
+
+::: archipy.models.types.language_type
+    options:
+      show_root_heading: true
+      show_source: true
 
 ### Sort Order Type
 
-Documentation for `archipy.models.types.sort_order_type`.
-*Includes all members, undocumented members, and shows inheritance.*
+Sort order type definitions.
+
+```python
+from archipy.models.types.sort_order_type import SortOrderType
+
+order: SortOrderType = SortOrderType.DESC
+```
+
+::: archipy.models.types.sort_order_type
+    options:
+      show_root_heading: true
+      show_source: true
 
 ## Key Classes
 
 ### BaseDTO
 
 Class: `archipy.models.dtos.base_dtos.BaseDTO`
-*Includes all members, undocumented members, and shows inheritance.*
+
+Base class for all DTOs with features:
+- Pydantic model inheritance
+- JSON serialization
+- Validation
+- Type hints
+- Common utility methods
 
 ### BaseEntity
 
 Class: `archipy.models.entities.sqlalchemy.base_entities.BaseEntity`
-*Includes all members, undocumented members, and shows inheritance.*
+
+Base class for SQLAlchemy entities with features:
+- UUID primary key
+- Timestamp fields (created_at, updated_at)
+- Common query methods
+- Relationship support
+- Type-safe column definitions
+- Mixin support for:
+  - Update tracking
+  - Soft deletion
+  - Admin tracking
+  - Manager tracking
+  - Archiving
+  - Combined capabilities
 
 ### BaseError
 
 Class: `archipy.models.errors.custom_errors.BaseError`
-*Includes all members, undocumented members, and shows inheritance.*
+
+Base class for custom errors with features:
+- Standardized error format
+- Error code system
+- Detailed error messages
+- Stack trace support
+- Error context
+- Common error types:
+  - InvalidTokenError
+  - InvalidEntityTypeError

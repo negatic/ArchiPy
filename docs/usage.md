@@ -51,17 +51,20 @@ class Post(BaseEntity):
 3. Set up your database adapter:
 
 ```python
-from archipy.adapters.orm.sqlalchemy.session_manager_adapters import SessionManagerAdapter
-from archipy.adapters.orm.sqlalchemy.adapters import SqlAlchemyAdapter
+# For PostgreSQL
+from archipy.adapters.postgres.sqlalchemy.adapters import PostgresSQLAlchemyAdapter, AsyncPostgresSQLAlchemyAdapter
 
-# Create session manager
-session_manager = SessionManagerAdapter()
+# For SQLite
+from archipy.adapters.sqlite.sqlalchemy.adapters import SqliteSQLAlchemyAdapter, AsyncSqliteSQLAlchemyAdapter
 
-# Create adapter
-db_adapter = SqlAlchemyAdapter(session_manager)
+# For StarRocks
+from archipy.adapters.starrocks.sqlalchemy.adapters import StarrocksSQLAlchemyAdapter, AsyncStarrocksSQLAlchemyAdapter
+
+# Create adapter (uses global config)
+db_adapter = PostgresSQLAlchemyAdapter()
 
 # Create tables (development only)
-BaseEntity.metadata.create_all(session_manager.engine)
+BaseEntity.metadata.create_all(db_adapter.session_manager.engine)
 ```
 
 4. Implement your repositories:
@@ -102,9 +105,8 @@ For caching or other Redis operations:
 ```python
 from archipy.adapters.redis.adapters import RedisAdapter
 
-# Create Redis adapter
+# Create Redis adapter (uses global config)
 redis_adapter = RedisAdapter()
-
 
 # Cache user data
 def cache_user(user):
@@ -113,7 +115,6 @@ def cache_user(user):
         "email": user.email
     }
     redis_adapter.set(f"user:{user.test_uuid}", json.dumps(user_data), ex=3600)
-
 
 # Get cached user
 def get_cached_user(user_id):
@@ -256,14 +257,12 @@ Support for asynchronous workflows:
 
 ```python
 import asyncio
-from archipy.adapters.orm.sqlalchemy.adapters import AsyncSqlAlchemyAdapter
-
+from archipy.adapters.postgres.sqlalchemy.adapters import AsyncPostgresSQLAlchemyAdapter
 
 async def fetch_users():
-    adapter = AsyncSqlAlchemyAdapter(session_manager, User)
+    adapter = AsyncPostgresSQLAlchemyAdapter()
     users = await adapter.execute_search_query(User, pagination=None, sort_info=None)
     return users
-
 
 users, total = asyncio.run(fetch_users())
 print(users)  # List of User entities

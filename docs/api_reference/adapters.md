@@ -123,34 +123,118 @@ For detailed examples and usage guidelines, see the [MinIO Adapter Examples](../
 
 ### ORM
 
-Object-Relational Mapping adapters, primarily for SQLAlchemy integration.
+Object-Relational Mapping adapters, primarily for SQLAlchemy integration. The ORM adapters are now organized into database-specific implementations:
+
+#### PostgreSQL
 
 ```python
-from archipy.adapters.orm.sqlalchemy import SQLAlchemyAdapter, SQLAlchemySessionManager
+from archipy.adapters.postgres.sqlalchemy.adapters import PostgresSQLAlchemyAdapter, AsyncPostgresSQLAlchemyAdapter
 
-# Create session manager
-session_manager = SQLAlchemySessionManager(connection_string="postgresql://user:pass@localhost/db")
-
-# Create an ORM adapter
-orm_adapter = SQLAlchemyAdapter(session_manager=session_manager)
+# Create an ORM adapter (uses global config)
+orm_adapter = PostgresSQLAlchemyAdapter()
 
 # Use the adapter
 users = orm_adapter.query(User).filter(User.active == True).all()
 ```
 
-#### SQLAlchemy Components
-
-::: archipy.adapters.orm.sqlalchemy.adapters
+::: archipy.adapters.postgres.sqlalchemy.adapters
     options:
       show_root_heading: true
       show_source: true
 
-::: archipy.adapters.orm.sqlalchemy.session_manager_adapters
+::: archipy.adapters.postgres.sqlalchemy.ports
     options:
       show_root_heading: true
       show_source: true
 
-::: archipy.adapters.orm.sqlalchemy.ports
+::: archipy.adapters.postgres.sqlalchemy.session_managers
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.postgres.sqlalchemy.session_manager_registry
+    options:
+      show_root_heading: true
+      show_source: true
+
+#### SQLite
+
+```python
+from archipy.adapters.sqlite.sqlalchemy.adapters import SqliteSQLAlchemyAdapter, AsyncSqliteSQLAlchemyAdapter
+
+# Create an ORM adapter (uses global config)
+orm_adapter = SqliteSQLAlchemyAdapter()
+```
+
+::: archipy.adapters.sqlite.sqlalchemy.adapters
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.sqlite.sqlalchemy.ports
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.sqlite.sqlalchemy.session_managers
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.sqlite.sqlalchemy.session_manager_registry
+    options:
+      show_root_heading: true
+      show_source: true
+
+#### StarRocks
+
+```python
+from archipy.adapters.starrocks.sqlalchemy.adapters import StarrocksSQLAlchemyAdapter, AsyncStarrocksSQLAlchemyAdapter
+
+# Create an ORM adapter (uses global config)
+orm_adapter = StarrocksSQLAlchemyAdapter()
+```
+
+::: archipy.adapters.starrocks.sqlalchemy.adapters
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.starrocks.sqlalchemy.ports
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.starrocks.sqlalchemy.session_managers
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.starrocks.sqlalchemy.session_manager_registry
+    options:
+      show_root_heading: true
+      show_source: true
+
+#### Base SQLAlchemy Components
+
+The base SQLAlchemy components provide the core functionality used by all database-specific adapters:
+
+::: archipy.adapters.base.sqlalchemy.adapters
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.base.sqlalchemy.ports
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.base.sqlalchemy.session_managers
+    options:
+      show_root_heading: true
+      show_source: true
+
+::: archipy.adapters.base.sqlalchemy.session_manager_registry
     options:
       show_root_heading: true
       show_source: true
@@ -162,8 +246,8 @@ Redis integration for caching and key-value storage.
 ```python
 from archipy.adapters.redis import RedisAdapter, AsyncRedisAdapter
 
-# Create a Redis adapter
-redis = RedisAdapter(host="localhost", port=6379, db=0)
+# Create a Redis adapter (uses global config)
+redis = RedisAdapter()
 
 # Set value
 redis.set("key", "value", ex=3600)  # expires in 1 hour

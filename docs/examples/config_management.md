@@ -185,13 +185,13 @@ def get_config_info():
 ### With Database Adapters
 
 ```python
-from archipy.adapters.orm.sqlalchemy.session_manager_adapters import SessionManagerAdapter
+from archipy.adapters.postgres.sqlalchemy.session_managers import SQlAlchemySessionManager
 from archipy.configs.base_config import BaseConfig
 
 config = BaseConfig.global_config()
 
 # Create session manager with config
-session_manager = SessionManagerAdapter(
+session_manager = SQlAlchemySessionManager(
     connection_string=config.DATABASE.connection_string(),
     echo=config.DEBUG
 )

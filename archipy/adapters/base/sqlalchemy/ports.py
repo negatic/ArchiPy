@@ -16,7 +16,7 @@ _CoreMultiExecuteParams = Sequence[_CoreSingleExecuteParams]
 AnyExecuteParams = _CoreMultiExecuteParams | _CoreSingleExecuteParams
 
 
-class SqlAlchemyPort:
+class SQLAlchemyPort:
     """Abstract interface defining synchronous SQLAlchemy database operations.
 
     This interface defines the contract that all synchronous SQLAlchemy adapters must
@@ -139,7 +139,7 @@ class SqlAlchemyPort:
         raise NotImplementedError
 
 
-class AsyncSqlAlchemyPort:
+class AsyncSQLAlchemyPort:
     """Abstract interface defining asynchronous SQLAlchemy database operations.
 
     This interface defines the contract that all asynchronous SQLAlchemy adapters must

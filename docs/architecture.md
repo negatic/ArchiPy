@@ -17,10 +17,23 @@ This architecture follows clean architecture principles, separating concerns and
 
 The `adapters` module provides implementations for external service integrations, following the Ports and Adapters pattern (Hexagonal Architecture). This module includes:
 
-- Database adapters (SQLAlchemy, Redis)
-- Email service adapters
-- External API clients
-- File storage adapters
+- **Base Adapters**: Core implementations and interfaces
+  - SQLAlchemy base components
+  - Common adapter patterns
+  - Base session management
+
+- **Database Adapters**: Database-specific implementations
+  - PostgreSQL
+  - SQLite
+  - StarRocks
+  - Each with their own SQLAlchemy integration
+
+- **Service Adapters**: External service integrations
+  - Email service adapters
+  - External API clients
+  - File storage adapters (MinIO)
+  - Message brokers (Kafka)
+  - Caching systems (Redis)
 
 Each adapter includes both concrete implementations and corresponding mocks for testing.
 
@@ -264,12 +277,12 @@ Here's how you might structure a FastAPI application using ArchiPy:
 
 ```python
 # adapters/db/user_repository.py
-from archipy.adapters.orm.sqlalchemy.adapters import SqlAlchemyAdapter
+from archipy.adapters.postgres.sqlalchemy.adapters import SQLAlchemyAdapter
 from core.models.user import User
 
 
 class UserRepository:
-    def __init__(self, db_adapter: SqlAlchemyAdapter):
+    def __init__(self, db_adapter: SQLAlchemyAdapter):
         self.db_adapter = db_adapter
 
     def get_user_by_id(self, user_id: str) -> User:

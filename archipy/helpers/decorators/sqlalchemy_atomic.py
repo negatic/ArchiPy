@@ -1,177 +1,299 @@
+"""SQLAlchemy atomic transaction decorators.
+
+This module provides decorators for managing SQLAlchemy transactions with automatic commit/rollback
+and support for different database types (PostgreSQL, SQLite, StarRocks).
+"""
+
 import logging
 from collections.abc import Callable
-from functools import partial
-from typing import Any, cast
+from functools import partial, wraps
+from typing import Any, TypeVar
 
 from psycopg.errors import DeadlockDetected, SerializationFailure
 from sqlalchemy.exc import OperationalError
 
-from archipy.adapters.orm.sqlalchemy.session_manager_ports import AsyncSessionManagerPort, SessionManagerPort
-from archipy.adapters.orm.sqlalchemy.session_manager_registry import SessionManagerRegistry
+from archipy.adapters.base.sqlalchemy.session_manager_ports import AsyncSessionManagerPort, SessionManagerPort
+from archipy.adapters.base.sqlalchemy.session_manager_registry import SessionManagerRegistry
 from archipy.models.errors import AbortedError, BaseError, DeadlockDetectedError, InternalError
 
-_in_atomic_block = "in_sqlalchemy_atomic_block"
+# Constants for tracking atomic blocks and their corresponding registries
+ATOMIC_BLOCK_CONFIGS = {
+    "postgres": {
+        "flag": "in_postgres_sqlalchemy_atomic_block",
+        "registry": "archipy.adapters.postgres.sqlalchemy.session_manager_registry.PostgresSessionManagerRegistry",
+    },
+    "sqlite": {
+        "flag": "in_sqlite_sqlalchemy_atomic_block",
+        "registry": "archipy.adapters.sqlite.sqlalchemy.session_manager_registry.SqliteSessionManagerRegistry",
+    },
+    "starrocks": {
+        "flag": "in_starrocks_sqlalchemy_atomic_block",
+        "registry": "archipy.adapters.starrocks.sqlalchemy.session_manager_registry.StarrocksSessionManagerRegistry",
+    },
+}
+
+# Type variables for function return types
+R = TypeVar("R")
 
 
 def sqlalchemy_atomic_decorator(
+    db_type: str,
+    is_async: bool = False,
     function: Callable[..., Any] | None = None,
 ) -> Callable[..., Any] | partial[Callable[..., Any]]:
-    """Decorator for wrapping a function in a SQLAlchemy atomic transaction block.
+    """Factory for creating SQLAlchemy atomic transaction decorators.
 
-    This decorator ensures that the function runs within a database transaction. If the function
-    succeeds, the transaction is committed. If an exception occurs, the transaction is rolled back.
+    This decorator ensures that a function runs within a database transaction for the specified
+    database type. If the function succeeds, the transaction is committed; otherwise, it is rolled back.
+    Supports both synchronous and asynchronous functions.
 
     Args:
-        function (Callable | None): The function to wrap in an atomic transaction block.
-                                   If `None`, returns a partial function for later use.
+        db_type (str): The database type ("postgres", "sqlite", or "starrocks").
+        is_async (bool): Whether the function is asynchronous. Defaults to False.
+        function (Callable | None): The function to wrap. If None, returns a partial function.
+
+    Returns:
+        Callable | partial: The wrapped function or a partial function for later use.
+
+    Raises:
+        ValueError: If an invalid db_type is provided.
+        AbortedError: If a serialization failure or deadlock is detected.
+        DeadlockDetectedError: If an operational error occurs due to a serialization failure.
+        InternalError: If any other exception occurs during execution.
+
+    Example:
+        # Synchronous PostgreSQL example
+        @sqlalchemy_atomic_decorator(db_type="postgres")
+        def update_user(id: int, name: str) -> None:
+            # Database operations
+            pass
+
+        # Asynchronous SQLite example
+        @sqlalchemy_atomic_decorator(db_type="sqlite", is_async=True)
+        async def update_record(id: int, data: str) -> None:
+            # Async database operations
+            pass
+    """
+    if db_type not in ATOMIC_BLOCK_CONFIGS:
+        raise ValueError(f"Invalid db_type: {db_type}. Must be one of {list(ATOMIC_BLOCK_CONFIGS.keys())}")
+
+    atomic_flag = ATOMIC_BLOCK_CONFIGS[db_type]["flag"]
+
+    # Dynamically import the registry class
+    def get_registry() -> type[SessionManagerRegistry]:
+        """Get the session manager registry for the specified database type.
+
+        Returns:
+            type[SessionManagerRegistry]: The session manager registry class.
+
+        Raises:
+            ImportError: If the registry module cannot be imported.
+            AttributeError: If the registry class cannot be found.
+        """
+        import importlib
+
+        module_path, class_name = ATOMIC_BLOCK_CONFIGS[db_type]["registry"].rsplit(".", 1)
+        module = importlib.import_module(module_path)
+        return getattr(module, class_name)
+
+    def decorator(func: Callable[..., R]) -> Callable[..., R]:
+        """Create a transaction-aware wrapper for the given function.
+
+        Args:
+            func (Callable[..., R]): The function to wrap with transaction management.
+
+        Returns:
+            Callable[..., R]: The wrapped function that manages transactions.
+        """
+        if is_async:
+
+            @wraps(func)
+            async def async_wrapper(*args: Any, **kwargs: Any) -> R:
+                """Async wrapper for managing database transactions.
+
+                Args:
+                    *args: Positional arguments to pass to the wrapped function.
+                    **kwargs: Keyword arguments to pass to the wrapped function.
+
+                Returns:
+                    R: The result of the wrapped function.
+
+                Raises:
+                    AbortedError: If a serialization failure or deadlock is detected.
+                    DeadlockDetectedError: If an operational error occurs due to a serialization failure.
+                    InternalError: If any other exception occurs during execution.
+                """
+                registry = get_registry()
+                session_manager: AsyncSessionManagerPort = registry.get_async_manager()
+                session = session_manager.get_session()
+                is_nested = session.info.get(atomic_flag, False)
+                if not is_nested:
+                    session.info[atomic_flag] = True
+
+                try:
+                    if session.in_transaction():
+                        result = await func(*args, **kwargs)
+                        if not is_nested:
+                            await session.commit()
+                        return result
+                    async with session.begin():
+                        return await func(*args, **kwargs)
+                except (SerializationFailure, DeadlockDetected) as exc:
+                    await session.rollback()
+                    raise AbortedError(reason=str(exc)) from exc
+                except OperationalError as exc:
+                    if hasattr(exc, "orig") and isinstance(exc.orig, SerializationFailure):
+                        await session.rollback()
+                        raise DeadlockDetectedError() from exc
+                    raise InternalError(details=str(exc)) from exc
+                except BaseError as exc:
+                    logging.debug(f"Exception in {db_type} atomic block (func: {func.__name__}): {exc}")
+                    await session.rollback()
+                    raise
+                except Exception as exc:
+                    logging.debug(f"Unexpected error in {db_type} atomic block (func: {func.__name__}): {exc}")
+                    await session.rollback()
+                    raise InternalError(details=str(exc)) from exc
+                finally:
+                    if not session.in_transaction():
+                        await session.close()
+                        await session_manager.remove_session()
+
+            return async_wrapper
+        else:
+
+            @wraps(func)
+            def sync_wrapper(*args: Any, **kwargs: Any) -> R:
+                """Synchronous wrapper for managing database transactions.
+
+                Args:
+                    *args: Positional arguments to pass to the wrapped function.
+                    **kwargs: Keyword arguments to pass to the wrapped function.
+
+                Returns:
+                    R: The result of the wrapped function.
+
+                Raises:
+                    AbortedError: If a serialization failure or deadlock is detected.
+                    DeadlockDetectedError: If an operational error occurs due to a serialization failure.
+                    InternalError: If any other exception occurs during execution.
+                """
+                registry = get_registry()
+                session_manager: SessionManagerPort = registry.get_sync_manager()
+                session = session_manager.get_session()
+                is_nested = session.info.get(atomic_flag, False)
+                if not is_nested:
+                    session.info[atomic_flag] = True
+
+                try:
+                    if session.in_transaction():
+                        result = func(*args, **kwargs)
+                        if not is_nested:
+                            session.commit()
+                        return result
+                    with session.begin():
+                        return func(*args, **kwargs)
+                except (SerializationFailure, DeadlockDetected) as exc:
+                    session.rollback()
+                    raise AbortedError(reason=str(exc)) from exc
+                except OperationalError as exc:
+                    if hasattr(exc, "orig") and isinstance(exc.orig, SerializationFailure):
+                        session.rollback()
+                        raise DeadlockDetectedError() from exc
+                    raise InternalError(details=str(exc)) from exc
+                except BaseError as exc:
+                    logging.debug(f"Exception in {db_type} atomic block (func: {func.__name__}): {exc}")
+                    session.rollback()
+                    raise
+                except Exception as exc:
+                    logging.debug(f"Unexpected error in {db_type} atomic block (func: {func.__name__}): {exc}")
+                    session.rollback()
+                    raise InternalError(details=str(exc)) from exc
+                finally:
+                    if not session.in_transaction():
+                        session.close()
+                        session_manager.remove_session()
+
+            return sync_wrapper
+
+    return decorator(function) if function else partial(sqlalchemy_atomic_decorator, db_type=db_type, is_async=is_async)
+
+
+def postgres_sqlalchemy_atomic_decorator(function: Callable[..., Any] | None = None) -> Callable[..., Any] | partial:
+    """Decorator for PostgreSQL atomic transactions.
+
+    Args:
+        function (Callable | None): The function to wrap. If None, returns a partial function.
 
     Returns:
         Callable | partial: The wrapped function or a partial function for later use.
     """
-    return _atomic(function) if function else partial(_atomic)
+    return sqlalchemy_atomic_decorator(db_type="postgres", function=function)
 
 
-def _atomic(function: Callable[..., Any]) -> Callable[..., Any]:
-    """Internal wrapper for `sqlalchemy_atomic` decorator.
-
-    Args:
-        function (Callable): The function to wrap in an atomic transaction block.
-
-    Returns:
-        Callable: The wrapped function.
-    """
-
-    def wrapper(*args: list[Any], **kwargs: dict[Any, Any]) -> Any:
-        """Wrapper function that handles the transaction logic.
-
-        Args:
-            *args (list[Any]): Positional arguments passed to the function.
-            **kwargs (dict[Any, Any]): Keyword arguments passed to the function.
-
-        Returns:
-            Any: The result of the wrapped function.
-
-        Raises:
-            AbortedException: If a serialization failure or deadlock is detected.
-            DeadlockDetectedException: If an operational error occurs due to a deadlock.
-            InternalException: If any other exception occurs during the function execution.
-        """
-        session_manager: SessionManagerPort = cast(SessionManagerPort, SessionManagerRegistry.get_sync_manager())  # type: ignore[no-untyped-call]
-        session = session_manager.get_session()
-        is_nested_atomic_block = session.info.get(_in_atomic_block)
-        if not is_nested_atomic_block:
-            session.info[_in_atomic_block] = True
-        try:
-            if session.in_transaction():
-                result = function(*args, **kwargs)
-                if not is_nested_atomic_block:
-                    session.commit()
-                return result
-            with session.begin():
-                return function(*args, **kwargs)
-        except (SerializationFailure, DeadlockDetected) as exception:
-            session.rollback()
-            raise AbortedError from exception
-        except OperationalError as exception:
-            if hasattr(exception, "orig") and isinstance(exception.orig, SerializationFailure):
-                session.rollback()
-                raise DeadlockDetectedError from exception
-            raise InternalError(details=str(exception)) from exception
-        except BaseError as exception:
-            logging.debug("Exception occurred in atomic block, rollback will be initiated, ex:%s", exception)
-            session.rollback()
-            raise
-        except Exception as exception:
-            logging.debug("Exception occurred in atomic block, rollback will be initiated, ex:%s", exception)
-            session.rollback()
-            raise InternalError(details=str(exception)) from exception
-        finally:
-            if not session.in_transaction():
-                session.close()
-                session_manager.remove_session()
-
-    return wrapper
-
-
-def async_sqlalchemy_atomic_decorator(
+def async_postgres_sqlalchemy_atomic_decorator(
     function: Callable[..., Any] | None = None,
-) -> Callable[..., Any] | partial[Callable[..., Any]]:
-    """Decorator for wrapping an asynchronous function in a SQLAlchemy atomic transaction block.
-
-    This decorator ensures that the asynchronous function runs within a database transaction.
-    If the function succeeds, the transaction is committed. If an exception occurs, the transaction
-    is rolled back.
+) -> Callable[..., Any] | partial:
+    """Decorator for asynchronous PostgreSQL atomic transactions.
 
     Args:
-        function (Callable | None): The asynchronous function to wrap in an atomic transaction block.
-                                   If `None`, returns a partial function for later use.
+        function (Callable | None): The function to wrap. If None, returns a partial function.
 
     Returns:
-        Callable | partial: The wrapped asynchronous function or a partial function for later use.
+        Callable | partial: The wrapped function or a partial function for later use.
     """
-    return _async_atomic(function) if function else partial(_async_atomic)
+    return sqlalchemy_atomic_decorator(db_type="postgres", is_async=True, function=function)
 
 
-def _async_atomic(function: Callable[..., Any]) -> Callable[..., Any]:
-    """Internal wrapper for `async_sqlalchemy_atomic` decorator.
+def sqlite_sqlalchemy_atomic_decorator(function: Callable[..., Any] | None = None) -> Callable[..., Any] | partial:
+    """Decorator for SQLite atomic transactions.
 
     Args:
-        function (Callable): The asynchronous function to wrap in an atomic transaction block.
+        function (Callable | None): The function to wrap. If None, returns a partial function.
 
     Returns:
-        Callable: The wrapped asynchronous function.
+        Callable | partial: The wrapped function or a partial function for later use.
     """
+    return sqlalchemy_atomic_decorator(db_type="sqlite", function=function)
 
-    async def async_wrapper(*args: list[Any], **kwargs: dict[Any, Any]) -> Any:
-        """Asynchronous wrapper function that handles the transaction logic.
 
-        Args:
-            *args (list[Any]): Positional arguments passed to the function.
-            **kwargs (dict[Any, Any]): Keyword arguments passed to the function.
+def async_sqlite_sqlalchemy_atomic_decorator(
+    function: Callable[..., Any] | None = None,
+) -> Callable[..., Any] | partial:
+    """Decorator for asynchronous SQLite atomic transactions.
 
-        Returns:
-            Any: The result of the wrapped asynchronous function.
+    Args:
+        function (Callable | None): The function to wrap. If None, returns a partial function.
 
-        Raises:
-            AbortedException: If a serialization failure or deadlock is detected.
-            DeadlockDetectedException: If an operational error occurs due to a deadlock.
-            InternalException: If any other exception occurs during the function execution.
-        """
-        session_manager: AsyncSessionManagerPort = cast(
-            AsyncSessionManagerPort,
-            SessionManagerRegistry.get_async_manager(),  # type: ignore[no-untyped-call]
-        )
-        session = session_manager.get_session()
-        is_nested_atomic_block = session.info.get(_in_atomic_block)
-        if not is_nested_atomic_block:
-            session.info[_in_atomic_block] = True
-        try:
-            if session.in_transaction():
-                result = await function(*args, **kwargs)
-                if not is_nested_atomic_block:
-                    await session.commit()
-                return result
-            async with session.begin():
-                return await function(*args, **kwargs)
-        except (SerializationFailure, DeadlockDetected) as exception:
-            await session.rollback()
-            raise AbortedError from exception
-        except OperationalError as exception:
-            if hasattr(exception, "orig") and isinstance(exception.orig, SerializationFailure):
-                await session.rollback()
-                raise DeadlockDetectedError from exception
-            raise InternalError(details=str(exception)) from exception
-        except BaseError as exception:
-            logging.debug("Exception occurred in atomic block, rollback will be initiated, ex:%s", exception)
-            await session.rollback()
-            raise
-        except Exception as exception:
-            logging.debug("Exception occurred in atomic block, rollback will be initiated, ex:%s", exception)
-            await session.rollback()
-            raise InternalError(details=str(exception)) from exception
-        finally:
-            if not session.in_transaction():
-                await session.close()
-                await session_manager.remove_session()
+    Returns:
+        Callable | partial: The wrapped function or a partial function for later use.
+    """
+    return sqlalchemy_atomic_decorator(db_type="sqlite", is_async=True, function=function)
 
-    return async_wrapper
+
+def starrocks_sqlalchemy_atomic_decorator(
+    function: Callable[..., Any] | None = None,
+) -> Callable[..., Any] | partial:
+    """Decorator for StarRocks atomic transactions.
+
+    Args:
+        function (Callable | None): The function to wrap. If None, returns a partial function.
+
+    Returns:
+        Callable | partial: The wrapped function or a partial function for later use.
+    """
+    return sqlalchemy_atomic_decorator(db_type="starrocks", function=function)
+
+
+def async_starrocks_sqlalchemy_atomic_decorator(
+    function: Callable[..., Any] | None = None,
+) -> Callable[..., Any] | partial:
+    """Decorator for asynchronous StarRocks atomic transactions.
+
+    Args:
+        function (Callable | None): The function to wrap. If None, returns a partial function.
+
+    Returns:
+        Callable | partial: The wrapped function or a partial function for later use.
+    """
+    return sqlalchemy_atomic_decorator(db_type="starrocks", is_async=True, function=function)

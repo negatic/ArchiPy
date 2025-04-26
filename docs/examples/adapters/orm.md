@@ -5,7 +5,7 @@ This page demonstrates how to use ArchiPy's ORM adapters with SQLAlchemy.
 ## Basic Usage
 
 ```python
-from archipy.adapters.orm.sqlalchemy import SQLAlchemyAdapter, SQLAlchemySessionManager
+from archipy.adapters.postgres.sqlalchemy import SQLAlchemyAdapter, SQLAlchemySessionManager
 
 # Create session manager
 session_manager = SQLAlchemySessionManager(connection_string="postgresql://user:pass@localhost/db")

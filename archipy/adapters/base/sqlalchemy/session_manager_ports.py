@@ -14,21 +14,6 @@ class SessionManagerPort:
     Implementing classes must provide mechanisms to:
     1. Retrieve a properly configured SQLAlchemy session
     2. Release/remove sessions when they're no longer needed
-
-    Examples:
-        >>> from archipy.adapters.orm.sqlalchemy.session_manager_ports import SessionManagerPort
-        >>>
-        >>> class CustomSessionManager(SessionManagerPort):
-        ...     def __init__(self):
-        ...         # Initialize session factory
-        ...         self._session_factory = create_session_factory()
-        ...
-        ...     def get_session(self) -> Session:
-        ...         return self._session_factory()
-        ...
-        ...     def remove_session(self) -> None:
-        ...         # Cleanup logic
-        ...         pass
     """
 
     @abstractmethod
@@ -54,13 +39,6 @@ class SessionManagerPort:
         This method should be called to clean up the session when it's
         no longer needed, helping to prevent resource leaks and ensure
         proper session management.
-
-        Examples:
-            >>> try:
-            ...     session = session_manager.get_session()
-            ...     # Perform database operations
-            ... finally:
-            ...     session_manager.remove_session()
         """
         raise NotImplementedError
 
@@ -75,21 +53,6 @@ class AsyncSessionManagerPort:
     Implementing classes must provide mechanisms to:
     1. Retrieve a properly configured asynchronous SQLAlchemy session
     2. Release/remove sessions asynchronously when they're no longer needed
-
-    Examples:
-        >>> from archipy.adapters.orm.sqlalchemy.session_manager_ports import AsyncSessionManagerPort
-        >>>
-        >>> class CustomAsyncSessionManager(AsyncSessionManagerPort):
-        ...     def __init__(self):
-        ...         # Initialize async session factory
-        ...         self._session_factory = create_async_session_factory()
-        ...
-        ...     def get_session(self) -> AsyncSession:
-        ...         return self._session_factory()
-        ...
-        ...     async def remove_session(self) -> None:
-        ...         # Async cleanup logic
-        ...         await self._session_factory.remove()
     """
 
     @abstractmethod
@@ -101,11 +64,6 @@ class AsyncSessionManagerPort:
 
         Returns:
             AsyncSession: An asynchronous SQLAlchemy session object
-
-        Examples:
-            >>> session = session_manager.get_session()
-            >>> results = await session.execute(select(User))
-            >>> users = results.scalars().all()
         """
         raise NotImplementedError
 
@@ -116,12 +74,5 @@ class AsyncSessionManagerPort:
         This method should be called to clean up the session when it's
         no longer needed, helping to prevent resource leaks and ensure
         proper session management in async contexts.
-
-        Examples:
-            >>> try:
-            ...     session = session_manager.get_session()
-            ...     # Perform async database operations
-            ... finally:
-            ...     await session_manager.remove_session()
         """
         raise NotImplementedError

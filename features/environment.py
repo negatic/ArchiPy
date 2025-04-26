@@ -14,7 +14,7 @@ from behave.runner import Context
 from features.scenario_context_pool_manager import ScenarioContextPoolManager
 from pydantic_settings import SettingsConfigDict
 
-from archipy.adapters.orm.sqlalchemy.session_manager_registry import SessionManagerRegistry
+from archipy.adapters.base.sqlalchemy.session_manager_registry import SessionManagerRegistry
 from archipy.configs.base_config import BaseConfig
 
 

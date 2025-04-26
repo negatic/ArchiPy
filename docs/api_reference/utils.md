@@ -1,69 +1,212 @@
 # Utils
 
-## Overview
+The `utils` module provides helper classes with static methods for common operations across the application.
 
-The utils module provides helper functions for common tasks, enhancing productivity in areas like datetime handling, JWT management, and password processing.
+## datetime_utils
 
-**See Examples**: [Examples Helpers Utils](../examples/helpers/utils.md)
+Utilities for date and time operations.
 
-## Utilities
+```python
+from archipy.helpers.utils.datetime_utils import DateTimeUtils
 
-### datetime_utils
+# Get current UTC time
+now = DateTimeUtils.get_utc_now()
 
-Documentation for `archipy.helpers.utils.datetime_utils`.
-*Includes all members, undocumented members, and shows inheritance.*
+# Format datetime
+formatted = DateTimeUtils.format_datetime(now, format="%Y-%m-%d %H:%M:%S")
+```
 
-### file_utils
+::: archipy.helpers.utils.datetime_utils
+    options:
+      show_root_heading: true
+      show_source: true
 
-Documentation for `archipy.helpers.utils.file_utils`.
-*Includes all members, undocumented members, and shows inheritance.*
+## file_utils
 
-### jwt_utils
+Utilities for file operations.
 
-Documentation for `archipy.helpers.utils.jwt_utils`.
-*Includes all members, undocumented members, and shows inheritance.*
+```python
+from archipy.helpers.utils.file_utils import FileUtils
 
-### password_utils
+# Read file content
+content = FileUtils.read_file("path/to/file.txt")
 
-Documentation for `archipy.helpers.utils.password_utils`.
-*Includes all members, undocumented members, and shows inheritance.*
+# Write to file
+FileUtils.write_file("path/to/output.txt", "content")
 
-### string_utils
+# Get file hash
+file_hash = FileUtils.get_file_hash("path/to/file.txt")
 
-Documentation for `archipy.helpers.utils.string_utils`.
-*Includes all members, undocumented members, and shows inheritance.*
+# Validate file type
+is_valid = FileUtils.validate_file_type("path/to/file.pdf", allowed_types=["pdf", "doc"])
+```
 
-### totp_utils
+::: archipy.helpers.utils.file_utils
+    options:
+      show_root_heading: true
+      show_source: true
 
-Documentation for `archipy.helpers.utils.totp_utils`.
-*Includes all members, undocumented members, and shows inheritance.*
+## jwt_utils
 
-The TOTP utilities provide enhanced security features:
+Utilities for JWT (JSON Web Token) operations.
 
-- HMAC-based implementation for time-based one-time passwords
-- Configurable hash algorithms (SHA1, SHA256, SHA512)
-- Secure key generation with master key protection
-- Configurable verification window for time skew tolerance
-- Comprehensive error handling with specific exception types
+```python
+from archipy.helpers.utils.jwt_utils import JWTUtils
 
-### keycloak_utils
+# Generate JWT
+token = JWTUtils.generate_jwt(
+    payload={"user_id": "123"},
+    secret="your-secret",
+    expires_in=3600
+)
 
-Documentation for `archipy.helpers.utils.keycloak_utils`.
-*Includes all members, undocumented members, and shows inheritance.*
+# Verify JWT
+is_valid = JWTUtils.verify_jwt(token, secret="your-secret")
 
-## Key Functions
+# Decode JWT
+payload = JWTUtils.decode_jwt(token)
+```
 
-### get_utc_now
+::: archipy.helpers.utils.jwt_utils
+    options:
+      show_root_heading: true
+      show_source: true
 
-Function: `archipy.helpers.utils.datetime_utils.get_utc_now`
-*See documentation for details.*
+## password_utils
 
-### generate_jwt
+Utilities for password operations.
 
-Function: `archipy.helpers.utils.jwt_utils.generate_jwt`
-*See documentation for details.*
+```python
+from archipy.helpers.utils.password_utils import PasswordUtils
 
-### hash_password
+# Hash password
+hashed = PasswordUtils.hash_password("my-password")
 
-Function: `archipy.helpers.utils.password_utils.hash_password`
-*See documentation for details.*
+# Verify password
+is_valid = PasswordUtils.verify_password("my-password", hashed)
+
+# Generate secure password
+password = PasswordUtils.generate_password(length=12)
+
+# Validate password strength
+is_strong = PasswordUtils.validate_password_strength("my-password")
+```
+
+::: archipy.helpers.utils.password_utils
+    options:
+      show_root_heading: true
+      show_source: true
+
+## string_utils
+
+Utilities for string operations.
+
+```python
+from archipy.helpers.utils.string_utils import StringUtils
+
+# Convert to slug
+slug = StringUtils.slugify("My Article Title")
+
+# Truncate string
+truncated = StringUtils.truncate("Long text here", length=10)
+
+# Generate random string
+random_str = StringUtils.generate_random_string(length=8)
+
+# Sanitize HTML
+clean_html = StringUtils.sanitize_html("<script>alert('xss')</script>")
+```
+
+::: archipy.helpers.utils.string_utils
+    options:
+      show_root_heading: true
+      show_source: true
+
+## totp_utils
+
+Utilities for TOTP (Time-based One-Time Password) operations.
+
+```python
+from archipy.helpers.utils.totp_utils import TOTPUtils
+
+# Generate TOTP
+totp_code = TOTPUtils.generate_totp(secret_key="your-secret")
+
+# Verify TOTP
+is_valid = TOTPUtils.verify_totp(totp_code, secret_key="your-secret")
+
+# Generate secret key
+secret_key = TOTPUtils.generate_secret_key()
+
+# Get TOTP URI for QR code
+totp_uri = TOTPUtils.get_totp_uri(
+    secret_key=secret_key,
+    issuer="MyApp",
+    account_name="user@example.com"
+)
+```
+
+::: archipy.helpers.utils.totp_utils
+    options:
+      show_root_heading: true
+      show_source: true
+
+## keycloak_utils
+
+Utilities for Keycloak integration.
+
+```python
+from archipy.helpers.utils.keycloak_utils import KeycloakUtils
+
+# Get token
+token = KeycloakUtils.get_keycloak_token(
+    username="user",
+    password="pass",
+    client_id="my-client"
+)
+
+# Validate token
+is_valid = KeycloakUtils.validate_keycloak_token(token)
+
+# Get user info
+user_info = KeycloakUtils.get_keycloak_userinfo(token)
+
+# Check role
+has_role = KeycloakUtils.has_keycloak_role(token, "admin")
+```
+
+::: archipy.helpers.utils.keycloak_utils
+    options:
+      show_root_heading: true
+      show_source: true
+
+## Key Classes
+
+### DateTimeUtils
+
+Class: `archipy.helpers.utils.datetime_utils.DateTimeUtils`
+
+Provides datetime operations with features:
+- Timezone-aware
+- Microsecond precision
+- Consistent across the application
+
+### JWTUtils
+
+Class: `archipy.helpers.utils.jwt_utils.JWTUtils`
+
+Provides JWT operations with features:
+- Configurable expiration
+- Custom payload support
+- Multiple signing algorithms
+- Token refresh capability
+
+### PasswordUtils
+
+Class: `archipy.helpers.utils.password_utils.PasswordUtils`
+
+Provides password operations with features:
+- Secure hashing algorithm
+- Salt generation
+- Configurable work factor
+- Protection against timing attacks

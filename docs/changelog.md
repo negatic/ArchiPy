@@ -3,6 +3,50 @@
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
 
+## [1.0.0] - 2025-04-20
+
+### Architecture
+
+#### Database Adapters
+- Refactored database adapter architecture for better modularity
+- Separated base SQLAlchemy functionality from specific database implementations
+- Introduced dedicated adapters for PostgreSQL, SQLite, and StarRocks
+- Enhanced session management with improved registry system
+
+### Added
+
+#### PostgreSQL Support
+- Implemented dedicated PostgreSQL adapter with optimized connection handling
+- Added PostgreSQL-specific session management
+- Enhanced configuration options for PostgreSQL connections
+
+#### SQLite Support
+- Added dedicated SQLite adapter with improved transaction handling
+- Implemented SQLite-specific session management
+- Enhanced mock testing capabilities for SQLite
+
+#### StarRocks Support
+- Introduced StarRocks database adapter
+- Implemented StarRocks-specific session management
+- Added configuration support for StarRocks connections
+
+### Changed
+
+#### Core Architecture
+- Moved base SQLAlchemy functionality to `adapters/base/sqlalchemy`
+- Refactored session management system for better extensibility
+- Improved atomic transaction decorator implementation
+
+#### Documentation
+- Updated API reference for new adapter structure
+- Enhanced configuration documentation
+- Added examples for new database adapters
+
+### Code Quality
+- Improved type safety across database adapters
+- Enhanced error handling in session management
+- Optimized connection pooling implementation
+
 
 ## [0.14.1] - 2025-04-20
 
@@ -421,25 +465,27 @@ secret_key = TOTPUtils.generate_secret_key_for_totp()
 ### Usage Example
 
 ```python
-from archipy.adapters.orm.sqlalchemy.adapters import SQLAlchemyAdapter
+from archipy.adapters.postgres.sqlalchemy.adapters import SQLAlchemyAdapter
 from archipy.models.entities.sqlalchemy.base_entities import BaseEntity
 from sqlalchemy import Column, String
 
+
 # Define a model
 class User(BaseEntity):
-    __tablename__ = "users"
-    name = Column(String(100))
-    email = Column(String(100), unique=True)
+  __tablename__ = "users"
+  name = Column(String(100))
+  email = Column(String(100), unique=True)
+
 
 # Use the ORM
 orm = SQLAlchemyAdapter()
 with orm.session() as session:
-    # Create and read operations
-    new_user = User(name="John Doe", email="john@example.com")
-    session.add(new_user)
-    session.commit()
+  # Create and read operations
+  new_user = User(name="John Doe", email="john@example.com")
+  session.add(new_user)
+  session.commit()
 
-    user = session.query(User).filter_by(email="john@example.com").first()
+  user = session.query(User).filter_by(email="john@example.com").first()
 ```
 
 ## [0.6.1] - 2025-01-25

@@ -1,5 +1,7 @@
 # Helpers
 
+The `helpers` module provides utility functions, decorators, interceptors, and metaclasses to support common development tasks and patterns.
+
 ## Overview
 
 The `helpers` module provides utility functions and classes to simplify common development tasks.
@@ -84,18 +86,68 @@ The helpers module offers utilities, decorators, and interceptors to enhance pro
 
 ### Retry Decorator
 
-Documentation for `archipy.helpers.decorators.retry`.
-*Includes all members, undocumented members, and shows inheritance.*
+The retry decorator provides a mechanism to automatically retry failed operations with configurable backoff strategies.
+
+```python
+from archipy.helpers.decorators.retry import retry
+
+@retry(max_attempts=3, delay=1, backoff=2)
+def risky_operation():
+    # Operation that might fail
+    result = some_unreliable_function()
+    return result
+
+# Will retry up to 3 times with exponential backoff
+result = risky_operation()
+```
+
+::: archipy.helpers.decorators.retry
+    options:
+      show_root_heading: true
+      show_source: true
 
 ### Singleton Decorator
 
-Documentation for `archipy.helpers.decorators.singleton`.
-*Includes all members, undocumented members, and shows inheritance.*
+The singleton decorator ensures that a class has only one instance throughout the application lifecycle.
+
+```python
+from archipy.helpers.decorators.singleton import singleton
+
+@singleton
+class DatabaseConnection:
+    def __init__(self):
+        self.connection = create_connection()
+
+# Both instances will be the same
+db1 = DatabaseConnection()
+db2 = DatabaseConnection()
+assert db1 is db2
+```
+
+::: archipy.helpers.decorators.singleton
+    options:
+      show_root_heading: true
+      show_source: true
 
 ### SQLAlchemy Atomic Decorator
 
-Documentation for `archipy.helpers.decorators.sqlalchemy_atomic`.
-*Includes all members, undocumented members, and shows inheritance.*
+The SQLAlchemy atomic decorator provides transaction management for database operations.
+
+```python
+from archipy.helpers.decorators.sqlalchemy_atomic import sqlalchemy_atomic
+
+@sqlalchemy_atomic
+def create_user(username: str, email: str):
+    user = User(username=username, email=email)
+    db.session.add(user)
+    # If any operation fails, the entire transaction is rolled back
+    db.session.commit()
+```
+
+::: archipy.helpers.decorators.sqlalchemy_atomic
+    options:
+      show_root_heading: true
+      show_source: true
 
 ## Interceptors
 
@@ -103,41 +155,124 @@ Documentation for `archipy.helpers.decorators.sqlalchemy_atomic`.
 
 #### FastAPI Rest Rate Limit Handler
 
-Documentation for `archipy.helpers.interceptors.fastapi.rate_limit.fastapi_rest_rate_limit_handler`.
-*Includes all members, undocumented members, and shows inheritance.*
+Provides rate limiting functionality for FastAPI endpoints.
+
+```python
+from archipy.helpers.interceptors.fastapi.rate_limit import FastAPIRestRateLimitHandler
+from fastapi import FastAPI
+
+app = FastAPI()
+rate_limit_handler = FastAPIRestRateLimitHandler(
+    redis_client=redis_client,
+    rate_limit=100,  # requests per minute
+    rate_limit_period=60
+)
+
+@app.get("/api/data")
+@rate_limit_handler
+async def get_data():
+    return {"data": "protected by rate limit"}
+```
+
+::: archipy.helpers.interceptors.fastapi.rate_limit.fastapi_rest_rate_limit_handler
+    options:
+      show_root_heading: true
+      show_source: true
 
 ### gRPC Interceptors
 
 #### gRPC Client Trace Interceptor
 
-Documentation for `archipy.helpers.interceptors.grpc.trace.grpc_client_trace_interceptor`.
-*Includes all members, undocumented members, and shows inheritance.*
+Provides tracing functionality for gRPC client calls.
+
+```python
+from archipy.helpers.interceptors.grpc.trace import grpc_client_trace_interceptor
+import grpc
+
+channel = grpc.insecure_channel('localhost:50051')
+intercepted_channel = grpc.intercept_channel(
+    channel,
+    grpc_client_trace_interceptor()
+)
+```
+
+::: archipy.helpers.interceptors.grpc.trace.grpc_client_trace_interceptor
+    options:
+      show_root_heading: true
+      show_source: true
 
 #### gRPC Server Trace Interceptor
 
-Documentation for `archipy.helpers.interceptors.grpc.trace.grpc_server_trace_interceptor`.
-*Includes all members, undocumented members, and shows inheritance.*
+Provides tracing functionality for gRPC server operations.
+
+```python
+from archipy.helpers.interceptors.grpc.trace import grpc_server_trace_interceptor
+import grpc
+
+server = grpc.server(
+    grpc.intercept_server(
+        grpc_server_trace_interceptor()
+    )
+)
+```
+
+::: archipy.helpers.interceptors.grpc.trace.grpc_server_trace_interceptor
+    options:
+      show_root_heading: true
+      show_source: true
 
 ## Metaclasses
 
 ### Singleton Metaclass
 
-Documentation for `archipy.helpers.metaclasses.singleton`.
-*Includes all members, undocumented members, and shows inheritance.*
+A metaclass implementation of the singleton pattern.
+
+```python
+from archipy.helpers.metaclasses.singleton import Singleton
+
+class DatabaseConnection(metaclass=Singleton):
+    def __init__(self):
+        self.connection = create_connection()
+
+# Both instances will be the same
+db1 = DatabaseConnection()
+db2 = DatabaseConnection()
+assert db1 is db2
+```
+
+::: archipy.helpers.metaclasses.singleton
+    options:
+      show_root_heading: true
+      show_source: true
 
 ## Key Classes
 
 ### Retry Decorator
 
 Function: `archipy.helpers.decorators.retry.retry`
-*See documentation for details.*
+
+A decorator that retries a function call when it fails, with configurable:
+- Maximum number of attempts
+- Delay between attempts
+- Backoff strategy
+- Exception types to catch
 
 ### Singleton
 
 Class: `archipy.helpers.metaclasses.singleton.Singleton`
-*Includes all members, undocumented members, and shows inheritance.*
+
+A metaclass that ensures a class has only one instance. Features:
+- Thread-safe implementation
+- Lazy initialization
+- Support for inheritance
+- Clear instance access
 
 ### FastAPIRestRateLimitHandler
 
 Class: `archipy.helpers.interceptors.fastapi.rate_limit.fastapi_rest_rate_limit_handler.FastAPIRestRateLimitHandler`
-*Includes all members, undocumented members, and shows inheritance.*
+
+A rate limiting handler for FastAPI applications that:
+- Supports Redis-based rate limiting
+- Configurable rate limits and periods
+- Customizable response handling
+- Support for multiple rate limit rules

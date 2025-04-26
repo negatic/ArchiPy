@@ -21,10 +21,13 @@ from archipy.configs.config_template import (
     KavenegarConfig,
     KeycloakConfig,
     MinioConfig,
+    PostgresSQLAlchemyConfig,
     PrometheusConfig,
     RedisConfig,
     SentryConfig,
-    SqlAlchemyConfig,
+    SQLAlchemyConfig,
+    SqliteSQLAlchemyConfig,
+    StarrocksSQLAlchemyConfig,
 )
 from archipy.configs.environment_type import EnvironmentType
 
@@ -63,7 +66,7 @@ class BaseConfig(BaseSettings, Generic[R]):
         ENVIRONMENT (EnvironmentType): Application environment (dev, test, prod)
         FASTAPI (FastAPIConfig): FastAPI framework settings
         REDIS (RedisConfig): Redis cache configuration
-        SQLALCHEMY (SqlAlchemyConfig): Database ORM configuration
+        SQLALCHEMY (SQLAlchemyConfig): Database ORM configuration
 
     Examples:
         >>> from archipy.configs.base_config import BaseConfig
@@ -149,7 +152,10 @@ class BaseConfig(BaseSettings, Generic[R]):
     PROMETHEUS: PrometheusConfig = PrometheusConfig()
     REDIS: RedisConfig = RedisConfig()
     SENTRY: SentryConfig = SentryConfig()
-    SQLALCHEMY: SqlAlchemyConfig = SqlAlchemyConfig()
+    SQLALCHEMY: SQLAlchemyConfig = SQLAlchemyConfig()
+    STARROCKS_SQLALCHEMY: StarrocksSQLAlchemyConfig = StarrocksSQLAlchemyConfig()
+    POSTGRES_SQLALCHEMY: PostgresSQLAlchemyConfig = PostgresSQLAlchemyConfig()
+    SQLITE_SQLALCHEMY: SqliteSQLAlchemyConfig = SqliteSQLAlchemyConfig()
 
     def customize(self) -> None:
         """Customize configuration after loading.

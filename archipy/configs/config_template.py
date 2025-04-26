@@ -1,3 +1,10 @@
+"""Configuration templates for various services and components.
+
+This module provides Pydantic models for configuring different services and components
+used in the application, including databases, message brokers, authentication services,
+and more.
+"""
+
 from typing import Any, Literal, Self
 from urllib.parse import urlparse
 
@@ -9,6 +16,15 @@ class ElasticSearchConfig(BaseModel):
 
     Contains settings related to Elasticsearch server connectivity, authentication,
     and batch operation parameters.
+
+    Attributes:
+        SEARCH_HOSTS (list[str]): List of Elasticsearch server hosts.
+        SEARCH_HTTP_USER_NAME (str | None): Username for HTTP authentication.
+        SEARCH_HTTP_PASSWORD (str | None): Password for HTTP authentication.
+        SEARCH_HTTPS_VERIFY_CERTS (bool): Whether to verify SSL certificates.
+        SEARCH_KWARG (dict[str, Any]): Additional keyword arguments for Elasticsearch client.
+        SEARCH_BATCH_INTERVAL_THRESHOLD_IN_SECONDS (int): Time threshold for batch operations.
+        SEARCH_BATCH_DOC_COUNT_THRESHOLD (int): Document count threshold for batch operations.
     """
 
     SEARCH_HOSTS: list[str] = []
@@ -25,6 +41,26 @@ class ElasticSearchAPMConfig(BaseModel):
 
     Controls behavior of the Elastic APM agent for application monitoring, tracing,
     and error reporting.
+
+    Attributes:
+        API_REQUEST_SIZE (str): Maximum size of API requests.
+        API_REQUEST_TIME (str): Maximum time for API requests.
+        AUTO_LOG_STACKS (bool): Whether to automatically log stack traces.
+        CAPTURE_BODY (str): Level of request body capture.
+        CAPTURE_HEADERS (bool): Whether to capture HTTP headers.
+        COLLECT_LOCAL_VARIABLES (str): Level of local variable collection.
+        IS_ENABLED (bool): Whether APM is enabled.
+        ENVIRONMENT (str | None): APM environment name.
+        LOG_FILE (str): Path to APM log file.
+        LOG_FILE_SIZE (str): Maximum size of APM log file.
+        RECORDING (bool): Whether to record transactions.
+        SECRET_TOKEN (str | None): APM secret token.
+        SERVER_TIMEOUT (str): Server timeout duration.
+        SERVER_URL (str | None): APM server URL.
+        SERVICE_NAME (str): Name of the service being monitored.
+        SERVICE_VERSION (str | None): Version of the service.
+        TRANSACTION_SAMPLE_RATE (str): Rate at which to sample transactions.
+        API_KEY (str | None): API key for authentication.
     """
 
     API_REQUEST_SIZE: str = "768kb"
@@ -52,6 +88,36 @@ class FastAPIConfig(BaseModel):
 
     Controls FastAPI application behavior, including server settings, middleware,
     documentation, and performance parameters.
+
+    Attributes:
+        PROJECT_NAME (str): Name of the FastAPI project.
+        API_PREFIX (str): URL prefix for API endpoints.
+        ACCESS_LOG (bool): Whether to enable access logging.
+        BACKLOG (int): Maximum number of queued connections.
+        DATE_HEADER (bool): Whether to include date header in responses.
+        FORWARDED_ALLOW_IPS (list[str] | None): List of allowed forwarded IPs.
+        LIMIT_CONCURRENCY (int | None): Maximum concurrent requests.
+        LIMIT_MAX_REQUESTS (int | None): Maximum number of requests.
+        CORS_MIDDLEWARE_ALLOW_CREDENTIALS (bool): Whether to allow credentials in CORS.
+        CORS_MIDDLEWARE_ALLOW_HEADERS (list[str]): Allowed CORS headers.
+        CORS_MIDDLEWARE_ALLOW_METHODS (list[str]): Allowed CORS methods.
+        CORS_MIDDLEWARE_ALLOW_ORIGINS (list[str]): Allowed CORS origins.
+        PROXY_HEADERS (bool): Whether to trust proxy headers.
+        RELOAD (bool): Whether to enable auto-reload.
+        SERVER_HEADER (bool): Whether to include server header.
+        SERVE_HOST (str): Host to serve the application on.
+        SERVE_PORT (int): Port to serve the application on.
+        TIMEOUT_GRACEFUL_SHUTDOWN (int | None): Graceful shutdown timeout.
+        TIMEOUT_KEEP_ALIVE (int): Keep-alive timeout.
+        WORKERS_COUNT (int): Number of worker processes.
+        WS_MAX_SIZE (int): Maximum WebSocket message size.
+        WS_PER_MESSAGE_DEFLATE (bool): Whether to enable WebSocket compression.
+        WS_PING_INTERVAL (float): WebSocket ping interval.
+        WS_PING_TIMEOUT (float): WebSocket ping timeout.
+        OPENAPI_URL (str | None): URL for OpenAPI schema.
+        DOCS_URL (str | None): URL for API documentation.
+        RE_DOCS_URL (str | None): URL for ReDoc documentation.
+        SWAGGER_UI_PARAMS (dict[str, str] | None): Swagger UI parameters.
     """
 
     PROJECT_NAME: str = "project_name"
@@ -90,6 +156,14 @@ class GrpcConfig(BaseModel):
 
     Controls gRPC server behavior, including connection parameters,
     performance tuning, and timeout settings.
+
+    Attributes:
+        SERVE_PORT (int): Port to serve gRPC on.
+        SERVE_HOST (str): Host to serve gRPC on.
+        THREAD_WORKER_COUNT (int | None): Number of worker threads.
+        THREAD_PER_CPU_CORE (int): Threads per CPU core.
+        SERVER_OPTIONS_CONFIG_LIST (list[tuple[str, int]]): Server configuration options.
+        STUB_OPTIONS_CONFIG_LIST (list[tuple[str, int | str]]): Client stub configuration options.
     """
 
     SERVE_PORT: int = 8100
@@ -141,6 +215,23 @@ class KafkaConfig(BaseModel):
 
     Controls Kafka producer and consumer behavior, including broker connections,
     message delivery guarantees, and performance settings.
+
+    Attributes:
+        ACKNOWLEDGE_COUNT (int): Number of acknowledgments required.
+        AUTO_OFFSET_RESET (str): Action to take when there is no initial offset.
+        BROKERS_LIST (list[str] | None): List of Kafka broker addresses.
+        CERT_PEM (str | None): Path to SSL certificate.
+        ENABLE_AUTO_COMMIT (bool): Whether to enable auto-commit.
+        MAX_BUFFER_MS (int): Maximum time to buffer messages.
+        MAX_BUFFER_SIZE (int): Maximum number of messages to buffer.
+        PASSWORD (str | None): Password for authentication.
+        SASL_MECHANISMS (str): SASL mechanism for authentication.
+        SECURITY_PROTOCOL (str): Security protocol to use.
+        SESSION_TIMEOUT_MS (int): Session timeout in milliseconds.
+        REQUEST_ACK_TIMEOUT_MS (int): Request acknowledgment timeout.
+        DELIVERY_MESSAGE_TIMEOUT_MS (int): Message delivery timeout.
+        USER_NAME (str | None): Username for authentication.
+        LIST_TOPICS_TIMEOUT (int): Timeout for listing topics.
     """
 
     ACKNOWLEDGE_COUNT: int = 1
@@ -158,8 +249,6 @@ class KafkaConfig(BaseModel):
     DELIVERY_MESSAGE_TIMEOUT_MS: int = 2300
     USER_NAME: str | None = None
     LIST_TOPICS_TIMEOUT: int = 1
-    #     use in mock
-    TOPIC_MAXIMUM_MESSAGE_COUNT: int = 1000
 
 
 class KeycloakConfig(BaseModel):
@@ -167,6 +256,14 @@ class KeycloakConfig(BaseModel):
 
     Controls connection parameters and authentication settings for the Keycloak
     identity and access management service.
+
+    Attributes:
+        SERVER_URL (str | None): URL of the Keycloak server.
+        CLIENT_ID (str | None): Client ID for authentication.
+        REALM_NAME (str): Name of the Keycloak realm.
+        CLIENT_SECRET_KEY (str | None): Client secret key.
+        VERIFY_SSL (bool): Whether to verify SSL certificates.
+        TIMEOUT (int): Request timeout in seconds.
     """
 
     SERVER_URL: str | None = None
@@ -182,6 +279,14 @@ class MinioConfig(BaseModel):
 
     Controls connection parameters and authentication for the MinIO S3-compatible
     object storage service.
+
+    Attributes:
+        ENDPOINT (str | None): MinIO server endpoint.
+        ACCESS_KEY (str | None): Access key for authentication.
+        SECRET_KEY (str | None): Secret key for authentication.
+        SECURE (bool): Whether to use secure (HTTPS) connection.
+        SESSION_TOKEN (str | None): Session token for temporary credentials.
+        REGION (str | None): AWS region for S3 compatibility.
     """
 
     ENDPOINT: str | None = None
@@ -192,10 +297,31 @@ class MinioConfig(BaseModel):
     REGION: str | None = None
 
 
-class SqlAlchemyConfig(BaseModel):
+class SQLAlchemyConfig(BaseModel):
     """Configuration settings for SQLAlchemy ORM.
 
     Controls database connection parameters, pooling behavior, and query execution settings.
+
+    Attributes:
+        DATABASE (str | None): Database name.
+        DRIVER_NAME (str): Database driver name.
+        ECHO (bool): Whether to log SQL statements.
+        ECHO_POOL (bool): Whether to log connection pool events.
+        ENABLE_FROM_LINTING (bool): Whether to enable SQL linting.
+        HIDE_PARAMETERS (bool): Whether to hide SQL parameters in logs.
+        HOST (str | None): Database host.
+        ISOLATION_LEVEL (str | None): Transaction isolation level.
+        PASSWORD (str | None): Database password.
+        POOL_MAX_OVERFLOW (int): Maximum number of connections to allow in pool overflow.
+        POOL_PRE_PING (bool): Whether to ping connections before use.
+        POOL_RECYCLE_SECONDS (int): Number of seconds between connection recycling.
+        POOL_RESET_ON_RETURN (str): Action to take when returning connections to pool.
+        POOL_SIZE (int): Number of connections to keep open in the pool.
+        POOL_TIMEOUT (int): Seconds to wait before giving up on getting a connection.
+        POOL_USE_LIFO (bool): Whether to use LIFO for connection pool.
+        PORT (int | None): Database port.
+        QUERY_CACHE_SIZE (int): Size of the query cache.
+        USERNAME (str | None): Database username.
     """
 
     DATABASE: str | None = None
@@ -217,28 +343,73 @@ class SqlAlchemyConfig(BaseModel):
     PORT: int | None = 5432
     QUERY_CACHE_SIZE: int = 500
     USERNAME: str | None = None
-    DB_URL: PostgresDsn | None = None
+
+
+class SqliteSQLAlchemyConfig(SQLAlchemyConfig):
+    """Configuration settings for SQLite SQLAlchemy ORM.
+
+    Extends SQLAlchemyConfig with SQLite-specific settings.
+
+    Attributes:
+        DRIVER_NAME (str): SQLite driver name.
+        DATABASE (str): SQLite database path.
+        ISOLATION_LEVEL (str | None): SQLite isolation level.
+        PORT (str | None): Not used for SQLite.
+    """
+
+    DRIVER_NAME: str = "sqlite+aiosqlite"
+    DATABASE: str = ":memory:"
+    ISOLATION_LEVEL: str | None = None
+    PORT: str | None = None
+
+
+class PostgresSQLAlchemyConfig(SQLAlchemyConfig):
+    """Configuration settings for PostgreSQL SQLAlchemy ORM.
+
+    Extends SQLAlchemyConfig with PostgreSQL-specific settings and URL building.
+
+    Attributes:
+        POSTGRES_DSN (PostgresDsn | None): PostgreSQL connection URL.
+    """
+
+    POSTGRES_DSN: PostgresDsn | None = None
 
     @model_validator(mode="after")
     def build_connection_url(self) -> Self:
-        """Build and populate DB_URL if not provided but all component parts are present."""
-        if self.DB_URL is not None:
+        """Build and populate DB_URL if not provided but all component parts are present.
+
+        Returns:
+            Self: The updated configuration instance.
+
+        Raises:
+            ValueError: If required connection parameters are missing.
+        """
+        if self.POSTGRES_DSN is not None:
             return self
 
         if all([self.USERNAME, self.HOST, self.PORT, self.DATABASE]):
             password_part = f":{self.PASSWORD}" if self.PASSWORD else ""
-            self.DB_URL = f"{self.DRIVER_NAME}://{self.USERNAME}{password_part}@{self.HOST}:{self.PORT}/{self.DATABASE}"
+            self.POSTGRES_DSN = (
+                f"{self.DRIVER_NAME}://{self.USERNAME}{password_part}@{self.HOST}:{self.PORT}/{self.DATABASE}"
+            )
         return self
 
     @model_validator(mode="after")
     def extract_connection_parts(self) -> Self:
-        """Extract connection parts from DB_URL if provided but component parts are missing."""
-        if self.DB_URL is None:
+        """Extract connection parts from DB_URL if provided but component parts are missing.
+
+        Returns:
+            Self: The updated configuration instance.
+
+        Raises:
+            ValueError: If the connection URL is invalid.
+        """
+        if self.POSTGRES_DSN is None:
             return self
 
         # Check if we need to extract components (if any are None)
         if any(x is None for x in [self.DRIVER_NAME, self.USERNAME, self.HOST, self.PORT, self.DATABASE]):
-            url = str(self.DB_URL)
+            url = str(self.POSTGRES_DSN)
             parsed = urlparse(url)
 
             # Extract scheme/driver
@@ -278,11 +449,27 @@ class SqlAlchemyConfig(BaseModel):
         return self
 
 
+class StarrocksSQLAlchemyConfig(SQLAlchemyConfig):
+    """Configuration settings for Starrocks SQLAlchemy ORM.
+
+    Extends SQLAlchemyConfig with Starrocks-specific settings.
+
+    Attributes:
+        CATALOG (str | None): Starrocks catalog name.
+    """
+
+    CATALOG: str | None = None
+
+
 class PrometheusConfig(BaseModel):
     """Configuration settings for Prometheus metrics integration.
 
     Controls whether Prometheus metrics collection is enabled and the port
     for the metrics endpoint.
+
+    Attributes:
+        IS_ENABLED (bool): Whether Prometheus metrics are enabled.
+        SERVER_PORT (int): Port for the Prometheus metrics endpoint.
     """
 
     IS_ENABLED: bool = False
@@ -293,6 +480,16 @@ class RedisConfig(BaseModel):
     """Configuration settings for Redis cache integration.
 
     Controls Redis server connection parameters and client behavior settings.
+
+    Attributes:
+        MASTER_HOST (str | None): Redis master host.
+        SLAVE_HOST (str | None): Redis slave host.
+        PORT (int): Redis server port.
+        DATABASE (int): Redis database number.
+        PASSWORD (str | None): Redis password.
+        DECODE_RESPONSES (Literal[True]): Whether to decode responses.
+        VERSION (int): Redis protocol version.
+        HEALTH_CHECK_INTERVAL (int): Health check interval in seconds.
     """
 
     MASTER_HOST: str | None = None
@@ -309,6 +506,14 @@ class SentryConfig(BaseModel):
     """Configuration settings for Sentry error tracking integration.
 
     Controls Sentry client behavior, including DSN, sampling rates, and debug settings.
+
+    Attributes:
+        IS_ENABLED (bool): Whether Sentry is enabled.
+        DSN (str | None): Sentry DSN for error reporting.
+        DEBUG (bool): Whether to enable debug mode.
+        RELEASE (str): Application release version.
+        SAMPLE_RATE (float): Error sampling rate (0.0 to 1.0).
+        TRACES_SAMPLE_RATE (float): Performance monitoring sampling rate (0.0 to 1.0).
     """
 
     IS_ENABLED: bool = False
@@ -324,6 +529,11 @@ class KavenegarConfig(BaseModel):
 
     Controls connection parameters and authentication for sending SMS messages
     through the Kavenegar service.
+
+    Attributes:
+        SERVER_URL (str | None): Kavenegar API server URL.
+        API_KEY (str | None): Kavenegar API key.
+        PHONE_NUMBER (str | None): Default sender phone number.
     """
 
     SERVER_URL: str | None = None
@@ -336,6 +546,38 @@ class AuthConfig(BaseModel):
 
     Controls JWT token settings, TOTP configuration, rate limiting,
     password policies, and token security features.
+
+    Attributes:
+        SECRET_KEY (SecretStr | None): JWT signing key.
+        ACCESS_TOKEN_EXPIRES_IN (int): Access token expiration in seconds.
+        REFRESH_TOKEN_EXPIRES_IN (int): Refresh token expiration in seconds.
+        HASH_ALGORITHM (str): JWT signing algorithm.
+        JWT_ISSUER (str): JWT issuer claim.
+        JWT_AUDIENCE (str): JWT audience claim.
+        TOKEN_VERSION (int): JWT token version.
+        TOTP_SECRET_KEY (SecretStr | None): TOTP master key.
+        TOTP_HASH_ALGORITHM (str): TOTP hash algorithm.
+        TOTP_LENGTH (int): TOTP code length.
+        TOTP_EXPIRES_IN (int): TOTP expiration in seconds.
+        TOTP_TIME_STEP (int): TOTP time step in seconds.
+        TOTP_VERIFICATION_WINDOW (int): TOTP verification window size.
+        TOTP_MAX_ATTEMPTS (int): Maximum TOTP verification attempts.
+        TOTP_LOCKOUT_TIME (int): TOTP lockout duration in seconds.
+        LOGIN_RATE_LIMIT (int): Login attempts per minute.
+        TOTP_RATE_LIMIT (int): TOTP requests per minute.
+        PASSWORD_RESET_RATE_LIMIT (int): Password reset requests per hour.
+        HASH_ITERATIONS (int): Password hash iterations.
+        MIN_LENGTH (int): Minimum password length.
+        REQUIRE_DIGIT (bool): Whether password requires digits.
+        REQUIRE_LOWERCASE (bool): Whether password requires lowercase.
+        REQUIRE_SPECIAL (bool): Whether password requires special chars.
+        REQUIRE_UPPERCASE (bool): Whether password requires uppercase.
+        SALT_LENGTH (int): Password salt length.
+        SPECIAL_CHARACTERS (set[str]): Allowed special characters.
+        PASSWORD_HISTORY_SIZE (int): Number of previous passwords to remember.
+        ENABLE_JTI_CLAIM (bool): Whether to enable JWT ID claim.
+        ENABLE_TOKEN_ROTATION (bool): Whether to enable refresh token rotation.
+        REFRESH_TOKEN_REUSE_INTERVAL (int): Refresh token reuse grace period.
     """
 
     # JWT Settings
@@ -387,6 +629,16 @@ class EmailConfig(BaseModel):
 
     Controls SMTP server connection parameters, authentication,
     and email sending behavior.
+
+    Attributes:
+        SMTP_SERVER (str | None): SMTP server host.
+        SMTP_PORT (int): SMTP server port.
+        USERNAME (str | None): SMTP username.
+        PASSWORD (str | None): SMTP password.
+        POOL_SIZE (int): Connection pool size.
+        CONNECTION_TIMEOUT (int): Connection timeout in seconds.
+        MAX_RETRIES (int): Maximum retry attempts.
+        ATTACHMENT_MAX_SIZE (int): Maximum attachment size in bytes.
     """
 
     SMTP_SERVER: str | None = None
@@ -403,6 +655,11 @@ class FileConfig(BaseModel):
     """Configuration settings for file handling capabilities.
 
     Controls file link security, expiration policies, and file type restrictions.
+
+    Attributes:
+        SECRET_KEY (str | None): Secret key for generating secure file links.
+        DEFAULT_EXPIRY_MINUTES (int): Default link expiration time in minutes.
+        ALLOWED_EXTENSIONS (list[str]): List of allowed file extensions.
     """
 
     SECRET_KEY: str | None = Field(default=None, description="Secret key used for generating secure file links")
@@ -419,6 +676,13 @@ class DatetimeConfig(BaseModel):
 
     Controls API connections for specialized date/time services
     and date caching behavior.
+
+    Attributes:
+        TIME_IR_API_KEY (str | None): API key for time.ir service.
+        TIME_IR_API_ENDPOINT (str | None): Endpoint for time.ir service.
+        REQUEST_TIMEOUT (int): Request timeout in seconds.
+        MAX_RETRIES (int): Maximum retry attempts.
+        CACHE_TTL (int): Cache time-to-live in seconds.
     """
 
     TIME_IR_API_KEY: str | None = "ZAVdqwuySASubByCed5KYuYMzb9uB2f7"
