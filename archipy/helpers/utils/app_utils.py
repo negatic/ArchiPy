@@ -52,6 +52,7 @@ class FastAPIExceptionHandler:
         Returns:
             JSONResponse: A JSON response containing the exception details.
         """
+        BaseUtils.capture_exception(exception)
         return FastAPIExceptionHandler.create_error_response(exception)
 
     @staticmethod
@@ -65,6 +66,7 @@ class FastAPIExceptionHandler:
         Returns:
             JSONResponse: A JSON response containing the exception details.
         """
+        BaseUtils.capture_exception(exception)
         return FastAPIExceptionHandler.create_error_response(UnknownError())
 
     @staticmethod
@@ -82,6 +84,7 @@ class FastAPIExceptionHandler:
             JSONResponse: A JSON response containing the validation error details.
         """
         # Using list comprehension instead of append for better performance
+        BaseUtils.capture_exception(exception)
         errors: list[dict[str, str]] = [
             {
                 "field": ".".join(str(x) for x in error["loc"]),
@@ -90,7 +93,6 @@ class FastAPIExceptionHandler:
             }
             for error in exception.errors()
         ]
-
         return JSONResponse(
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             content={"error": "VALIDATION_ERROR", "detail": errors},
