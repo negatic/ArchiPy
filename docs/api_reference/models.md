@@ -245,8 +245,7 @@ class UserNotFoundError(BaseError):
 
 ### Base Types
 
-Documentation for `archipy.models.types.base_types`.
-Documentation for `archipy.models.types.base_types`.
+Basic type definitions used throughout the application.
 
 ::: archipy.models.types.base_types
     options:
@@ -255,37 +254,25 @@ Documentation for `archipy.models.types.base_types`.
 
 ### Email Types
 
-Email-related type definitions.
+Type definitions for email-related operations.
 
 ::: archipy.models.types.email_types
     options:
       show_root_heading: true
       show_source: true
 
-### Exception Message Types
+### Error Message Types
 
-Standardized error message types.
+Standardized error message types for consistent error handling.
 
-```python
-from archipy.models.types.exception_message_types import ErrorMessageType
-
-error_type: ErrorMessageType = ErrorMessageType.ERROR
-```
-
-::: archipy.models.types.exception_message_types
+::: archipy.models.types.error_message_types
     options:
       show_root_heading: true
       show_source: true
 
 ### Language Type
 
-Language code type definitions.
-
-```python
-from archipy.models.types.language_type import LanguageType
-
-language: LanguageType = LanguageType.EN
-```
+Language code type definition.
 
 ::: archipy.models.types.language_type
     options:
@@ -294,13 +281,7 @@ language: LanguageType = LanguageType.EN
 
 ### Sort Order Type
 
-Sort order type definitions.
-
-```python
-from archipy.models.types.sort_order_type import SortOrderType
-
-order: SortOrderType = SortOrderType.DESC
-```
+Sort order type definition for queries.
 
 ::: archipy.models.types.sort_order_type
     options:

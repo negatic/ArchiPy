@@ -10,7 +10,9 @@ ArchiPy provides a variety of adapters to help interface with external systems, 
 | [Keycloak](keycloak.md) | Authentication & authorization | User management and access control with Keycloak | [API](../../api_reference/adapters.md#keycloak) |
 | [Kafka](kafka.md) | Message streaming | Event-driven architectures with Apache Kafka | [API](../../api_reference/adapters.md#kafka) |
 | [Minio](minio.md) | Object storage | S3-compatible object storage for files and documents | [API](../../api_reference/adapters.md#minio) |
-| [ORM](orm.md) | Database access | SQLAlchemy integration for database operations | [API](../../api_reference/adapters.md#orm) |
+| [PostgreSQL](postgres.md) | Database access | SQLAlchemy integration for PostgreSQL | [API](../../api_reference/adapters.md#postgresql) |
+| [SQLite](sqlite.md) | Database access | SQLAlchemy integration for SQLite | [API](../../api_reference/adapters.md#sqlite) |
+| [StarRocks](starrocks.md) | Database access | SQLAlchemy integration for StarRocks | [API](../../api_reference/adapters.md#starrocks) |
 | [Redis](redis.md) | Key-value store | Caching, pub/sub, and data storage with Redis | [API](../../api_reference/adapters.md#redis) |
 
 ## Adapter Architecture

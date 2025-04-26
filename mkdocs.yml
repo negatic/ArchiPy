@@ -99,34 +99,38 @@ plugins:
 nav:
   - Home: index.md
   - Installation: installation.md
-  - Usage: usage.md
   - Features: features.md
+  - Usage: usage.md
+  - Development: development.md
+  - API Reference:
+    - Overview: api_reference/index.md
+    - Adapters: api_reference/adapters.md
+    - Configs: api_reference/configs.md
+    - Helpers: api_reference/helpers.md
+    - Models: api_reference/models.md
+    - Utils: api_reference/utils.md
+  - Examples:
+    - Overview: examples/index.md
+    - Adapters:
+      - Overview: examples/adapters/index.md
+      - PostgreSQL: examples/adapters/postgres.md
+      - SQLite: examples/adapters/sqlite.md
+      - StarRocks: examples/adapters/starrocks.md
+      - Redis: examples/adapters/redis.md
+      - Email: examples/adapters/email.md
+      - Keycloak: examples/adapters/keycloak.md
+      - MinIO: examples/adapters/minio.md
+      - Kafka: examples/adapters/kafka.md
+    - Helpers:
+      - Overview: examples/helpers/index.md
+      - Decorators: examples/helpers/decorators.md
+      - Interceptors: examples/helpers/interceptors.md
+      - Metaclasses: examples/helpers/metaclasses.md
+      - Utils: examples/helpers/utils.md
+    - Configuration: examples/config_management.md
+    - Testing: examples/bdd_testing.md
+  - Changelog: changelog.md
+  - Contributing: contributing.md
   - Architecture: architecture.md
   - Contributing to Docs: contributing-docs.md
-  - API Reference:
-      - Overview: api_reference/index.md
-      - Adapters: api_reference/adapters.md
-      - Configs: api_reference/configs.md
-      - Helpers: api_reference/helpers.md
-      - Models: api_reference/models.md
-      - Utils: api_reference/utils.md
-  - Examples:
-      - Config Management: examples/config_management.md
-      - Adapters:
-          - Overview: examples/adapters/index.md
-          - Email: examples/adapters/email.md
-          - Keycloak: examples/adapters/keycloak.md
-          - MinIO: examples/adapters/minio.md
-          - ORM: examples/adapters/postgres.md
-          - Redis: examples/adapters/redis.md
-      - Helpers:
-          - Overview: examples/helpers/index.md
-          - Decorators: examples/helpers/decorators.md
-          - Interceptors: examples/helpers/interceptors.md
-          - Metaclasses: examples/helpers/metaclasses.md
-          - Utils: examples/helpers/utils.md
-      - BDD Testing: examples/bdd_testing.md
-  - Development: development.md
-  - Contributing: contributing.md
-  - Changelog: changelog.md
   - License: license.md

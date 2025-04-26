@@ -58,11 +58,6 @@ users = orm_adapter.query(User).filter(User.active == True).all()
       show_root_heading: true
       show_source: true
 
-::: archipy.adapters.postgres.sqlalchemy.ports
-    options:
-      show_root_heading: true
-      show_source: true
-
 ::: archipy.adapters.postgres.sqlalchemy.session_managers
     options:
       show_root_heading: true
@@ -89,11 +84,6 @@ orm_adapter = SqliteSQLAlchemyAdapter()
       show_root_heading: true
       show_source: true
 
-::: archipy.adapters.sqlite.sqlalchemy.ports
-    options:
-      show_root_heading: true
-      show_source: true
-
 ::: archipy.adapters.sqlite.sqlalchemy.session_managers
     options:
       show_root_heading: true
@@ -116,11 +106,6 @@ orm_adapter = StarrocksSQLAlchemyAdapter()
 ```
 
 ::: archipy.adapters.starrocks.sqlalchemy.adapters
-    options:
-      show_root_heading: true
-      show_source: true
-
-::: archipy.adapters.starrocks.sqlalchemy.ports
     options:
       show_root_heading: true
       show_source: true

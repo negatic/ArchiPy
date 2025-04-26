@@ -43,7 +43,7 @@ Core data structures and types:
 
 - [Models Documentation](models.md)
 - [Entities](models.md#entities)
-- [Data Transfer Objects](models.md#data-transfer-objects-dtos)
+- [DTOs](models.md#dtos-data-transfer-objects)
 - [Errors](models.md#errors)
 - [Types](models.md#types)
 

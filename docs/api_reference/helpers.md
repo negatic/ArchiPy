@@ -181,42 +181,14 @@ async def get_data():
 
 ### gRPC Interceptors
 
-#### gRPC Client Trace Interceptor
+gRPC interceptors for tracing and monitoring:
 
-Provides tracing functionality for gRPC client calls.
-
-```python
-from archipy.helpers.interceptors.grpc.trace import grpc_client_trace_interceptor
-import grpc
-
-channel = grpc.insecure_channel('localhost:50051')
-intercepted_channel = grpc.intercept_channel(
-    channel,
-    grpc_client_trace_interceptor()
-)
-```
-
-::: archipy.helpers.interceptors.grpc.trace.grpc_client_trace_interceptor
+::: archipy.helpers.interceptors.grpc.trace.client_interceptor
     options:
       show_root_heading: true
       show_source: true
 
-#### gRPC Server Trace Interceptor
-
-Provides tracing functionality for gRPC server operations.
-
-```python
-from archipy.helpers.interceptors.grpc.trace import grpc_server_trace_interceptor
-import grpc
-
-server = grpc.server(
-    grpc.intercept_server(
-        grpc_server_trace_interceptor()
-    )
-)
-```
-
-::: archipy.helpers.interceptors.grpc.trace.grpc_server_trace_interceptor
+::: archipy.helpers.interceptors.grpc.trace.server_interceptor
     options:
       show_root_heading: true
       show_source: true
