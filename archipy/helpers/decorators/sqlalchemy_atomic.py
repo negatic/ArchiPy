@@ -9,7 +9,6 @@ from collections.abc import Callable
 from functools import partial, wraps
 from typing import Any, TypeVar
 
-from psycopg.errors import DeadlockDetected, SerializationFailure
 from sqlalchemy.exc import OperationalError
 
 from archipy.adapters.base.sqlalchemy.session_manager_ports import AsyncSessionManagerPort, SessionManagerPort
@@ -34,6 +33,35 @@ ATOMIC_BLOCK_CONFIGS = {
 
 # Type variables for function return types
 R = TypeVar("R")
+
+
+def _handle_db_exception(exception: Exception, db_type: str, func_name: str) -> None:
+    """Handle database exceptions and raise appropriate errors.
+
+    Args:
+        exception (Exception): The exception to handle.
+        db_type (str): The database type ("postgres", "sqlite", or "starrocks").
+        func_name (str): The name of the function being executed.
+
+    Raises:
+        AbortedError: If a serialization failure is detected.
+        DeadlockDetectedError: If a deadlock or database lock is detected.
+        InternalError: For other unexpected errors.
+    """
+    logging.debug(f"Exception in {db_type} atomic block (func: {func_name}): {exception}")
+    if isinstance(exception, OperationalError):
+        if hasattr(exception, "orig") and exception.orig:
+            sqlstate = getattr(exception.orig, "pgcode", None)
+            if sqlstate == "40001":  # Serialization failure
+                raise AbortedError(reason=str(exception)) from exception
+            if sqlstate == "40P01":  # Deadlock detected
+                raise DeadlockDetectedError() from exception
+        if "database is locked" in str(exception):
+            raise DeadlockDetectedError() from exception
+        raise InternalError(details=str(exception)) from exception
+    if isinstance(exception, BaseError):
+        raise exception
+    raise InternalError(details=str(exception)) from exception
 
 
 def sqlalchemy_atomic_decorator(
@@ -120,7 +148,7 @@ def sqlalchemy_atomic_decorator(
 
                 Raises:
                     AbortedError: If a serialization failure or deadlock is detected.
-                    DeadlockDetectedError: If an operational error occurs due to a serialization failure.
+                    DeadlockDetectedError: If an operational error occurs due to a deadlock.
                     InternalError: If any other exception occurs during execution.
                 """
                 registry = get_registry()
@@ -138,22 +166,9 @@ def sqlalchemy_atomic_decorator(
                         return result
                     async with session.begin():
                         return await func(*args, **kwargs)
-                except (SerializationFailure, DeadlockDetected) as exc:
+                except Exception as exception:
                     await session.rollback()
-                    raise AbortedError(reason=str(exc)) from exc
-                except OperationalError as exc:
-                    if hasattr(exc, "orig") and isinstance(exc.orig, SerializationFailure):
-                        await session.rollback()
-                        raise DeadlockDetectedError() from exc
-                    raise InternalError(details=str(exc)) from exc
-                except BaseError as exc:
-                    logging.debug(f"Exception in {db_type} atomic block (func: {func.__name__}): {exc}")
-                    await session.rollback()
-                    raise
-                except Exception as exc:
-                    logging.debug(f"Unexpected error in {db_type} atomic block (func: {func.__name__}): {exc}")
-                    await session.rollback()
-                    raise InternalError(details=str(exc)) from exc
+                    _handle_db_exception(exception, db_type, func.__name__)
                 finally:
                     if not session.in_transaction():
                         await session.close()
@@ -175,7 +190,7 @@ def sqlalchemy_atomic_decorator(
 
                 Raises:
                     AbortedError: If a serialization failure or deadlock is detected.
-                    DeadlockDetectedError: If an operational error occurs due to a serialization failure.
+                    DeadlockDetectedError: If an operational error occurs due to a deadlock.
                     InternalError: If any other exception occurs during execution.
                 """
                 registry = get_registry()
@@ -193,22 +208,9 @@ def sqlalchemy_atomic_decorator(
                         return result
                     with session.begin():
                         return func(*args, **kwargs)
-                except (SerializationFailure, DeadlockDetected) as exc:
+                except Exception as exception:
                     session.rollback()
-                    raise AbortedError(reason=str(exc)) from exc
-                except OperationalError as exc:
-                    if hasattr(exc, "orig") and isinstance(exc.orig, SerializationFailure):
-                        session.rollback()
-                        raise DeadlockDetectedError() from exc
-                    raise InternalError(details=str(exc)) from exc
-                except BaseError as exc:
-                    logging.debug(f"Exception in {db_type} atomic block (func: {func.__name__}): {exc}")
-                    session.rollback()
-                    raise
-                except Exception as exc:
-                    logging.debug(f"Unexpected error in {db_type} atomic block (func: {func.__name__}): {exc}")
-                    session.rollback()
-                    raise InternalError(details=str(exc)) from exc
+                    _handle_db_exception(exception, db_type, func.__name__)
                 finally:
                     if not session.in_transaction():
                         session.close()

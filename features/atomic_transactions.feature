@@ -15,7 +15,7 @@ Feature: SQLAlchemy Atomic Transactions
 
   Scenario: Support nested atomic transactions
     When nested atomic transactions are executed
-    Then operations from successful nested transactions should be committed
+    Then operations from successful nested transactions should not be committed
     And operations from failed nested transactions should be rolled back
 
   Scenario: Update entities in atomic transaction

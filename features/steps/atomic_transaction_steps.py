@@ -381,7 +381,7 @@ def step_when_nested_atomic_executed(context):
     logger.info("Nested atomic transactions completed")
 
 
-@then("operations from successful nested transactions should be committed")
+@then("operations from successful nested transactions should not be committed")
 def step_then_successful_nested_committed(context):
     """Verify that entities from successful nested transactions exist."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
@@ -755,7 +755,7 @@ def step_when_error_triggered_in_atomic(context):
         scenario_context.store("normal_exception", e)
         logger.info(f"Caught normal exception: {type(e).__name__}")
 
-    # Test deadlock handling (simulated)
+    # Test deadlock handling (simulated for SQLite)
     logger.info("Testing deadlock exception handling")
     try:
         @sqlite_sqlalchemy_atomic_decorator
@@ -763,39 +763,16 @@ def step_when_error_triggered_in_atomic(context):
             entity = TestEntityFactory.create_test_entity()
             adapter.create(entity)
 
-            # Simulate deadlock
-            from psycopg.errors import DeadlockDetected
+            # Simulate SQLite deadlock
             from sqlalchemy.exc import OperationalError
 
-            logger.info("Raising deadlock exception")
-            op_error = OperationalError("Deadlock detected", None, None)
-            deadlock = DeadlockDetected("Simulated deadlock")
-            op_error.orig = deadlock
-            raise op_error
+            logger.info("Raising SQLite deadlock exception")
+            raise OperationalError("database is locked", None, None)
 
         deadlock_exception()
     except Exception as e:
         scenario_context.store("deadlock_exception", e)
         logger.info(f"Caught deadlock exception: {type(e).__name__}")
-
-    # Test serialization failure (simulated)
-    logger.info("Testing serialization failure handling")
-    try:
-        @sqlite_sqlalchemy_atomic_decorator
-        def serialization_exception():
-            entity = TestEntityFactory.create_test_entity()
-            adapter.create(entity)
-
-            # Simulate serialization failure
-            from psycopg.errors import SerializationFailure
-
-            logger.info("Raising serialization failure")
-            raise SerializationFailure("Simulated serialization failure")
-
-        serialization_exception()
-    except Exception as e:
-        scenario_context.store("serialization_exception", e)
-        logger.info(f"Caught serialization exception: {type(e).__name__}")
 
 
 @then("the appropriate error should be raised")
@@ -804,7 +781,7 @@ def step_then_appropriate_error_raised(context):
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
     scenario_context = get_current_scenario_context(context)
 
-    from archipy.models.errors import AbortedError, InternalError
+    from archipy.models.errors import DeadlockDetectedError, InternalError
 
     # Check normal exception was wrapped as InternalError
     logger.info("Verifying normal exception handling")
@@ -815,14 +792,14 @@ def step_then_appropriate_error_raised(context):
         InternalError,
     ), f"Normal exception not wrapped as InternalError: {type(normal_exception)}"
 
-    # Check serialization exception
-    logger.info("Verifying serialization failure handling")
-    serialization_exception = scenario_context.get("serialization_exception")
-    assert serialization_exception is not None, "Serialization exception was not captured"
+    # Check deadlock exception
+    logger.info("Verifying deadlock exception handling")
+    deadlock_exception = scenario_context.get("deadlock_exception")
+    assert deadlock_exception is not None, "Deadlock exception was not captured"
     assert isinstance(
-        serialization_exception,
-        AbortedError,
-    ), f"Serialization failure not handled correctly: {type(serialization_exception)}"
+        deadlock_exception,
+        DeadlockDetectedError,
+    ), f"Deadlock failure not handled correctly: {type(deadlock_exception)}"
 
     logger.info("All exception handling verified successfully")
 

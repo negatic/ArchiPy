@@ -3,6 +3,20 @@
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
 
+## [1.0.3] - 2025-04-20
+
+### Documentation
+
+#### Features
+- Updated atomic transaction documentation with detailed examples
+- Enhanced feature documentation with clear scenarios
+- Added comprehensive step definitions for BDD tests
+
+#### Code Quality
+- Improved SQLAlchemy atomic decorator implementation
+- Enhanced test coverage for atomic transactions
+- Updated BDD test scenarios for better clarity
+
 ## [1.0.2] - 2025-04-20
 
 ### Documentation
