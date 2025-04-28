@@ -1,138 +1,174 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
-from enum import Enum
-from typing import Self, TypeVar
+from typing import ClassVar, Generic, Self, TypeVar
 
-from pydantic import StrictInt, field_validator, model_validator
+from pydantic import field_validator, model_validator
 
 from archipy.models.dtos.base_dtos import BaseDTO
+from archipy.models.errors import InvalidArgumentError, OutOfRangeError
+from archipy.models.types.language_type import LanguageType
+from archipy.models.types.time_interval_unit_type import TimeIntervalUnitType
 
 # Generic types
-T = TypeVar("T", bound=Enum)
+R = TypeVar("R")  # Type for range values (Decimal, int, date, etc.)
 
 
-class RangeDTO(BaseDTO):
-    """Data Transfer Object for decimal range queries.
+class BaseRangeDTO(BaseDTO, Generic[R]):
+    """Base Data Transfer Object for range queries.
 
-    This DTO encapsulates a range of decimal values with from_ and to fields.
+    Encapsulates a range of values with from_ and to fields.
     Provides validation to ensure range integrity.
     """
+
+    from_: R | None = None
+    to: R | None = None
+
+    @model_validator(mode="after")
+    def validate_range(self) -> Self:
+        """Validate that from_ is less than or equal to to when both are provided.
+
+        Returns:
+            Self: The validated model instance.
+
+        Raises:
+            OutOfRangeError: If from_ is greater than to.
+        """
+        if self.from_ is not None and self.to is not None and self.from_ > self.to:
+            raise OutOfRangeError(field_name="from_", lang=LanguageType.FA)
+        return self
+
+
+class DecimalRangeDTO(BaseRangeDTO[Decimal]):
+    """Data Transfer Object for decimal range queries."""
 
     from_: Decimal | None = None
     to: Decimal | None = None
 
     @field_validator("from_", "to", mode="before")
-    def convert_to(cls, value: Decimal | str | None) -> Decimal | None:
-        """Convert string values to Decimal type.
+    @classmethod
+    def convert_to_decimal(cls, value: Decimal | str | None) -> Decimal | None:
+        """Convert input values to Decimal type.
 
         Args:
-            value: The value to convert, can be None, string or Decimal.
+            value: The value to convert (None, string, or Decimal).
 
         Returns:
-            The converted Decimal value or None.
+            Decimal | None: The converted Decimal value or None.
 
         Raises:
-            TypeError: If the value is not a string or Decimal.
+            InvalidArgumentError: If the value cannot be converted to Decimal.
         """
         if value is None:
             return None
-
-        # Convert value to Decimal if it's valid
         try:
             return Decimal(value)
-        except (TypeError, ValueError):
-            error_message = "Decimal input should be str or decimal."
-            raise TypeError(error_message) from None
-
-    @model_validator(mode="after")
-    def validate_range(self) -> Self:
-        """Validate that from_ is less than to when both are provided.
-
-        Returns:
-            The validated model instance if valid.
-
-        Raises:
-            ValueError: If from_ is greater than or equal to to.
-        """
-        if self.from_ and self.to and self.from_ >= self.to:
-            error_message = "from_ can`t be bigger than to"
-            raise ValueError(error_message)
-        return self
+        except (TypeError, ValueError) as e:
+            raise InvalidArgumentError(argument_name="value", lang=LanguageType.FA) from e
 
 
-class IntegerRangeDTO(BaseDTO):
-    """Data Transfer Object for integer range queries.
+class IntegerRangeDTO(BaseRangeDTO[int]):
+    """Data Transfer Object for integer range queries."""
 
-    This DTO encapsulates a range of integer values with from_ and to fields.
-    Provides validation to ensure range integrity.
-    """
-
-    from_: StrictInt | None = None
-    to: StrictInt | None = None
-
-    @model_validator(mode="after")
-    def validate_range(self) -> Self:
-        """Validate that from_ is less than to when both are provided.
-
-        Returns:
-            The validated model instance if valid.
-
-        Raises:
-            ValueError: If from_ is greater than to.
-        """
-        if self.from_ and self.to and self.from_ > self.to:
-            error_message = "from_ can`t be bigger than to"
-            raise ValueError(error_message)
-        return self
+    from_: int | None = None
+    to: int | None = None
 
 
-class DateRangeDTO(BaseDTO):
-    """Data Transfer Object for date range queries.
-
-    This DTO encapsulates a range of date values with from_ and to fields.
-    Provides validation to ensure range integrity.
-    """
+class DateRangeDTO(BaseRangeDTO[date]):
+    """Data Transfer Object for date range queries."""
 
     from_: date | None = None
     to: date | None = None
 
-    @model_validator(mode="after")
-    def validate_range(self) -> Self:
-        """Validate that from_ is less than to when both are provided.
 
-        Returns:
-            The validated model instance if valid.
-
-        Raises:
-            ValueError: If from_ is greater than to.
-        """
-        if self.from_ and self.to and self.from_ > self.to:
-            error_message = "from_ can`t be bigger than to"
-            raise ValueError(error_message)
-        return self
-
-
-class DatetimeRangeDTO(BaseDTO):
-    """Data Transfer Object for datetime range queries.
-
-    This DTO encapsulates a range of datetime values with from_ and to fields.
-    Provides validation to ensure range integrity.
-    """
+class DatetimeRangeDTO(BaseRangeDTO[datetime]):
+    """Data Transfer Object for datetime range queries."""
 
     from_: datetime | None = None
     to: datetime | None = None
 
+
+class DatetimeIntervalRangeDTO(BaseRangeDTO[datetime]):
+    """Data Transfer Object for datetime range queries with interval.
+
+    Rejects requests if the number of intervals exceeds MAX_ITEMS or if interval-specific
+    range size or 'to' age constraints are violated.
+    """
+
+    from_: datetime
+    to: datetime
+    interval: TimeIntervalUnitType
+
+    # Maximum number of intervals allowed
+    MAX_ITEMS: ClassVar[int] = 100
+
+    # Range size limits for each interval
+    RANGE_SIZE_LIMITS: ClassVar[dict[TimeIntervalUnitType, timedelta]] = {
+        TimeIntervalUnitType.SECONDS: timedelta(days=2),
+        TimeIntervalUnitType.MINUTES: timedelta(days=7),
+        TimeIntervalUnitType.HOURS: timedelta(days=30),
+        TimeIntervalUnitType.DAYS: timedelta(days=365),
+        TimeIntervalUnitType.WEEKS: timedelta(days=365 * 2),
+        TimeIntervalUnitType.MONTHS: timedelta(days=365 * 5),  # No limit for MONTHS, set high
+        TimeIntervalUnitType.YEAR: timedelta(days=365 * 10),  # No limit for YEAR, set high
+    }
+
+    # 'to' age limits for each interval
+    TO_AGE_LIMITS: ClassVar[dict[TimeIntervalUnitType, timedelta]] = {
+        TimeIntervalUnitType.SECONDS: timedelta(days=2),
+        TimeIntervalUnitType.MINUTES: timedelta(days=7),
+        TimeIntervalUnitType.HOURS: timedelta(days=30),
+        TimeIntervalUnitType.DAYS: timedelta(days=365 * 5),
+        TimeIntervalUnitType.WEEKS: timedelta(days=365 * 10),
+        TimeIntervalUnitType.MONTHS: timedelta(days=365 * 20),  # No limit for MONTHS, set high
+        TimeIntervalUnitType.YEAR: timedelta(days=365 * 50),  # No limit for YEAR, set high
+    }
+
+    # Mapping of intervals to timedelta for step size
+    INTERVAL_TO_TIMEDELTA: ClassVar[dict[TimeIntervalUnitType, timedelta]] = {
+        TimeIntervalUnitType.SECONDS: timedelta(seconds=1),
+        TimeIntervalUnitType.MINUTES: timedelta(minutes=1),
+        TimeIntervalUnitType.HOURS: timedelta(hours=1),
+        TimeIntervalUnitType.DAYS: timedelta(days=1),
+        TimeIntervalUnitType.WEEKS: timedelta(weeks=1),
+        TimeIntervalUnitType.MONTHS: timedelta(days=30),  # Approximate
+        TimeIntervalUnitType.YEAR: timedelta(days=365),  # Approximate
+    }
+
     @model_validator(mode="after")
-    def validate_range(self) -> Self:
-        """Validate that from_ is less than to when both are provided.
+    def validate_interval_constraints(self) -> Self:
+        """Validate interval based on range size, 'to' field age, and max intervals.
+
+        - Each interval has specific range size and 'to' age limits.
+        - Rejects if the number of intervals exceeds MAX_ITEMS.
 
         Returns:
-            The validated model instance if valid.
+            Self: The validated model instance.
 
         Raises:
-            ValueError: If from_ is greater than to.
+            OutOfRangeError: If interval constraints are violated or number of intervals > MAX_ITEMS.
         """
-        if self.from_ and self.to and self.from_ > self.to:
-            error_message = "from_ can`t be bigger than to"
-            raise ValueError(error_message)
+        if self.from_ is not None and self.to is not None:
+            # Validate range size limit for the selected interval
+            range_size = self.to - self.from_
+            max_range_size = self.RANGE_SIZE_LIMITS.get(self.interval)
+            if max_range_size and range_size > max_range_size:
+                raise OutOfRangeError(field_name="range_size", lang=LanguageType.FA)
+
+            # Validate 'to' age limit
+            current_time = datetime.now()
+            max_to_age = self.TO_AGE_LIMITS.get(self.interval)
+            if max_to_age:
+                age_threshold = current_time - max_to_age
+                if self.to < age_threshold:
+                    raise OutOfRangeError(field_name="to", lang=LanguageType.FA)
+
+            # Calculate number of intervals
+            step = self.INTERVAL_TO_TIMEDELTA[self.interval]
+            range_duration = self.to - self.from_
+            num_intervals = int(range_duration.total_seconds() / step.total_seconds()) + 1
+
+            # Reject if number of intervals exceeds MAX_ITEMS
+            if num_intervals > self.MAX_ITEMS:
+                raise OutOfRangeError(field_name="interval_count", lang=LanguageType.FA)
+
         return self

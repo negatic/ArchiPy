@@ -4,6 +4,8 @@ from typing import ClassVar, Self, TypeVar
 from pydantic import Field, model_validator
 
 from archipy.models.dtos.base_dtos import BaseDTO
+from archipy.models.errors import OutOfRangeError
+from archipy.models.types.language_type import LanguageType
 
 # Generic types
 T = TypeVar("T", bound=Enum)
@@ -53,16 +55,11 @@ class PaginationDTO(BaseDTO):
             The validated model instance if valid.
 
         Raises:
-            ValueError: If the total requested items exceeds MAX_ITEMS.
+            OutOfRangeError: If the total requested items exceeds MAX_ITEMS.
         """
         total_items = self.page * self.page_size
         if total_items > self.MAX_ITEMS:
-            error_message = (
-                f"Pagination limit exceeded. "
-                f"Requested {total_items} items, but the maximum is {self.MAX_ITEMS}. "
-                f"Try reducing page size or requesting a lower page number."
-            )
-            raise ValueError(error_message)
+            raise OutOfRangeError(field_name="pagination", lang=LanguageType.FA)
         return self
 
     @property
