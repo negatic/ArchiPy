@@ -1,6 +1,7 @@
 # Keycloak Adapter Usage Guide
 
-The Keycloak adapter provides an interface for interacting with Keycloak's API to manage authentication and authorization. ArchiPy offers both synchronous and asynchronous implementations.
+The Keycloak adapter provides an interface for interacting with Keycloak's API to manage authentication and
+authorization. ArchiPy offers both synchronous and asynchronous implementations.
 
 For full API reference, see the [Keycloak Adapters API Documentation](../../api_reference/adapters.md#keycloak).
 
@@ -240,7 +241,8 @@ asyncio.run(main())
 
 ## Caching
 
-Both adapters use TTL (Time-To-Live) caching for appropriate operations to improve performance. Cache durations are configured for each method based on how frequently the data typically changes:
+Both adapters use TTL (Time-To-Live) caching for appropriate operations to improve performance. Cache durations are
+configured for each method based on how frequently the data typically changes:
 
 - Public keys and certificate information: 1 hour
 - User information from tokens: 30 seconds

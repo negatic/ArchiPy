@@ -25,8 +25,8 @@ Examples of behavior that contributes to creating a positive environment include
 Examples of unacceptable behavior include:
 
 * The use of sexualized language or imagery, and sexual attention or advances of any kind
-* Trolling, insulting or derogatory comments, commits, code, wiki edits, issues, and other contributions that are not aligned
-with this Code of Conduct, and will communicate reasons for moderation decisions when appropriate.
+* Trolling, insulting or derogatory comments, commits, code, wiki edits, issues, and other contributions that are not
+  aligned with this Code of Conduct, and will communicate reasons for moderation decisions when appropriate.
 
 ## Scope
 
@@ -40,6 +40,7 @@ representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the project maintainers responsible for enforcement at:
+
 - Hossein Nejati: [hosseinnejati14@gmail.com](mailto:hosseinnejati14@gmail.com)
 - Mehdi Einali: [einali@gmail.com](mailto:einali@gmail.com)
 
@@ -103,7 +104,9 @@ Community Impact Guidelines were inspired by
 
 For answers to common questions about this code of conduct, see the FAQ at
 [https://www.contributor-covenant.org/faq](https://www.contributor-covenant.org/faq). Translations are available at
-[https://www.contributor-covenant.org/translations](https://www.contributor-covenant.org/translations)., and personal or political attacks
+[https://www.contributor-covenant.org/translations](https://www.contributor-covenant.org/translations)., and personal or
+political attacks
+
 * Public or private harassment
 * Publishing others' private information, such as a physical or email address, without their explicit permission
 * Other conduct which could reasonably be considered inappropriate in a professional setting

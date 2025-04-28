@@ -1,15 +1,16 @@
 # Features
 
-ArchiPy provides a robust framework for structured Python development, focusing on standardization, testability, and productivity.
+ArchiPy provides a robust framework for structured Python development, focusing on standardization, testability, and
+productivity.
 
 ## Database Integration
 
 - **Multi-Database Support**: Dedicated adapters for PostgreSQL, SQLite, and StarRocks
 - **SQLAlchemy Integration**: Standardized ORM implementation with:
-  - Base SQLAlchemy components for common functionality
-  - Database-specific session management
-  - Enhanced transaction handling with atomic decorators
-  - Connection pooling and lifecycle management
+    - Base SQLAlchemy components for common functionality
+    - Database-specific session management
+    - Enhanced transaction handling with atomic decorators
+    - Connection pooling and lifecycle management
 
 ## Configuration Management
 
@@ -30,40 +31,40 @@ ArchiPy provides a robust framework for structured Python development, focusing 
 
 - **Base Entities**: Standardized SQLAlchemy entities with timestamp handling
 - **DTOs**: Pydantic-based DTOs for data transfer:
-  - Pagination and sorting
-  - Error handling
-  - Search and range operations
-  - Email and attachment handling
+    - Pagination and sorting
+    - Error handling
+    - Search and range operations
+    - Email and attachment handling
 - **Type Safety**: Enforced via Pydantic and modern Python type hints
 
 ## Helper Utilities
 
 - **Decorators**:
-  - Retry mechanism for resilient operations
-  - Singleton pattern implementation
-  - SQLAlchemy atomic transactions
-  - TTL caching for performance optimization
+    - Retry mechanism for resilient operations
+    - Singleton pattern implementation
+    - SQLAlchemy atomic transactions
+    - TTL caching for performance optimization
 - **Interceptors**:
-  - FastAPI rate limiting
-  - gRPC tracing and monitoring
+    - FastAPI rate limiting
+    - gRPC tracing and monitoring
 - **Security**:
-  - Keycloak integration for authentication
-  - TOTP implementation
-  - Password utilities with secure hashing
-  - JWT handling
+    - Keycloak integration for authentication
+    - TOTP implementation
+    - Password utilities with secure hashing
+    - JWT handling
 - **Type Safety**: Consistent type checking and casting
 
 ## Testing & Quality
 
 - **BDD Testing**:
-  - Behave integration for sync/async scenarios
-  - Comprehensive feature files
-  - Step definitions for common operations
+    - Behave integration for sync/async scenarios
+    - Comprehensive feature files
+    - Step definitions for common operations
 - **Code Quality**:
-  - Automated linting with ruff
-  - Type checking with mypy
-  - Code formatting with black
-  - Pre-commit hooks for quality assurance
+    - Automated linting with ruff
+    - Type checking with mypy
+    - Code formatting with black
+    - Pre-commit hooks for quality assurance
 
 ## Best Practices & Tooling
 

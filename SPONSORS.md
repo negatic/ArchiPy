@@ -1,18 +1,23 @@
 # Sponsors - ArchiPy
 
-We are grateful to our sponsors who help support the development, maintenance, and growth of ArchiPy. Your contributions enable us to keep this project thriving and accessible to the Python community.
+We are grateful to our sponsors who help support the development, maintenance, and growth of ArchiPy. Your contributions
+enable us to keep this project thriving and accessible to the Python community.
 
 ---
 
 ## Platinum Sponsors
 
 ### [Aradly](https://aradly.com/)
+
 **Human Capital Management Solutions**
-Aradly provides innovative solutions for managing human capital, enhancing organizational efficiency and growth. Their sponsorship supports ArchiPy’s mission to streamline Python development with best practices and modern tooling.
+Aradly provides innovative solutions for managing human capital, enhancing organizational efficiency and growth. Their
+sponsorship supports ArchiPy’s mission to streamline Python development with best practices and modern tooling.
 
 ### [Smartech](https://smartech.ir/)
+
 **Iran's Vanguard in MarTech Innovation (A Digikala E-Commerce Group Company)**
-Smartech is a trailblazer in marketing technology, driving innovation as part of the Digikala E-Commerce Group. Their support empowers ArchiPy to deliver a standardized, scalable Python framework to developers worldwide.
+Smartech is a trailblazer in marketing technology, driving innovation as part of the Digikala E-Commerce Group. Their
+support empowers ArchiPy to deliver a standardized, scalable Python framework to developers worldwide.
 
 ---
 
@@ -30,7 +35,8 @@ Smartech is a trailblazer in marketing technology, driving innovation as part of
 
 ## Become a Sponsor
 
-Interested in supporting ArchiPy? We welcome sponsorships from individuals, organizations, and companies who share our vision of structured and maintainable Python development. Your sponsorship can help fund:
+Interested in supporting ArchiPy? We welcome sponsorships from individuals, organizations, and companies who share our
+vision of structured and maintainable Python development. Your sponsorship can help fund:
 
 - Feature development
 - Documentation improvements

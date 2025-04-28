@@ -17,9 +17,9 @@ formatted = DateTimeUtils.format_datetime(now, format="%Y-%m-%d %H:%M:%S")
 ```
 
 ::: archipy.helpers.utils.datetime_utils
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ## file_utils
 
@@ -42,9 +42,9 @@ is_valid = FileUtils.validate_file_type("path/to/file.pdf", allowed_types=["pdf"
 ```
 
 ::: archipy.helpers.utils.file_utils
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ## jwt_utils
 
@@ -68,9 +68,9 @@ payload = JWTUtils.decode_jwt(token)
 ```
 
 ::: archipy.helpers.utils.jwt_utils
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ## password_utils
 
@@ -93,9 +93,9 @@ is_strong = PasswordUtils.validate_password_strength("my-password")
 ```
 
 ::: archipy.helpers.utils.password_utils
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ## string_utils
 
@@ -118,9 +118,9 @@ clean_html = StringUtils.sanitize_html("<script>alert('xss')</script>")
 ```
 
 ::: archipy.helpers.utils.string_utils
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ## totp_utils
 
@@ -147,9 +147,9 @@ totp_uri = TOTPUtils.get_totp_uri(
 ```
 
 ::: archipy.helpers.utils.totp_utils
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ## keycloak_utils
 
@@ -176,9 +176,9 @@ has_role = KeycloakUtils.has_keycloak_role(token, "admin")
 ```
 
 ::: archipy.helpers.utils.keycloak_utils
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ## Key Classes
 
@@ -187,6 +187,7 @@ has_role = KeycloakUtils.has_keycloak_role(token, "admin")
 Class: `archipy.helpers.utils.datetime_utils.DateTimeUtils`
 
 Provides datetime operations with features:
+
 - Timezone-aware
 - Microsecond precision
 - Consistent across the application
@@ -196,6 +197,7 @@ Provides datetime operations with features:
 Class: `archipy.helpers.utils.jwt_utils.JWTUtils`
 
 Provides JWT operations with features:
+
 - Configurable expiration
 - Custom payload support
 - Multiple signing algorithms
@@ -206,6 +208,7 @@ Provides JWT operations with features:
 Class: `archipy.helpers.utils.password_utils.PasswordUtils`
 
 Provides password operations with features:
+
 - Secure hashing algorithm
 - Salt generation
 - Configurable work factor

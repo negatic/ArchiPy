@@ -1,6 +1,7 @@
 # Helpers
 
-The `helpers` module provides utility functions, decorators, interceptors, and metaclasses to support common development tasks and patterns.
+The `helpers` module provides utility functions, decorators, interceptors, and metaclasses to support common development
+tasks and patterns.
 
 ## Overview
 
@@ -30,12 +31,12 @@ poetry add archipy -E dev
 
 ## API Stability
 
-| Component    | Status | Notes |
-|-------------|---------|-------|
-| Decorators  | 🟢 Stable | Production-ready |
-| Utils       | 🟢 Stable | Production-ready |
-| Interceptors| 🟡 Beta   | API may change |
-| Metaclasses | 🟢 Stable | Production-ready |
+| Component    | Status    | Notes            |
+|--------------|-----------|------------------|
+| Decorators   | 🟢 Stable | Production-ready |
+| Utils        | 🟢 Stable | Production-ready |
+| Interceptors | 🟡 Beta   | API may change   |
+| Metaclasses  | 🟢 Stable | Production-ready |
 
 ## Submodules
 
@@ -76,7 +77,8 @@ Classes for cross-cutting concerns:
 
 ## Overview
 
-The helpers module offers utilities, decorators, and interceptors to enhance productivity and simplify common development tasks, such as retry logic, rate limiting, and tracing.
+The helpers module offers utilities, decorators, and interceptors to enhance productivity and simplify common
+development tasks, such as retry logic, rate limiting, and tracing.
 
 **See Examples**: [Examples Helpers](../examples/helpers/index.md)
 
@@ -102,9 +104,9 @@ result = risky_operation()
 ```
 
 ::: archipy.helpers.decorators.retry
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ### Singleton Decorator
 
@@ -125,9 +127,9 @@ assert db1 is db2
 ```
 
 ::: archipy.helpers.decorators.singleton
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ### SQLAlchemy Atomic Decorator
 
@@ -145,9 +147,9 @@ def create_user(username: str, email: str):
 ```
 
 ::: archipy.helpers.decorators.sqlalchemy_atomic
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ## Interceptors
 
@@ -175,23 +177,23 @@ async def get_data():
 ```
 
 ::: archipy.helpers.interceptors.fastapi.rate_limit.fastapi_rest_rate_limit_handler
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ### gRPC Interceptors
 
 gRPC interceptors for tracing and monitoring:
 
 ::: archipy.helpers.interceptors.grpc.trace.client_interceptor
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ::: archipy.helpers.interceptors.grpc.trace.server_interceptor
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ## Metaclasses
 
@@ -213,9 +215,9 @@ assert db1 is db2
 ```
 
 ::: archipy.helpers.metaclasses.singleton
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ## Key Classes
 
@@ -224,6 +226,7 @@ assert db1 is db2
 Function: `archipy.helpers.decorators.retry.retry`
 
 A decorator that retries a function call when it fails, with configurable:
+
 - Maximum number of attempts
 - Delay between attempts
 - Backoff strategy
@@ -234,6 +237,7 @@ A decorator that retries a function call when it fails, with configurable:
 Class: `archipy.helpers.metaclasses.singleton.Singleton`
 
 A metaclass that ensures a class has only one instance. Features:
+
 - Thread-safe implementation
 - Lazy initialization
 - Support for inheritance
@@ -244,6 +248,7 @@ A metaclass that ensures a class has only one instance. Features:
 Class: `archipy.helpers.interceptors.fastapi.rate_limit.fastapi_rest_rate_limit_handler.FastAPIRestRateLimitHandler`
 
 A rate limiting handler for FastAPI applications that:
+
 - Supports Redis-based rate limiting
 - Configurable rate limits and periods
 - Customizable response handling

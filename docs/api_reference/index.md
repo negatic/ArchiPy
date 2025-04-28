@@ -1,6 +1,7 @@
 # API Reference
 
-Welcome to the ArchiPy API reference documentation. This section provides detailed information about all modules, classes, and functions in ArchiPy.
+Welcome to the ArchiPy API reference documentation. This section provides detailed information about all modules,
+classes, and functions in ArchiPy.
 
 ## Core Modules
 
@@ -10,9 +11,9 @@ The adapters module provides standardized interfaces to external systems:
 
 - [Adapters Documentation](adapters.md)
 - [Database Adapters](adapters.md#database-adapters)
-  - [PostgreSQL](adapters.md#postgresql)
-  - [SQLite](adapters.md#sqlite)
-  - [StarRocks](adapters.md#starrocks)
+    - [PostgreSQL](adapters.md#postgresql)
+    - [SQLite](adapters.md#sqlite)
+    - [StarRocks](adapters.md#starrocks)
 - [Redis Adapters](adapters.md#redis)
 - [Email Adapters](adapters.md#email)
 - [Keycloak Adapters](adapters.md#keycloak)

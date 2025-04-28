@@ -1,6 +1,7 @@
 # Kafka Adapter
 
-The Kafka adapter provides a clean interface for interacting with Apache Kafka, supporting both synchronous and asynchronous operations.
+The Kafka adapter provides a clean interface for interacting with Apache Kafka, supporting both synchronous and
+asynchronous operations.
 
 ## Features
 

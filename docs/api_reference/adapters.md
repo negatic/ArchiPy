@@ -1,6 +1,7 @@
 # Adapters
 
-The `adapters` module provides standardized interfaces to external systems and services. It follows the ports and adapters pattern (also known as hexagonal architecture) to decouple application logic from external dependencies.
+The `adapters` module provides standardized interfaces to external systems and services. It follows the ports and
+adapters pattern (also known as hexagonal architecture) to decouple application logic from external dependencies.
 
 ## Key Features
 
@@ -13,31 +14,32 @@ The `adapters` module provides standardized interfaces to external systems and s
 
 ### Database Adapters
 
-The database adapters provide standardized interfaces for different database systems using SQLAlchemy. Each database type has its own dedicated adapter implementation.
+The database adapters provide standardized interfaces for different database systems using SQLAlchemy. Each database
+type has its own dedicated adapter implementation.
 
 #### Base SQLAlchemy Components
 
 The base SQLAlchemy components provide the core functionality used by all database-specific adapters:
 
 ::: archipy.adapters.base.sqlalchemy.adapters
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ::: archipy.adapters.base.sqlalchemy.ports
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ::: archipy.adapters.base.sqlalchemy.session_managers
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ::: archipy.adapters.base.sqlalchemy.session_manager_registry
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 #### PostgreSQL
 
@@ -54,19 +56,19 @@ users = orm_adapter.query(User).filter(User.active == True).all()
 ```
 
 ::: archipy.adapters.postgres.sqlalchemy.adapters
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ::: archipy.adapters.postgres.sqlalchemy.session_managers
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ::: archipy.adapters.postgres.sqlalchemy.session_manager_registry
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 #### SQLite
 
@@ -80,19 +82,19 @@ orm_adapter = SqliteSQLAlchemyAdapter()
 ```
 
 ::: archipy.adapters.sqlite.sqlalchemy.adapters
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ::: archipy.adapters.sqlite.sqlalchemy.session_managers
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ::: archipy.adapters.sqlite.sqlalchemy.session_manager_registry
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 #### StarRocks
 
@@ -106,19 +108,19 @@ orm_adapter = StarrocksSQLAlchemyAdapter()
 ```
 
 ::: archipy.adapters.starrocks.sqlalchemy.adapters
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ::: archipy.adapters.starrocks.sqlalchemy.session_managers
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ::: archipy.adapters.starrocks.sqlalchemy.session_manager_registry
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ### Email
 
@@ -139,14 +141,14 @@ email_adapter.send_email(
 ```
 
 ::: archipy.adapters.email.adapters
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ::: archipy.adapters.email.ports
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ### Keycloak
 
@@ -188,14 +190,14 @@ user_info = asyncio.run(auth_example())
 For detailed examples and usage guidelines, see the [Keycloak Adapter Examples](../examples/adapters/keycloak.md).
 
 ::: archipy.adapters.keycloak.adapters
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ::: archipy.adapters.keycloak.ports
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ### MinIO
 
@@ -221,14 +223,14 @@ download_url = minio.presigned_get_object("my-bucket", "document.pdf")
 For detailed examples and usage guidelines, see the [MinIO Adapter Examples](../examples/adapters/minio.md).
 
 ::: archipy.adapters.minio.adapters
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ::: archipy.adapters.minio.ports
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ### Redis
 
@@ -242,14 +244,14 @@ redis = RedisAdapter()
 ```
 
 ::: archipy.adapters.redis.adapters
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ::: archipy.adapters.redis.ports
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ### Kafka
 
@@ -275,11 +277,11 @@ kafka.consume("my-topic", process_message)
 For detailed examples and usage guidelines, see the [Kafka Adapter Examples](../examples/adapters/kafka.md).
 
 ::: archipy.adapters.kafka.adapters
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ::: archipy.adapters.kafka.ports
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true

@@ -2,7 +2,8 @@
 
 ## Overview
 
-The configs module provides tools for standardized configuration management and injection, supporting consistent setup across services like databases, Redis, and email.
+The configs module provides tools for standardized configuration management and injection, supporting consistent setup
+across services like databases, Redis, and email.
 
 ## Installation
 
@@ -21,10 +22,10 @@ poetry add archipy
 
 ## API Stability
 
-| Component | Status | Notes |
-|-----------|---------|-------|
-| BaseConfig | 🟢 Stable | Production-ready |
-| Config Templates | 🟢 Stable | Production-ready |
+| Component         | Status    | Notes            |
+|-------------------|-----------|------------------|
+| BaseConfig        | 🟢 Stable | Production-ready |
+| Config Templates  | 🟢 Stable | Production-ready |
 | Environment Types | 🟢 Stable | Production-ready |
 
 ## Examples
@@ -72,6 +73,7 @@ class DatabaseConfig(SQLAlchemyConfig):
 Class: `archipy.configs.base_config.BaseConfig`
 
 Configures:
+
 - Environment variable support
 - Type validation
 - Global configuration access
@@ -84,12 +86,14 @@ Configures:
 Class: `archipy.configs.config_template.SQLAlchemyConfig`
 
 Configures:
+
 - Database connection settings
 - Pool configuration
 - Migration settings
 - Debug options
 
 Attributes:
+
 - `DATABASE`: Database name
 - `DRIVER_NAME`: Database driver name
 - `ECHO`: Whether to log SQL statements
@@ -115,11 +119,13 @@ Attributes:
 Class: `archipy.configs.config_template.SqliteSQLAlchemyConfig`
 
 Configures:
+
 - SQLite-specific database settings
 - In-memory database options
 - SQLite isolation levels
 
 Attributes:
+
 - `DRIVER_NAME`: SQLite driver name
 - `DATABASE`: SQLite database path
 - `ISOLATION_LEVEL`: SQLite isolation level
@@ -130,11 +136,13 @@ Attributes:
 Class: `archipy.configs.config_template.PostgresSQLAlchemyConfig`
 
 Configures:
+
 - PostgreSQL-specific database settings
 - Connection URL building
 - DSN configuration
 
 Attributes:
+
 - `POSTGRES_DSN`: PostgreSQL connection URL
 
 ### StarrocksSQLAlchemyConfig
@@ -142,10 +150,12 @@ Attributes:
 Class: `archipy.configs.config_template.StarrocksSQLAlchemyConfig`
 
 Configures:
+
 - Starrocks-specific database settings
 - Catalog configuration
 
 Attributes:
+
 - `CATALOG`: Starrocks catalog name
 
 ### RedisConfig
@@ -153,12 +163,14 @@ Attributes:
 Class: `archipy.configs.config_template.RedisConfig`
 
 Configures:
+
 - Connection settings
 - Pool configuration
 - SSL options
 - Sentinel support
 
 Attributes:
+
 - `MASTER_HOST`: Redis master host
 - `SLAVE_HOST`: Redis slave host
 - `PORT`: Redis server port
@@ -173,12 +185,14 @@ Attributes:
 Class: `archipy.configs.config_template.EmailConfig`
 
 Configures:
+
 - SMTP settings
 - Authentication
 - TLS options
 - Default headers
 
 Attributes:
+
 - `SMTP_SERVER`: SMTP server host
 - `SMTP_PORT`: SMTP server port
 - `USERNAME`: SMTP username
@@ -193,12 +207,14 @@ Attributes:
 Class: `archipy.configs.config_template.FastAPIConfig`
 
 Configures:
+
 - API versioning
 - CORS configuration
 - Rate limiting
 - Documentation
 
 Attributes:
+
 - `PROJECT_NAME`: Name of the FastAPI project
 - `API_PREFIX`: URL prefix for API endpoints
 - `ACCESS_LOG`: Whether to enable access logging
@@ -233,12 +249,14 @@ Attributes:
 Class: `archipy.configs.config_template.GrpcConfig`
 
 Configures:
+
 - Server settings
 - Client configuration
 - Interceptors
 - SSL/TLS options
 
 Attributes:
+
 - `SERVE_PORT`: Port to serve gRPC on
 - `SERVE_HOST`: Host to serve gRPC on
 - `THREAD_WORKER_COUNT`: Number of worker threads
@@ -251,12 +269,14 @@ Attributes:
 Class: `archipy.configs.config_template.SentryConfig`
 
 Configures:
+
 - DSN configuration
 - Environment settings
 - Sample rates
 - Performance monitoring
 
 Attributes:
+
 - `IS_ENABLED`: Whether Sentry is enabled
 - `DSN`: Sentry DSN for error reporting
 - `DEBUG`: Whether to enable debug mode
@@ -269,12 +289,14 @@ Attributes:
 Class: `archipy.configs.config_template.ElasticSearchConfig`
 
 Configures:
+
 - Cluster configuration
 - Authentication
 - Index settings
 - Retry policies
 
 Attributes:
+
 - `SEARCH_HOSTS`: List of Elasticsearch server hosts
 - `SEARCH_HTTP_USER_NAME`: Username for HTTP authentication
 - `SEARCH_HTTP_PASSWORD`: Password for HTTP authentication
@@ -288,12 +310,14 @@ Attributes:
 Class: `archipy.configs.config_template.ElasticSearchAPMConfig`
 
 Configures:
+
 - APM server settings
 - Service name
 - Transaction sampling
 - Instrumentation
 
 Attributes:
+
 - `API_REQUEST_SIZE`: Maximum size of API requests
 - `API_REQUEST_TIME`: Maximum time for API requests
 - `AUTO_LOG_STACKS`: Whether to automatically log stack traces
@@ -318,12 +342,14 @@ Attributes:
 Class: `archipy.configs.config_template.KafkaConfig`
 
 Configures:
+
 - Broker configuration
 - Consumer groups
 - Producer settings
 - Security options
 
 Attributes:
+
 - `ACKNOWLEDGE_COUNT`: Number of acknowledgments required
 - `AUTO_OFFSET_RESET`: Action to take when there is no initial offset
 - `BROKERS_LIST`: List of Kafka broker addresses
@@ -345,12 +371,14 @@ Attributes:
 Class: `archipy.configs.config_template.KeycloakConfig`
 
 Configures:
+
 - Server connection
 - Authentication settings
 - SSL verification
 - Timeout configuration
 
 Attributes:
+
 - `SERVER_URL`: URL of the Keycloak server
 - `CLIENT_ID`: Client ID for authentication
 - `REALM_NAME`: Name of the Keycloak realm
@@ -363,12 +391,14 @@ Attributes:
 Class: `archipy.configs.config_template.MinioConfig`
 
 Configures:
+
 - Server connection
 - Authentication
 - Security settings
 - Region configuration
 
 Attributes:
+
 - `ENDPOINT`: MinIO server endpoint
 - `ACCESS_KEY`: Access key for authentication
 - `SECRET_KEY`: Secret key for authentication
@@ -381,11 +411,13 @@ Attributes:
 Class: `archipy.configs.config_template.PrometheusConfig`
 
 Configures:
+
 - Metrics collection
 - Server settings
 - Endpoint configuration
 
 Attributes:
+
 - `IS_ENABLED`: Whether Prometheus metrics are enabled
 - `SERVER_PORT`: Port for the Prometheus metrics endpoint
 
@@ -394,11 +426,13 @@ Attributes:
 Class: `archipy.configs.config_template.KavenegarConfig`
 
 Configures:
+
 - API connection
 - Authentication
 - Default sender settings
 
 Attributes:
+
 - `SERVER_URL`: Kavenegar API server URL
 - `API_KEY`: Kavenegar API key
 - `PHONE_NUMBER`: Default sender phone number
@@ -408,6 +442,7 @@ Attributes:
 Class: `archipy.configs.config_template.AuthConfig`
 
 Configures:
+
 - JWT settings
 - TOTP configuration
 - Rate limiting
@@ -415,6 +450,7 @@ Configures:
 - Token security
 
 Attributes:
+
 - `SECRET_KEY`: JWT signing key
 - `ACCESS_TOKEN_EXPIRES_IN`: Access token expiration in seconds
 - `REFRESH_TOKEN_EXPIRES_IN`: Refresh token expiration in seconds
@@ -451,11 +487,13 @@ Attributes:
 Class: `archipy.configs.config_template.FileConfig`
 
 Configures:
+
 - File link security
 - Expiration policies
 - File type restrictions
 
 Attributes:
+
 - `SECRET_KEY`: Secret key for generating secure file links
 - `DEFAULT_EXPIRY_MINUTES`: Default link expiration time in minutes
 - `ALLOWED_EXTENSIONS`: List of allowed file extensions
@@ -465,11 +503,13 @@ Attributes:
 Class: `archipy.configs.config_template.DatetimeConfig`
 
 Configures:
+
 - API connections
 - Time service settings
 - Caching behavior
 
 Attributes:
+
 - `TIME_IR_API_KEY`: API key for time.ir service
 - `TIME_IR_API_ENDPOINT`: Endpoint for time.ir service
 - `REQUEST_TIMEOUT`: Request timeout in seconds
@@ -481,6 +521,7 @@ Attributes:
 Class: `archipy.configs.environment_type.EnvironmentType`
 
 Configures:
+
 - Environment types (DEV, STAGING, PROD)
 - Environment-specific behaviors
 - Configuration validation rules

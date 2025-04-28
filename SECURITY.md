@@ -5,23 +5,25 @@
 ArchiPy is currently in active development. We provide security updates for the following versions:
 
 | Version | Supported          |
-| ------- | ------------------ |
-| 1.x.x   | :white_check_mark: |
+|---------|--------------------|
+| 2.x.x   | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
-We take the security of ArchiPy seriously. If you believe you've found a security vulnerability, please follow these steps:
+We take the security of ArchiPy seriously. If you believe you've found a security vulnerability, please follow these
+steps:
 
 1. **Please do not disclose the vulnerability publicly**
 2. **Email us directly** at [hosseinnejati14@gmail.com](mailto:hosseinnejati14@gmail.com)
 3. **Include details** in your report:
-   - Type of vulnerability
-   - Full path to the vulnerable file(s)
-   - Proof of concept if possible
-   - Steps to reproduce
-   - Impact of the vulnerability
+    - Type of vulnerability
+    - Full path to the vulnerable file(s)
+    - Proof of concept if possible
+    - Steps to reproduce
+    - Impact of the vulnerability
 
 ### What to expect
+
 - We will acknowledge receipt of your vulnerability report within 48 hours
 - We will provide a timeline for a fix and release after assessing the report
 - We will notify you when the vulnerability is fixed
@@ -32,21 +34,25 @@ We take the security of ArchiPy seriously. If you believe you've found a securit
 ArchiPy implements several security best practices:
 
 ### Code Quality and Vulnerability Prevention
+
 - Static code analysis using `ruff` and `mypy`
 - Pre-commit hooks for catching security issues early
 - Regular dependency updates and security audits
 
 ### Authentication and Authorization
+
 - Built-in JWT token validation
 - Secure password handling with proper hashing
 - Role-based access control support
 
 ### Data Protection
+
 - Encryption support for sensitive data
 - Secure transport via TLS
 - Data validation via Pydantic models
 
 ### Infrastructure Security
+
 - Secure connection pooling for databases
 - Rate limiting support to prevent abuse
 - Monitoring and logging for security events

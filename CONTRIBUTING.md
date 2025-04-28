@@ -1,25 +1,28 @@
 # Contributing to ArchiPy 🏗️
 
-First of all, thank you for considering contributing to ArchiPy! This document provides guidelines and instructions for contributing to this project. By following these guidelines, you help maintain the quality and consistency of the codebase.
+First of all, thank you for considering contributing to ArchiPy! This document provides guidelines and instructions for
+contributing to this project. By following these guidelines, you help maintain the quality and consistency of the
+codebase.
 
 ## Table of Contents
 
 - [Code of Conduct](#code-of-conduct)
 - [How Can I Contribute?](#how-can-i-contribute)
-  - [Reporting Bugs](#reporting-bugs)
-  - [Suggesting Enhancements](#suggesting-enhancements)
-  - [Code Contributions](#code-contributions)
+    - [Reporting Bugs](#reporting-bugs)
+    - [Suggesting Enhancements](#suggesting-enhancements)
+    - [Code Contributions](#code-contributions)
 - [Development Setup](#development-setup)
-  - [Prerequisites](#prerequisites)
-  - [Installation for Development](#installation-for-development)
-  - [Development Commands](#development-commands)
+    - [Prerequisites](#prerequisites)
+    - [Installation for Development](#installation-for-development)
+    - [Development Commands](#development-commands)
 - [Pull Request Process](#pull-request-process)
 - [Versioning](#versioning)
 - [Getting Help](#getting-help)
 
 ## Code of Conduct
 
-This project adheres to a [Code of Conduct](CODE_OF_CONDUCT.md) that all contributors are expected to follow. Please read the full text to understand what actions will and will not be tolerated.
+This project adheres to a [Code of Conduct](CODE_OF_CONDUCT.md) that all contributors are expected to follow. Please
+read the full text to understand what actions will and will not be tolerated.
 
 ## Ways to Contribute
 
@@ -103,6 +106,7 @@ Before contributing, ensure you have:
 ArchiPy provides commands via a Makefile to simplify development:
 
 #### Environment Management
+
 ```bash
 # Install core dependencies
 make install
@@ -115,6 +119,7 @@ make update
 ```
 
 #### Code Quality
+
 ```bash
 # Format code with black
 make format
@@ -130,12 +135,14 @@ make check
 ```
 
 #### Testing
+
 ```bash
 # Run BDD tests with behave
 make behave
 ```
 
 #### Building and Versioning
+
 ```bash
 # Clean artifacts
 make clean
@@ -153,6 +160,7 @@ make bump-major    # Breaking changes
 ```
 
 For a complete list:
+
 ```bash
 make help
 ```
@@ -165,7 +173,8 @@ make help
 4. **Ensure compatibility** with Python 3.13+
 5. **Verify all CI checks pass** on your PR
 
-Pull requests are typically reviewed within a few days. Maintainers may request changes or clarifications about your implementation.
+Pull requests are typically reviewed within a few days. Maintainers may request changes or clarifications about your
+implementation.
 
 ## Versioning Guidelines
 
@@ -181,8 +190,8 @@ If you need assistance with contributing:
 
 - **Open an issue** with your question
 - **Contact maintainers**:
-  - Hossein Nejati: [hosseinnejati14@gmail.com](mailto:hosseinnejati14@gmail.com)
-  - Mehdi Einali: [einali@gmail.com](mailto:einali@gmail.com)
+    - Hossein Nejati: [hosseinnejati14@gmail.com](mailto:hosseinnejati14@gmail.com)
+    - Mehdi Einali: [einali@gmail.com](mailto:einali@gmail.com)
 - **Consult documentation**: [https://archipy.readthedocs.io/](https://archipy.readthedocs.io/)
 
 Thank you for contributing to ArchiPy! Your efforts help make this project better for everyone.

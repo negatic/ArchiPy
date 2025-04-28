@@ -1,6 +1,7 @@
 # Contributing
 
-Welcome to ArchiPy! We're excited that you're interested in contributing. This document outlines the process for contributing to ArchiPy.
+Welcome to ArchiPy! We're excited that you're interested in contributing. This document outlines the process for
+contributing to ArchiPy.
 
 ## Getting Started
 
@@ -136,7 +137,8 @@ Common types:
 
 ## Bug Reports and Feature Requests
 
-If you find a bug or have a feature request, please create an issue on the [GitHub issues page](https://github.com/SyntaxArc/ArchiPy/issues).
+If you find a bug or have a feature request, please create an issue on
+the [GitHub issues page](https://github.com/SyntaxArc/ArchiPy/issues).
 
 When reporting a bug, please include:
 

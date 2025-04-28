@@ -1,6 +1,7 @@
 # Models
 
-The `models` module provides core data structures and types used throughout the application, following clean architecture principles.
+The `models` module provides core data structures and types used throughout the application, following clean
+architecture principles.
 
 ## DTOs (Data Transfer Objects)
 
@@ -20,9 +21,9 @@ class UserDTO(BaseDTO):
 ```
 
 ::: archipy.models.dtos.base_dtos
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ### Email DTOs
 
@@ -39,9 +40,9 @@ attachment = EmailAttachmentDTO(
 ```
 
 ::: archipy.models.dtos.email_dtos
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ### Error DTOs
 
@@ -58,9 +59,9 @@ error = ErrorDetailDTO(
 ```
 
 ::: archipy.models.dtos.error_dto
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ### Pagination DTO
 
@@ -77,9 +78,9 @@ pagination = PaginationDTO(
 ```
 
 ::: archipy.models.dtos.pagination_dto
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ### Range DTOs
 
@@ -110,9 +111,9 @@ dt_range = DatetimeRangeDTO(
 ```
 
 ::: archipy.models.dtos.range_dtos
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ### Search Input DTO
 
@@ -129,9 +130,9 @@ search = SearchInputDTO[str](
 ```
 
 ::: archipy.models.dtos.search_input_dto
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ### Sort DTO
 
@@ -147,9 +148,9 @@ sort = SortDTO[str](
 ```
 
 ::: archipy.models.dtos.sort_dto
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ## Entities
 
@@ -211,9 +212,9 @@ class ManagerLog(ManagerEntity):
 ```
 
 ::: archipy.models.entities.sqlalchemy.base_entities
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ## Errors
 
@@ -237,9 +238,9 @@ class UserNotFoundError(BaseError):
 ```
 
 ::: archipy.models.errors.custom_errors
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ## Types
 
@@ -248,45 +249,45 @@ class UserNotFoundError(BaseError):
 Basic type definitions used throughout the application.
 
 ::: archipy.models.types.base_types
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ### Email Types
 
 Type definitions for email-related operations.
 
 ::: archipy.models.types.email_types
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ### Error Message Types
 
 Standardized error message types for consistent error handling.
 
 ::: archipy.models.types.error_message_types
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ### Language Type
 
 Language code type definition.
 
 ::: archipy.models.types.language_type
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ### Sort Order Type
 
 Sort order type definition for queries.
 
 ::: archipy.models.types.sort_order_type
-    options:
-      show_root_heading: true
-      show_source: true
+options:
+show_root_heading: true
+show_source: true
 
 ## Key Classes
 
@@ -295,6 +296,7 @@ Sort order type definition for queries.
 Class: `archipy.models.dtos.base_dtos.BaseDTO`
 
 Base class for all DTOs with features:
+
 - Pydantic model inheritance
 - JSON serialization
 - Validation
@@ -306,29 +308,31 @@ Base class for all DTOs with features:
 Class: `archipy.models.entities.sqlalchemy.base_entities.BaseEntity`
 
 Base class for SQLAlchemy entities with features:
+
 - UUID primary key
 - Timestamp fields (created_at, updated_at)
 - Common query methods
 - Relationship support
 - Type-safe column definitions
 - Mixin support for:
-  - Update tracking
-  - Soft deletion
-  - Admin tracking
-  - Manager tracking
-  - Archiving
-  - Combined capabilities
+    - Update tracking
+    - Soft deletion
+    - Admin tracking
+    - Manager tracking
+    - Archiving
+    - Combined capabilities
 
 ### BaseError
 
 Class: `archipy.models.errors.custom_errors.BaseError`
 
 Base class for custom errors with features:
+
 - Standardized error format
 - Error code system
 - Detailed error messages
 - Stack trace support
 - Error context
 - Common error types:
-  - InvalidTokenError
-  - InvalidEntityTypeError
+    - InvalidTokenError
+    - InvalidEntityTypeError

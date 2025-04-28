@@ -1,6 +1,7 @@
 # ArchiPy Development Guide
 
 ## Commands
+
 - **Setup**: `poetry install --with dev --all-extras`
 - **Format**: `make format` (Black, 120 char line length)
 - **Lint**: `make lint` (Ruff + MyPy)
@@ -11,6 +12,7 @@
 - **Pre-commit hooks**: `make pre-commit`
 
 ## Code Style
+
 - **Imports**: Use strict section order: `future → stdlib → third-party → first-party → local`
 - **Typing**: Strict typing required with MyPy (`disallow_untyped_defs=true`)
 - **Quotes**: Double quotes for inline strings, single quotes for multiline

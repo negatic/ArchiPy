@@ -6,17 +6,17 @@ Before starting, ensure you have:
 
 - **Python 3.13 or higher**
 
-    ArchiPy requires Python 3.13+. Check your version with:
+  ArchiPy requires Python 3.13+. Check your version with:
 
     ```bash
     python --version
     ```
 
-    If needed, [download Python 3.13+](https://www.python.org/downloads/).
+  If needed, [download Python 3.13+](https://www.python.org/downloads/).
 
 - **Poetry** (for dependency management)
 
-    Poetry manages dependencies and project setup. Install it via the [official guide](https://python-poetry.org/docs/).
+  Poetry manages dependencies and project setup. Install it via the [official guide](https://python-poetry.org/docs/).
 
 ## Installation Methods
 
@@ -54,36 +54,36 @@ ArchiPy supports modular features through optional dependencies:
 
 ### Database Adapters
 
-| Feature | Installation Command | Description |
-| ------- | -------------------- | ----------- |
-| PostgreSQL | `archipy[postgres]` | PostgreSQL database adapter with SQLAlchemy integration |
-| SQLite | `archipy[sqlite]` | SQLite database adapter with SQLAlchemy integration |
-| StarRocks | `archipy[starrocks]` | StarRocks database adapter with SQLAlchemy integration |
+| Feature    | Installation Command | Description                                             |
+|------------|----------------------|---------------------------------------------------------|
+| PostgreSQL | `archipy[postgres]`  | PostgreSQL database adapter with SQLAlchemy integration |
+| SQLite     | `archipy[sqlite]`    | SQLite database adapter with SQLAlchemy integration     |
+| StarRocks  | `archipy[starrocks]` | StarRocks database adapter with SQLAlchemy integration  |
 
 ### Service Adapters
 
-| Feature | Installation Command | Description |
-| ------- | -------------------- | ----------- |
-| Redis | `archipy[redis]` | Redis caching and key-value storage |
-| Keycloak | `archipy[keycloak]` | Authentication and authorization services |
-| MinIO | `archipy[minio]` | S3-compatible object storage |
-| Kafka | `archipy[kafka]` | Message streaming and event processing |
+| Feature  | Installation Command | Description                               |
+|----------|----------------------|-------------------------------------------|
+| Redis    | `archipy[redis]`     | Redis caching and key-value storage       |
+| Keycloak | `archipy[keycloak]`  | Authentication and authorization services |
+| MinIO    | `archipy[minio]`     | S3-compatible object storage              |
+| Kafka    | `archipy[kafka]`     | Message streaming and event processing    |
 
 ### Web Framework Support
 
-| Feature | Installation Command | Description |
-| ------- | -------------------- | ----------- |
-| FastAPI | `archipy[fastapi]` | FastAPI integration with middleware and utilities |
-| gRPC | `archipy[grpc]` | gRPC integration with interceptors |
+| Feature | Installation Command | Description                                       |
+|---------|----------------------|---------------------------------------------------|
+| FastAPI | `archipy[fastapi]`   | FastAPI integration with middleware and utilities |
+| gRPC    | `archipy[grpc]`      | gRPC integration with interceptors                |
 
 ### Additional Features
 
-| Feature | Installation Command | Description |
-| ------- | -------------------- | ----------- |
-| JWT | `archipy[jwt]` | JSON Web Token utilities |
-| Prometheus | `archipy[prometheus]` | Metrics and monitoring |
-| Sentry | `archipy[sentry]` | Error tracking and monitoring |
-| Scheduler | `archipy[scheduler]` | Task scheduling utilities |
+| Feature    | Installation Command  | Description                   |
+|------------|-----------------------|-------------------------------|
+| JWT        | `archipy[jwt]`        | JSON Web Token utilities      |
+| Prometheus | `archipy[prometheus]` | Metrics and monitoring        |
+| Sentry     | `archipy[sentry]`     | Error tracking and monitoring |
+| Scheduler  | `archipy[scheduler]`  | Task scheduling utilities     |
 
 ## Development Installation
 
@@ -114,4 +114,6 @@ If issues arise, verify:
 4. Database-specific dependencies are installed if using database adapters
 
 !!! tip "IDE Integration"
-    For the best development experience, use an IDE that supports Python type hints, such as PyCharm or VS Code with the Python extension. The project uses modern Python type hints and benefits from IDE support for type checking and autocompletion.
+For the best development experience, use an IDE that supports Python type hints, such as PyCharm or VS Code with the
+Python extension. The project uses modern Python type hints and benefits from IDE support for type checking and
+autocompletion.

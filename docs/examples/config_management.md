@@ -1,6 +1,7 @@
 # Configuration Management
 
-ArchiPy provides a robust configuration management system that ensures type safety, environment variable support, and consistent access patterns across your application.
+ArchiPy provides a robust configuration management system that ensures type safety, environment variable support, and
+consistent access patterns across your application.
 
 ## Basic Configuration
 

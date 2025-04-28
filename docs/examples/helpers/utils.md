@@ -155,7 +155,6 @@ except Exception as e:
 
 Standardized exception handling:
 
-
 ## app_utils
 
 FastAPI application utilities:
@@ -181,7 +180,6 @@ FastAPIUtils.setup_cors(
 ## string_utils
 
 String manipulation utilities:
-
 
 ## keycloak_utils
 
@@ -243,4 +241,5 @@ For more examples and detailed documentation:
 - [Configuration Examples](../config_management.md)
 - [Keycloak Adapter](../adapters/keycloak.md)
 
-> **Note**: This page contains examples of using ArchiPy's utility functions. For API details, see the [Utils API Reference](../../api_reference/utils.md).
+> **Note**: This page contains examples of using ArchiPy's utility functions. For API details, see
+> the [Utils API Reference](../../api_reference/utils.md).

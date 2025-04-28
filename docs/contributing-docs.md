@@ -6,10 +6,10 @@ This directory contains the MkDocs-based documentation for ArchiPy.
 
 - `mkdocs.yml` - Main configuration file for MkDocs
 - `docs/` - Markdown documentation files
-  - `index.md` - Home page
-  - `api_reference/` - API documentation
-  - `examples/` - Usage examples
-  - `assets/` - Images and other static assets
+    - `index.md` - Home page
+    - `api_reference/` - API documentation
+    - `examples/` - Usage examples
+    - `assets/` - Images and other static assets
 
 ## Converting from Sphinx to MkDocs
 
