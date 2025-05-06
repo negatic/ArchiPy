@@ -216,6 +216,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
                 logger.debug("Message consumed", message)
                 message.set_value(message.value())
                 result_list.append(message)
+                self.commit(message, asynchronous=True)
             else:
                 return result_list
         except Exception as e:
