@@ -35,8 +35,7 @@ redis = ["redis (>=5.2.1)"]
 scheduler = ["apscheduler (>=3.11.0)"]
 sentry = ["sentry-sdk (>=2.24.1)"]
 sqlalchemy = ["sqlalchemy (>=2.0.39)"]
-starrocks = ["starrocks (>=1.2.2,<2.0.0)"]
-starrocks-sync = ["starrocks (>=1.2.2,<2.0.0)", "pymysql (>=1.1.1,<2.0.0)"]
+starrocks = ["starrocks (>=1.2.2,<2.0.0)", "pymysql (>=1.1.1,<2.0.0)"]
 starrocks-async = ["starrocks (>=1.2.2,<2.0.0)", "aiomysql (>=0.2.0,<0.3.0)"]
 
 
