@@ -2,6 +2,23 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [2.0.1] - 2025-04-27
+
+### Added
+
+#### StarRocks
+- Added StarRocks driver integration
+- Enhanced database adapter support
+- Updated dependencies for StarRocks compatibility
+
+### Changed
+
+#### Dependencies
+- Updated poetry.lock with new dependencies
+- Enhanced package compatibility
+- Updated ElasticSearch Config Template
+
+
 ## [2.0.0] - 2025-04-27
 
 ### Changed
