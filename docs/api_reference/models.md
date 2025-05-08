@@ -217,23 +217,163 @@ show_source: true
 
 ## Errors
 
-### Custom Errors
+The error handling system is organized into several categories, each handling specific types of errors:
 
-Application-specific error classes.
+### Authentication Errors
+Handles authentication and authorization related errors.
 
 ```python
 from archipy.models.errors import (
-    BaseError,
+    UnauthenticatedError,
+    InvalidCredentialsError,
+    TokenExpiredError,
     InvalidTokenError,
-    InvalidEntityTypeError
+    SessionExpiredError,
+    PermissionDeniedError,
+    AccountLockedError,
+    AccountDisabledError,
+    InvalidVerificationCodeError
 )
 
-class UserNotFoundError(BaseError):
-    def __init__(self, user_id: str):
-        super().__init__(
-            code="USER_NOT_FOUND",
-            message=f"User with ID {user_id} not found"
-        )
+# Example: Handle invalid credentials
+try:
+    authenticate_user(username, password)
+except InvalidCredentialsError as e:
+    logger.warning(f"Failed login attempt: {e}")
+```
+
+### Validation Errors
+Handles input validation and format errors.
+
+```python
+from archipy.models.errors import (
+    InvalidArgumentError,
+    InvalidFormatError,
+    InvalidEmailError,
+    InvalidPhoneNumberError,
+    InvalidLandlineNumberError,
+    InvalidNationalCodeError,
+    InvalidPasswordError,
+    InvalidDateError,
+    InvalidUrlError,
+    InvalidIpError,
+    InvalidJsonError,
+    InvalidTimestampError,
+    OutOfRangeError
+)
+
+# Example: Validate user input
+try:
+    validate_user_input(email, phone)
+except InvalidEmailError as e:
+    return {"error": e.to_dict()}
+```
+
+### Resource Errors
+Handles resource and data management errors.
+
+```python
+from archipy.models.errors import (
+    NotFoundError,
+    AlreadyExistsError,
+    ConflictError,
+    ResourceLockedError,
+    ResourceBusyError,
+    DataLossError,
+    InvalidEntityTypeError,
+    FileTooLargeError,
+    InvalidFileTypeError,
+    QuotaExceededError
+)
+
+# Example: Handle resource not found
+try:
+    user = get_user(user_id)
+except NotFoundError as e:
+    return {"error": e.to_dict()}
+```
+
+### Network Errors
+Handles network and communication errors.
+
+```python
+from archipy.models.errors import (
+    NetworkError,
+    ConnectionTimeoutError,
+    ServiceUnavailableError,
+    GatewayTimeoutError,
+    BadGatewayError,
+    RateLimitExceededError
+)
+
+# Example: Handle network issues
+try:
+    response = make_api_request()
+except ConnectionTimeoutError as e:
+    logger.error(f"Connection timeout: {e}")
+```
+
+### Business Errors
+Handles business logic and operation errors.
+
+```python
+from archipy.models.errors import (
+    InvalidStateError,
+    BusinessRuleViolationError,
+    InvalidOperationError,
+    InsufficientFundsError,
+    InsufficientBalanceError,
+    MaintenanceModeError,
+    FailedPreconditionError
+)
+
+# Example: Handle business rule violation
+try:
+    process_transaction(amount)
+except InsufficientFundsError as e:
+    return {"error": e.to_dict()}
+```
+
+### Database Errors
+Handles database and storage related errors.
+
+```python
+from archipy.models.errors import (
+    DatabaseConnectionError,
+    DatabaseQueryError,
+    DatabaseTransactionError,
+    StorageError,
+    CacheError,
+    CacheMissError
+)
+
+# Example: Handle database errors
+try:
+    save_to_database(data)
+except DatabaseConnectionError as e:
+    logger.error(f"Database connection failed: {e}")
+```
+
+### System Errors
+Handles system and internal errors.
+
+```python
+from archipy.models.errors import (
+    InternalError,
+    ConfigurationError,
+    ResourceExhaustedError,
+    UnavailableError,
+    UnknownError,
+    AbortedError,
+    DeadlockDetectedError
+)
+
+# Example: Handle system errors
+try:
+    process_request()
+except DeadlockDetectedError as e:
+    logger.error(f"Deadlock detected: {e}")
+    # Implement retry logic
 ```
 
 ::: archipy.models.errors
@@ -332,6 +472,6 @@ Base class for custom errors with features:
 - Detailed error messages
 - Stack trace support
 - Error context
-- Common error types:
-    - InvalidTokenError
-    - InvalidEntityTypeError
+- Additional data support
+- Language localization
+- HTTP and gRPC status code mapping
