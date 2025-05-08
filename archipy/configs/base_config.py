@@ -21,6 +21,7 @@ from archipy.configs.config_template import (
     KavenegarConfig,
     KeycloakConfig,
     MinioConfig,
+    ParsianShaparakConfig,
     PostgresSQLAlchemyConfig,
     PrometheusConfig,
     RedisConfig,
@@ -62,11 +63,24 @@ class BaseConfig(BaseSettings, Generic[R]):
         AUTH (AuthConfig): Authentication and security settings
         DATETIME (DatetimeConfig): Date/time handling configuration
         ELASTIC (ElasticSearchConfig): Elasticsearch configuration
+        ELASTIC_APM (ElasticSearchAPMConfig): Elasticsearch APM configuration
         EMAIL (EmailConfig): Email service configuration
         ENVIRONMENT (EnvironmentType): Application environment (dev, test, prod)
         FASTAPI (FastAPIConfig): FastAPI framework settings
+        FILE (FileConfig): File handling configuration
+        GRPC (GrpcConfig): gRPC service configuration
+        KAFKA (KafkaConfig): Kafka integration configuration
+        KAVENEGAR (KavenegarConfig): Kavenegar SMS service configuration
+        KEYCLOAK (KeycloakConfig): Keycloak integration configuration
+        MINIO (MinioConfig): MinIO object storage configuration
+        PARSIAN_SHAPARAK (ParsianShaparakConfig): Parsian Shaparak payment gateway configuration
+        POSTGRES_SQLALCHEMY (PostgresSQLAlchemyConfig): PostgreSQL SQLAlchemy configuration
+        PROMETHEUS (PrometheusConfig): Prometheus metrics configuration
         REDIS (RedisConfig): Redis cache configuration
+        SENTRY (SentryConfig): Sentry error tracking configuration
         SQLALCHEMY (SQLAlchemyConfig): Database ORM configuration
+        SQLITE_SQLALCHEMY (SqliteSQLAlchemyConfig): SQLite SQLAlchemy configuration
+        STARROCKS_SQLALCHEMY (StarrocksSQLAlchemyConfig): Starrocks SQLAlchemy configuration
 
     Examples:
         >>> from archipy.configs.base_config import BaseConfig
@@ -149,6 +163,7 @@ class BaseConfig(BaseSettings, Generic[R]):
     KAVENEGAR: KavenegarConfig = KavenegarConfig()
     KEYCLOAK: KeycloakConfig = KeycloakConfig()
     MINIO: MinioConfig = MinioConfig()
+    PARSIAN_SHAPARAK: ParsianShaparakConfig = ParsianShaparakConfig()
     PROMETHEUS: PrometheusConfig = PrometheusConfig()
     REDIS: RedisConfig = RedisConfig()
     SENTRY: SentryConfig = SentryConfig()
