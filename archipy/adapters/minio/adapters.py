@@ -76,7 +76,7 @@ class MinioAdapter(MinioPort):
         except S3Error as e:
             if "NoSuchBucket" in str(e):
                 return False
-            raise InternalError(details=f"Failed to check bucket existence: {e}") from e
+            raise InternalError() from e
 
     @override
     def make_bucket(self, bucket_name: str) -> None:
@@ -91,7 +91,7 @@ class MinioAdapter(MinioPort):
                 raise AlreadyExistsError(resource_type="bucket") from e
             if "AccessDenied" in str(e):
                 raise PermissionDeniedError(additional_data={"details": "Permission denied to create bucket"}) from e
-            raise InternalError(details=f"Failed to create bucket: {e}") from e
+            raise InternalError() from e
 
     @override
     def remove_bucket(self, bucket_name: str) -> None:
@@ -106,7 +106,7 @@ class MinioAdapter(MinioPort):
                 raise NotFoundError(resource_type="bucket") from e
             if "AccessDenied" in str(e):
                 raise PermissionDeniedError(additional_data={"details": "Permission denied to remove bucket"}) from e
-            raise InternalError(details=f"Failed to remove bucket: {e}") from e
+            raise InternalError() from e
 
     @override
     @ttl_cache_decorator(ttl_seconds=300, maxsize=1)  # Cache for 5 minutes
@@ -118,7 +118,7 @@ class MinioAdapter(MinioPort):
         except S3Error as e:
             if "AccessDenied" in str(e):
                 raise PermissionDeniedError(additional_data={"details": "Permission denied to list buckets"}) from e
-            raise InternalError(details=f"Failed to list buckets: {e}") from e
+            raise InternalError() from e
 
     @override
     def put_object(self, bucket_name: str, object_name: str, file_path: str) -> None:
@@ -140,7 +140,7 @@ class MinioAdapter(MinioPort):
                 raise NotFoundError(resource_type="bucket") from e
             if "AccessDenied" in str(e):
                 raise PermissionDeniedError(additional_data={"details": "Permission denied to upload object"}) from e
-            raise InternalError(details=f"Failed to upload object: {e}") from e
+            raise InternalError() from e
 
     @override
     def get_object(self, bucket_name: str, object_name: str, file_path: str) -> None:
@@ -160,7 +160,7 @@ class MinioAdapter(MinioPort):
                 raise NotFoundError(resource_type="object") from e
             if "AccessDenied" in str(e):
                 raise PermissionDeniedError(additional_data={"details": "Permission denied to download object"}) from e
-            raise InternalError(details=f"Failed to download object: {e}") from e
+            raise InternalError() from e
 
     @override
     def remove_object(self, bucket_name: str, object_name: str) -> None:
@@ -182,7 +182,7 @@ class MinioAdapter(MinioPort):
                 raise NotFoundError(resource_type="object") from e
             if "AccessDenied" in str(e):
                 raise PermissionDeniedError(additional_data={"details": "Permission denied to remove object"}) from e
-            raise InternalError(details=f"Failed to remove object: {e}") from e
+            raise InternalError() from e
 
     @override
     @ttl_cache_decorator(ttl_seconds=300, maxsize=100)  # Cache for 5 minutes
@@ -207,7 +207,7 @@ class MinioAdapter(MinioPort):
                 raise NotFoundError(resource_type="bucket") from e
             if "AccessDenied" in str(e):
                 raise PermissionDeniedError(additional_data={"details": "Permission denied to list objects"}) from e
-            raise InternalError(details=f"Failed to list objects: {e}") from e
+            raise InternalError() from e
 
     @override
     @ttl_cache_decorator(ttl_seconds=300, maxsize=100)  # Cache for 5 minutes
@@ -228,7 +228,7 @@ class MinioAdapter(MinioPort):
                 raise NotFoundError(resource_type="object") from e
             if "AccessDenied" in str(e):
                 raise PermissionDeniedError(additional_data={"details": "Permission denied to get object stats"}) from e
-            raise InternalError(details=f"Failed to get object stats: {e}") from e
+            raise InternalError() from e
         else:
             return {
                 "object_name": obj.object_name,
@@ -258,7 +258,7 @@ class MinioAdapter(MinioPort):
                 raise PermissionDeniedError(
                     additional_data={"details": "Permission denied to generate presigned URL"},
                 ) from e
-            raise InternalError(details=f"Failed to generate presigned GET URL: {e}") from e
+            raise InternalError() from e
 
     @override
     def presigned_put_object(self, bucket_name: str, object_name: str, expires: int = 3600) -> str:
@@ -280,7 +280,7 @@ class MinioAdapter(MinioPort):
                 raise PermissionDeniedError(
                     additional_data={"details": "Permission denied to generate presigned PUT URL"},
                 ) from e
-            raise InternalError(details=f"Failed to generate presigned PUT URL: {e}") from e
+            raise InternalError() from e
 
     @override
     def set_bucket_policy(self, bucket_name: str, policy: str) -> None:
@@ -302,7 +302,7 @@ class MinioAdapter(MinioPort):
                 raise PermissionDeniedError(
                     additional_data={"details": "Permission denied to set bucket policy"},
                 ) from e
-            raise InternalError(details=f"Failed to set bucket policy: {e}") from e
+            raise InternalError() from e
 
     @override
     @ttl_cache_decorator(ttl_seconds=300, maxsize=100)  # Cache for 5 minutes
@@ -319,6 +319,6 @@ class MinioAdapter(MinioPort):
                 raise PermissionDeniedError(
                     additional_data={"details": "Permission denied to get bucket policy"},
                 ) from e
-            raise InternalError(details=f"Failed to get bucket policy: {e}") from e
+            raise InternalError() from e
         else:
             return {"policy": policy}

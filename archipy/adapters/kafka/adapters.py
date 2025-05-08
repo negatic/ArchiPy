@@ -7,12 +7,11 @@ from confluent_kafka.admin import AdminClient, ClusterMetadata, NewTopic
 from archipy.adapters.kafka.ports import KafkaAdminPort, KafkaConsumerPort, KafkaProducerPort
 from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import KafkaConfig
-from archipy.models.errors.custom_errors import (
+from archipy.models.errors import (
     InternalError,
     InvalidArgumentError,
     UnavailableError,
 )
-from archipy.models.types.language_type import LanguageType
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +49,7 @@ class KafkaAdminAdapter(KafkaAdminPort):
                 }
             self.adapter: AdminClient = AdminClient(config)
         except Exception as e:
-            raise InternalError(details=str(e), lang=LanguageType.FA) from e
+            raise InternalError() from e
 
     @override
     def create_topic(self, topic: str, num_partitions: int = 1, replication_factor: int = 1) -> None:
@@ -68,7 +67,7 @@ class KafkaAdminAdapter(KafkaAdminPort):
             new_topic = NewTopic(topic, num_partitions, replication_factor)
             self.adapter.create_topics([new_topic])
         except Exception as e:
-            raise InternalError(details=f"Failed to create topic {topic}", lang=LanguageType.FA) from e
+            raise InternalError(additional_data={"topic": topic}) from e
 
     @override
     def delete_topic(self, topics: list[str]) -> None:
@@ -84,7 +83,7 @@ class KafkaAdminAdapter(KafkaAdminPort):
             self.adapter.delete_topics(topics)
             logger.debug("Deleted topics", topics)
         except Exception as e:
-            raise InternalError(details="Failed to delete topics", lang=LanguageType.FA) from e
+            raise InternalError() from e
 
     @override
     def list_topics(
@@ -108,7 +107,7 @@ class KafkaAdminAdapter(KafkaAdminPort):
         try:
             return self.adapter.list_topics(topic=topic, timeout=timeout)
         except Exception as e:
-            raise UnavailableError(service="Kafka", lang=LanguageType.FA) from e
+            raise UnavailableError(service="Kafka") from e
 
 
 class KafkaConsumerAdapter(KafkaConsumerPort):
@@ -150,10 +149,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
             self.assign(partition_list)
         else:
             logger.error("Invalid topic or partition list")
-            raise InvalidArgumentError(
-                argument_name="topic_list or partition_list",
-                lang=LanguageType.FA,
-            )
+            raise InvalidArgumentError(argument_name="topic_list or partition_list")
 
     @staticmethod
     def _get_adapter(group_id: str, configs: KafkaConfig) -> Consumer:
@@ -189,7 +185,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
                 }
             return Consumer(config)
         except Exception as e:
-            raise InternalError(details=str(e), lang=LanguageType.FA) from e
+            raise InternalError() from e
 
     @override
     def batch_consume(self, messages_number: int = 500, timeout: int = 1) -> list[Message]:
@@ -220,7 +216,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
             else:
                 return result_list
         except Exception as e:
-            raise InternalError(details="Failed to consume batch", lang=LanguageType.FA) from e
+            raise InternalError() from e
 
     @override
     def poll(self, timeout: int = 1) -> Message | None:
@@ -246,7 +242,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
             logger.debug("Message consumed", message)
             message.set_value(message.value())
         except Exception as e:
-            raise InternalError(details="Failed to poll message", lang=LanguageType.FA) from e
+            raise InternalError() from e
         else:
             return message
 
@@ -269,7 +265,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
         try:
             return self._adapter.commit(message=message, asynchronous=asynchronous)
         except Exception as e:
-            raise InternalError(details="Failed to commit message", lang=LanguageType.FA) from e
+            raise InternalError() from e
 
     @override
     def subscribe(self, topic_list: list[str]) -> None:
@@ -285,10 +281,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
             self._adapter.subscribe(topic_list)
             logger.debug("Subscribed to topics", topic_list)
         except Exception as e:
-            raise InternalError(
-                details="Failed to subscribe to topics",
-                lang=LanguageType.FA,
-            ) from e
+            raise InternalError() from e
 
     @override
     def assign(self, partition_list: list[TopicPartition]) -> None:
@@ -306,10 +299,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
                 self._adapter.seek(partition)
             logger.debug("Assigned partitions", partition_list)
         except Exception as e:
-            raise InternalError(
-                details="Failed to assign partitions",
-                lang=LanguageType.FA,
-            ) from e
+            raise InternalError() from e
 
 
 class KafkaProducerAdapter(KafkaProducerPort):
@@ -369,7 +359,7 @@ class KafkaProducerAdapter(KafkaProducerPort):
                 }
             return Producer(config)
         except Exception as e:
-            raise InternalError(details=str(e), lang=LanguageType.FA) from e
+            raise InternalError() from e
 
     @staticmethod
     def _pre_process_message(message: str | bytes) -> bytes:
@@ -397,10 +387,7 @@ class KafkaProducerAdapter(KafkaProducerPort):
         if error:
             logger.error("Message failed delivery", error)
             logger.debug("Message = %s", message)
-            raise InternalError(
-                details="Message failed delivery",
-                lang=LanguageType.FA,
-            )
+            raise InternalError()
         logger.debug("Message delivered", message)
 
     @override
@@ -417,10 +404,7 @@ class KafkaProducerAdapter(KafkaProducerPort):
             processed_message = self._pre_process_message(message)
             self._adapter.produce(self.topic, processed_message, on_delivery=self._delivery_callback)
         except Exception as e:
-            raise InternalError(
-                details="Failed to produce message",
-                lang=LanguageType.FA,
-            ) from e
+            raise InternalError() from e
 
     @override
     def flush(self, timeout: int | None = None) -> None:
@@ -436,10 +420,7 @@ class KafkaProducerAdapter(KafkaProducerPort):
         try:
             self._adapter.flush(timeout=timeout)
         except Exception as e:
-            raise InternalError(
-                details="Failed to flush messages",
-                lang=LanguageType.FA,
-            ) from e
+            raise InternalError() from e
 
     @override
     def validate_healthiness(self) -> None:
@@ -451,10 +432,7 @@ class KafkaProducerAdapter(KafkaProducerPort):
         try:
             self.list_topics(self.topic, timeout=1)
         except Exception as e:
-            raise UnavailableError(
-                service="Kafka",
-                lang=LanguageType.FA,
-            ) from e
+            raise UnavailableError(service="Kafka") from e
 
     @override
     def list_topics(
@@ -481,5 +459,4 @@ class KafkaProducerAdapter(KafkaProducerPort):
         except Exception as e:
             raise UnavailableError(
                 service="Kafka",
-                lang=LanguageType.FA,
             ) from e

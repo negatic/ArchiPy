@@ -58,10 +58,10 @@ def _handle_db_exception(exception: Exception, db_type: str, func_name: str) -> 
                 raise DeadlockDetectedError() from exception
         if "database is locked" in str(exception):
             raise DeadlockDetectedError() from exception
-        raise InternalError(details=str(exception)) from exception
+        raise InternalError() from exception
     if isinstance(exception, BaseError):
         raise exception
-    raise InternalError(details=str(exception)) from exception
+    raise InternalError() from exception
 
 
 def sqlalchemy_atomic_decorator(

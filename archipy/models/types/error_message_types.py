@@ -59,7 +59,7 @@ class ErrorMessageType(Enum):
 
     # Authentication Errors (400, 401, 403)
     UNAUTHENTICATED = ErrorDetailDTO.create_error_detail(
-        code="UNAUTHENTICATED_TYPE",
+        code="UNAUTHENTICATED",
         message_en="You are not authorized to perform this action.",
         message_fa="شما مجوز انجام این عمل را ندارید.",
         http_status=HTTPStatus.UNAUTHORIZED if HTTP_AVAILABLE else None,
@@ -266,4 +266,453 @@ class ErrorMessageType(Enum):
         message_fa="خطای قفل‌شدگی (Deadlock) تشخیص داده شد.",
         http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,
         grpc_status=StatusCode.INTERNAL if GRPC_AVAILABLE else None,
+    )
+
+    # Authentication & Authorization
+    INVALID_CREDENTIALS = ErrorDetailDTO.create_error_detail(
+        code="INVALID_CREDENTIALS",
+        message_en="Invalid username or password",
+        message_fa="نام کاربری یا رمز عبور نامعتبر است",
+        http_status=HTTPStatus.UNAUTHORIZED if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.UNAUTHENTICATED if GRPC_AVAILABLE else None,
+    )
+
+    ACCOUNT_LOCKED = ErrorDetailDTO.create_error_detail(
+        code="ACCOUNT_LOCKED",
+        message_en="Account has been locked due to too many failed attempts",
+        message_fa="حساب کاربری به دلیل تلاش‌های ناموفق متعدد قفل شده است",
+        http_status=HTTPStatus.FORBIDDEN if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.PERMISSION_DENIED if GRPC_AVAILABLE else None,
+    )
+
+    ACCOUNT_DISABLED = ErrorDetailDTO.create_error_detail(
+        code="ACCOUNT_DISABLED",
+        message_en="Account has been disabled",
+        message_fa="حساب کاربری غیرفعال شده است",
+        http_status=HTTPStatus.FORBIDDEN if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.PERMISSION_DENIED if GRPC_AVAILABLE else None,
+    )
+
+    SESSION_EXPIRED = ErrorDetailDTO.create_error_detail(
+        code="SESSION_EXPIRED",
+        message_en="Session has expired",
+        message_fa="نشست کاربری منقضی شده است",
+        http_status=HTTPStatus.UNAUTHORIZED if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.UNAUTHENTICATED if GRPC_AVAILABLE else None,
+    )
+
+    INVALID_REFRESH_TOKEN = ErrorDetailDTO.create_error_detail(
+        code="INVALID_REFRESH_TOKEN",
+        message_en="Invalid refresh token",
+        message_fa="توکن تازه‌سازی نامعتبر است",
+        http_status=HTTPStatus.UNAUTHORIZED if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.UNAUTHENTICATED if GRPC_AVAILABLE else None,
+    )
+
+    INVALID_VERIFICATION_CODE = ErrorDetailDTO.create_error_detail(
+        code="INVALID_VERIFICATION_CODE",
+        message_en="Invalid verification code",
+        message_fa="کد تایید نامعتبر است",
+        http_status=HTTPStatus.BAD_REQUEST if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INVALID_ARGUMENT if GRPC_AVAILABLE else None,
+    )
+
+    # Resource & Data
+    CONFLICT = ErrorDetailDTO.create_error_detail(
+        code="CONFLICT",
+        message_en="Resource conflict detected",
+        message_fa="تعارض در منابع تشخیص داده شد",
+        http_status=HTTPStatus.CONFLICT if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.ABORTED if GRPC_AVAILABLE else None,
+    )
+
+    INVALID_FORMAT = ErrorDetailDTO.create_error_detail(
+        code="INVALID_FORMAT",
+        message_en="Invalid data format",
+        message_fa="فرمت داده نامعتبر است",
+        http_status=HTTPStatus.BAD_REQUEST if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INVALID_ARGUMENT if GRPC_AVAILABLE else None,
+    )
+
+    FILE_TOO_LARGE = ErrorDetailDTO.create_error_detail(
+        code="FILE_TOO_LARGE",
+        message_en="File size exceeds the maximum allowed limit",
+        message_fa="حجم فایل از حد مجاز بیشتر است",
+        http_status=HTTPStatus.BAD_REQUEST if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INVALID_ARGUMENT if GRPC_AVAILABLE else None,
+    )
+
+    INVALID_FILE_TYPE = ErrorDetailDTO.create_error_detail(
+        code="INVALID_FILE_TYPE",
+        message_en="File type is not supported",
+        message_fa="نوع فایل پشتیبانی نمی‌شود",
+        http_status=HTTPStatus.BAD_REQUEST if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INVALID_ARGUMENT if GRPC_AVAILABLE else None,
+    )
+
+    QUOTA_EXCEEDED = ErrorDetailDTO.create_error_detail(
+        code="QUOTA_EXCEEDED",
+        message_en="Storage quota has been exceeded",
+        message_fa="سهمیه ذخیره‌سازی به پایان رسیده است",
+        http_status=HTTPStatus.FORBIDDEN if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.RESOURCE_EXHAUSTED if GRPC_AVAILABLE else None,
+    )
+
+    RATE_LIMIT_EXCEEDED = ErrorDetailDTO.create_error_detail(
+        code="RATE_LIMIT_EXCEEDED",
+        message_en="Rate limit has been exceeded",
+        message_fa="محدودیت نرخ درخواست به پایان رسیده است",
+        http_status=HTTPStatus.TOO_MANY_REQUESTS if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.RESOURCE_EXHAUSTED if GRPC_AVAILABLE else None,
+    )
+
+    # Network & Communication
+    CONNECTION_TIMEOUT = ErrorDetailDTO.create_error_detail(
+        code="CONNECTION_TIMEOUT",
+        message_en="Connection timed out",
+        message_fa="اتصال با تایم‌اوت مواجه شد",
+        http_status=HTTPStatus.REQUEST_TIMEOUT if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.DEADLINE_EXCEEDED if GRPC_AVAILABLE else None,
+    )
+
+    NETWORK_ERROR = ErrorDetailDTO.create_error_detail(
+        code="NETWORK_ERROR",
+        message_en="Network error occurred",
+        message_fa="خطای شبکه رخ داده است",
+        http_status=HTTPStatus.BAD_GATEWAY if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.UNAVAILABLE if GRPC_AVAILABLE else None,
+    )
+
+    SERVICE_UNAVAILABLE = ErrorDetailDTO.create_error_detail(
+        code="SERVICE_UNAVAILABLE",
+        message_en="Service is currently unavailable",
+        message_fa="سرویس در حال حاضر در دسترس نیست",
+        http_status=HTTPStatus.SERVICE_UNAVAILABLE if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.UNAVAILABLE if GRPC_AVAILABLE else None,
+    )
+
+    GATEWAY_TIMEOUT = ErrorDetailDTO.create_error_detail(
+        code="GATEWAY_TIMEOUT",
+        message_en="Gateway timeout",
+        message_fa="تایم‌اوت دروازه",
+        http_status=HTTPStatus.GATEWAY_TIMEOUT if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.DEADLINE_EXCEEDED if GRPC_AVAILABLE else None,
+    )
+
+    BAD_GATEWAY = ErrorDetailDTO.create_error_detail(
+        code="BAD_GATEWAY",
+        message_en="Bad gateway",
+        message_fa="دروازه نامعتبر",
+        http_status=HTTPStatus.BAD_GATEWAY if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.UNAVAILABLE if GRPC_AVAILABLE else None,
+    )
+
+    # Business Logic
+    INVALID_STATE = ErrorDetailDTO.create_error_detail(
+        code="INVALID_STATE",
+        message_en="Invalid state for the requested operation",
+        message_fa="وضعیت نامعتبر برای عملیات درخواستی",
+        http_status=HTTPStatus.CONFLICT if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.FAILED_PRECONDITION if GRPC_AVAILABLE else None,
+    )
+
+    BUSINESS_RULE_VIOLATION = ErrorDetailDTO.create_error_detail(
+        code="BUSINESS_RULE_VIOLATION",
+        message_en="Business rule violation",
+        message_fa="نقض قوانین کسب و کار",
+        http_status=HTTPStatus.CONFLICT if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.FAILED_PRECONDITION if GRPC_AVAILABLE else None,
+    )
+
+    INSUFFICIENT_FUNDS = ErrorDetailDTO.create_error_detail(
+        code="INSUFFICIENT_FUNDS",
+        message_en="Insufficient funds for the operation",
+        message_fa="موجودی ناکافی برای عملیات",
+        http_status=HTTPStatus.PAYMENT_REQUIRED if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.FAILED_PRECONDITION if GRPC_AVAILABLE else None,
+    )
+
+    INVALID_OPERATION = ErrorDetailDTO.create_error_detail(
+        code="INVALID_OPERATION",
+        message_en="Operation is not allowed in the current context",
+        message_fa="عملیات در وضعیت فعلی مجاز نیست",
+        http_status=HTTPStatus.FORBIDDEN if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.PERMISSION_DENIED if GRPC_AVAILABLE else None,
+    )
+
+    MAINTENANCE_MODE = ErrorDetailDTO.create_error_detail(
+        code="MAINTENANCE_MODE",
+        message_en="System is currently in maintenance mode",
+        message_fa="سیستم در حال حاضر در حالت تعمیر و نگهداری است",
+        http_status=HTTPStatus.SERVICE_UNAVAILABLE if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.UNAVAILABLE if GRPC_AVAILABLE else None,
+    )
+
+    # Validation
+    INVALID_EMAIL = ErrorDetailDTO.create_error_detail(
+        code="INVALID_EMAIL",
+        message_en="Invalid email format",
+        message_fa="فرمت ایمیل نامعتبر است",
+        http_status=HTTPStatus.BAD_REQUEST if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INVALID_ARGUMENT if GRPC_AVAILABLE else None,
+    )
+
+    INVALID_DATE = ErrorDetailDTO.create_error_detail(
+        code="INVALID_DATE",
+        message_en="Invalid date format",
+        message_fa="فرمت تاریخ نامعتبر است",
+        http_status=HTTPStatus.BAD_REQUEST if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INVALID_ARGUMENT if GRPC_AVAILABLE else None,
+    )
+
+    INVALID_URL = ErrorDetailDTO.create_error_detail(
+        code="INVALID_URL",
+        message_en="Invalid URL format",
+        message_fa="فرمت URL نامعتبر است",
+        http_status=HTTPStatus.BAD_REQUEST if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INVALID_ARGUMENT if GRPC_AVAILABLE else None,
+    )
+
+    INVALID_IP = ErrorDetailDTO.create_error_detail(
+        code="INVALID_IP",
+        message_en="Invalid IP address format",
+        message_fa="فرمت آدرس IP نامعتبر است",
+        http_status=HTTPStatus.BAD_REQUEST if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INVALID_ARGUMENT if GRPC_AVAILABLE else None,
+    )
+
+    INVALID_JSON = ErrorDetailDTO.create_error_detail(
+        code="INVALID_JSON",
+        message_en="Invalid JSON format",
+        message_fa="فرمت JSON نامعتبر است",
+        http_status=HTTPStatus.BAD_REQUEST if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INVALID_ARGUMENT if GRPC_AVAILABLE else None,
+    )
+
+    # Database & Storage Errors
+    DATABASE_CONNECTION_ERROR = ErrorDetailDTO.create_error_detail(
+        code="DATABASE_CONNECTION_ERROR",
+        message_en="Failed to connect to the database",
+        message_fa="خطا در اتصال به پایگاه داده",
+        http_status=HTTPStatus.SERVICE_UNAVAILABLE if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.UNAVAILABLE if GRPC_AVAILABLE else None,
+    )
+
+    DATABASE_QUERY_ERROR = ErrorDetailDTO.create_error_detail(
+        code="DATABASE_QUERY_ERROR",
+        message_en="Error executing database query",
+        message_fa="خطا در اجرای پرس و جوی پایگاه داده",
+        http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INTERNAL if GRPC_AVAILABLE else None,
+    )
+
+    DATABASE_TRANSACTION_ERROR = ErrorDetailDTO.create_error_detail(
+        code="DATABASE_TRANSACTION_ERROR",
+        message_en="Error in database transaction",
+        message_fa="خطا در تراکنش پایگاه داده",
+        http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INTERNAL if GRPC_AVAILABLE else None,
+    )
+
+    STORAGE_ERROR = ErrorDetailDTO.create_error_detail(
+        code="STORAGE_ERROR",
+        message_en="Error accessing storage",
+        message_fa="خطا در دسترسی به فضای ذخیره‌سازی",
+        http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INTERNAL if GRPC_AVAILABLE else None,
+    )
+
+    # Cache Errors
+    CACHE_ERROR = ErrorDetailDTO.create_error_detail(
+        code="CACHE_ERROR",
+        message_en="Error accessing cache",
+        message_fa="خطا در دسترسی به حافظه نهان",
+        http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INTERNAL if GRPC_AVAILABLE else None,
+    )
+
+    CACHE_MISS = ErrorDetailDTO.create_error_detail(
+        code="CACHE_MISS",
+        message_en="Requested data not found in cache",
+        message_fa="داده درخواستی در حافظه نهان یافت نشد",
+        http_status=HTTPStatus.NOT_FOUND if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.NOT_FOUND if GRPC_AVAILABLE else None,
+    )
+
+    # Message Queue Errors
+    QUEUE_ERROR = ErrorDetailDTO.create_error_detail(
+        code="QUEUE_ERROR",
+        message_en="Error in message queue operation",
+        message_fa="خطا در عملیات صف پیام",
+        http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INTERNAL if GRPC_AVAILABLE else None,
+    )
+
+    QUEUE_FULL = ErrorDetailDTO.create_error_detail(
+        code="QUEUE_FULL",
+        message_en="Message queue is full",
+        message_fa="صف پیام پر است",
+        http_status=HTTPStatus.SERVICE_UNAVAILABLE if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.RESOURCE_EXHAUSTED if GRPC_AVAILABLE else None,
+    )
+
+    # Search Engine Errors
+    SEARCH_ERROR = ErrorDetailDTO.create_error_detail(
+        code="SEARCH_ERROR",
+        message_en="Error performing search operation",
+        message_fa="خطا در انجام عملیات جستجو",
+        http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INTERNAL if GRPC_AVAILABLE else None,
+    )
+
+    SEARCH_TIMEOUT = ErrorDetailDTO.create_error_detail(
+        code="SEARCH_TIMEOUT",
+        message_en="Search operation timed out",
+        message_fa="عملیات جستجو با تایم‌اوت مواجه شد",
+        http_status=HTTPStatus.REQUEST_TIMEOUT if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.DEADLINE_EXCEEDED if GRPC_AVAILABLE else None,
+    )
+
+    # External Service Errors
+    EXTERNAL_SERVICE_ERROR = ErrorDetailDTO.create_error_detail(
+        code="EXTERNAL_SERVICE_ERROR",
+        message_en="Error in external service",
+        message_fa="خطا در سرویس خارجی",
+        http_status=HTTPStatus.BAD_GATEWAY if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.UNAVAILABLE if GRPC_AVAILABLE else None,
+    )
+
+    EXTERNAL_SERVICE_TIMEOUT = ErrorDetailDTO.create_error_detail(
+        code="EXTERNAL_SERVICE_TIMEOUT",
+        message_en="External service request timed out",
+        message_fa="درخواست به سرویس خارجی با تایم‌اوت مواجه شد",
+        http_status=HTTPStatus.GATEWAY_TIMEOUT if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.DEADLINE_EXCEEDED if GRPC_AVAILABLE else None,
+    )
+
+    # Security Errors
+    SECURITY_ERROR = ErrorDetailDTO.create_error_detail(
+        code="SECURITY_ERROR",
+        message_en="Security violation detected",
+        message_fa="نقض امنیتی تشخیص داده شد",
+        http_status=HTTPStatus.FORBIDDEN if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.PERMISSION_DENIED if GRPC_AVAILABLE else None,
+    )
+
+    INVALID_SIGNATURE = ErrorDetailDTO.create_error_detail(
+        code="INVALID_SIGNATURE",
+        message_en="Invalid digital signature",
+        message_fa="امضای دیجیتال نامعتبر است",
+        http_status=HTTPStatus.UNAUTHORIZED if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.UNAUTHENTICATED if GRPC_AVAILABLE else None,
+    )
+
+    INVALID_CERTIFICATE = ErrorDetailDTO.create_error_detail(
+        code="INVALID_CERTIFICATE",
+        message_en="Invalid security certificate",
+        message_fa="گواهی امنیتی نامعتبر است",
+        http_status=HTTPStatus.UNAUTHORIZED if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.UNAUTHENTICATED if GRPC_AVAILABLE else None,
+    )
+
+    # Configuration Errors
+    CONFIGURATION_ERROR = ErrorDetailDTO.create_error_detail(
+        code="CONFIGURATION_ERROR",
+        message_en="Error in system configuration",
+        message_fa="خطا در پیکربندی سیستم",
+        http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INTERNAL if GRPC_AVAILABLE else None,
+    )
+
+    MISSING_CONFIGURATION = ErrorDetailDTO.create_error_detail(
+        code="MISSING_CONFIGURATION",
+        message_en="Required configuration is missing",
+        message_fa="پیکربندی مورد نیاز وجود ندارد",
+        http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.FAILED_PRECONDITION if GRPC_AVAILABLE else None,
+    )
+
+    # Integration Errors
+    INTEGRATION_ERROR = ErrorDetailDTO.create_error_detail(
+        code="INTEGRATION_ERROR",
+        message_en="Error in system integration",
+        message_fa="خطا در یکپارچه‌سازی سیستم",
+        http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INTERNAL if GRPC_AVAILABLE else None,
+    )
+
+    INCOMPATIBLE_VERSION = ErrorDetailDTO.create_error_detail(
+        code="INCOMPATIBLE_VERSION",
+        message_en="Incompatible system version",
+        message_fa="نسخه سیستم ناسازگار است",
+        http_status=HTTPStatus.BAD_REQUEST if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.FAILED_PRECONDITION if GRPC_AVAILABLE else None,
+    )
+
+    # Monitoring & Logging Errors
+    MONITORING_ERROR = ErrorDetailDTO.create_error_detail(
+        code="MONITORING_ERROR",
+        message_en="Error in monitoring system",
+        message_fa="خطا در سیستم نظارت",
+        http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INTERNAL if GRPC_AVAILABLE else None,
+    )
+
+    LOGGING_ERROR = ErrorDetailDTO.create_error_detail(
+        code="LOGGING_ERROR",
+        message_en="Error in logging system",
+        message_fa="خطا در سیستم ثبت رویدادها",
+        http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INTERNAL if GRPC_AVAILABLE else None,
+    )
+
+    # Backup & Recovery Errors
+    BACKUP_ERROR = ErrorDetailDTO.create_error_detail(
+        code="BACKUP_ERROR",
+        message_en="Error in backup operation",
+        message_fa="خطا در عملیات پشتیبان‌گیری",
+        http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INTERNAL if GRPC_AVAILABLE else None,
+    )
+
+    RECOVERY_ERROR = ErrorDetailDTO.create_error_detail(
+        code="RECOVERY_ERROR",
+        message_en="Error in recovery operation",
+        message_fa="خطا در عملیات بازیابی",
+        http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INTERNAL if GRPC_AVAILABLE else None,
+    )
+
+    # Resource Management Errors
+    RESOURCE_LOCKED = ErrorDetailDTO.create_error_detail(
+        code="RESOURCE_LOCKED",
+        message_en="Resource is currently locked",
+        message_fa="منبع در حال حاضر قفل شده است",
+        http_status=HTTPStatus.CONFLICT if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.ABORTED if GRPC_AVAILABLE else None,
+    )
+
+    RESOURCE_BUSY = ErrorDetailDTO.create_error_detail(
+        code="RESOURCE_BUSY",
+        message_en="Resource is currently busy",
+        message_fa="منبع در حال حاضر مشغول است",
+        http_status=HTTPStatus.CONFLICT if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.ABORTED if GRPC_AVAILABLE else None,
+    )
+
+    # Time-related Errors
+    INVALID_TIMESTAMP = ErrorDetailDTO.create_error_detail(
+        code="INVALID_TIMESTAMP",
+        message_en="Invalid timestamp format",
+        message_fa="فرمت زمان نامعتبر است",
+        http_status=HTTPStatus.BAD_REQUEST if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INVALID_ARGUMENT if GRPC_AVAILABLE else None,
+    )
+
+    TIMEZONE_ERROR = ErrorDetailDTO.create_error_detail(
+        code="TIMEZONE_ERROR",
+        message_en="Error in timezone conversion",
+        message_fa="خطا در تبدیل منطقه زمانی",
+        http_status=HTTPStatus.BAD_REQUEST if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INVALID_ARGUMENT if GRPC_AVAILABLE else None,
     )

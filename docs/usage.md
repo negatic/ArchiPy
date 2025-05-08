@@ -99,7 +99,7 @@ class UserRepository:
 5. Implement your business logic:
 
 ```python
-from archipy.models.errors.custom_errors import AlreadyExistsError
+from archipy.models.errors import AlreadyExistsError
 
 class UserService:
     def __init__(self, user_repository):
@@ -191,7 +191,7 @@ Integrate with FastAPI:
 from fastapi import FastAPI, Depends, HTTPException
 from archipy.helpers.utils.app_utils import AppUtils
 from archipy.helpers.utils.keycloak_utils import KeycloakUtils
-from archipy.models.errors.custom_errors import BaseError
+from archipy.models.errors import BaseError
 
 # Create FastAPI app
 app = AppUtils.create_fastapi_app(BaseConfig.global_config())

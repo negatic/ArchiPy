@@ -17,7 +17,7 @@ from archipy.configs.config_template import SQLAlchemyConfig
 from archipy.models.dtos.pagination_dto import PaginationDTO
 from archipy.models.dtos.sort_dto import SortDTO
 from archipy.models.entities import BaseEntity
-from archipy.models.errors.custom_errors import InternalError, InvalidArgumentError, InvalidEntityTypeError
+from archipy.models.errors import InternalError, InvalidArgumentError, InvalidEntityTypeError
 from archipy.models.types.base_types import FilterOperationType
 from archipy.models.types.sort_order_type import SortOrderType
 
@@ -206,7 +206,7 @@ class BaseSQLAlchemyAdapter(SQLAlchemyPort, SQLAlchemyPaginationMixin, SQLAlchem
             count_query = select(func.count()).select_from(query.subquery())
             total_count = session.execute(count_query).scalar_one()
         except Exception as e:
-            raise InternalError(details=f"Database query failed: {e!s}") from e
+            raise InternalError() from e
         return results, total_count
 
     @override
@@ -234,7 +234,7 @@ class BaseSQLAlchemyAdapter(SQLAlchemyPort, SQLAlchemyPaginationMixin, SQLAlchem
             session.add(entity)
             session.flush()
         except Exception as e:
-            raise InternalError(details=f"Entity creation failed: {e!s}") from e
+            raise InternalError() from e
         return entity
 
     @override
@@ -262,7 +262,7 @@ class BaseSQLAlchemyAdapter(SQLAlchemyPort, SQLAlchemyPaginationMixin, SQLAlchem
             session.add_all(entities)
             session.flush()
         except Exception as e:
-            raise InternalError(details=f"Bulk create operation failed: {e!s}") from e
+            raise InternalError() from e
         return entities
 
     @override
@@ -288,7 +288,7 @@ class BaseSQLAlchemyAdapter(SQLAlchemyPort, SQLAlchemyPaginationMixin, SQLAlchem
             session = self.get_session()
             return session.get(entity_type, entity_uuid)
         except Exception as e:
-            raise InternalError(details=f"Entity retrieval by UUID failed: {e!s}") from e
+            raise InternalError() from e
 
     @override
     def delete(self, entity: BaseEntity) -> None:
@@ -298,7 +298,7 @@ class BaseSQLAlchemyAdapter(SQLAlchemyPort, SQLAlchemyPaginationMixin, SQLAlchem
             session = self.get_session()
             session.delete(entity)
         except Exception as e:
-            raise InternalError(details=f"Entity deletion failed: {e!s}") from e
+            raise InternalError() from e
 
     @override
     def bulk_delete(self, entities: list[BaseEntity]) -> None:
@@ -317,7 +317,7 @@ class BaseSQLAlchemyAdapter(SQLAlchemyPort, SQLAlchemyPaginationMixin, SQLAlchem
                     raise InvalidEntityTypeError(entity, BaseEntity)
                 self.delete(entity)
         except Exception as e:
-            raise InternalError(details=f"Bulk delete operation failed: {e!s}") from e
+            raise InternalError() from e
 
     @override
     def execute(self, statement: Executable, params: AnyExecuteParams | None = None) -> Result[Any]:
@@ -337,7 +337,7 @@ class BaseSQLAlchemyAdapter(SQLAlchemyPort, SQLAlchemyPaginationMixin, SQLAlchem
             session = self.get_session()
             return session.execute(statement, params)
         except Exception as e:
-            raise InternalError(details=f"Statement execution failed: {e!s}") from e
+            raise InternalError() from e
 
     @override
     def scalars(self, statement: Executable, params: AnyExecuteParams | None = None) -> ScalarResult[Any]:
@@ -360,7 +360,7 @@ class BaseSQLAlchemyAdapter(SQLAlchemyPort, SQLAlchemyPaginationMixin, SQLAlchem
             session = self.get_session()
             return session.scalars(statement, params)
         except Exception as e:
-            raise InternalError(details=f"Scalar query failed: {e!s}") from e
+            raise InternalError() from e
 
 
 class AsyncBaseSQLAlchemyAdapter(
@@ -440,7 +440,7 @@ class AsyncBaseSQLAlchemyAdapter(
             count_result = await session.execute(count_query)
             total_count = count_result.scalar_one()
         except Exception as e:
-            raise InternalError(details=f"Database query failed: {e!s}") from e
+            raise InternalError() from e
         return results, total_count
 
     @override
@@ -456,7 +456,7 @@ class AsyncBaseSQLAlchemyAdapter(
             session.add(entity)
             await session.flush()
         except Exception as e:
-            raise InternalError(details=f"Async entity creation failed: {e!s}") from e
+            raise InternalError() from e
         return entity
 
     @override
@@ -484,7 +484,7 @@ class AsyncBaseSQLAlchemyAdapter(
             session.add_all(entities)
             await session.flush()
         except Exception as e:
-            raise InternalError(details=f"Async bulk create operation failed: {e!s}") from e
+            raise InternalError() from e
         return entities
 
     @override
@@ -497,7 +497,7 @@ class AsyncBaseSQLAlchemyAdapter(
             session = self.get_session()
             return await session.get(entity_type, entity_uuid)
         except Exception as e:
-            raise InternalError(details=f"Async entity retrieval by UUID failed: {e!s}") from e
+            raise InternalError() from e
 
     @override
     async def delete(self, entity: BaseEntity) -> None:
@@ -507,7 +507,7 @@ class AsyncBaseSQLAlchemyAdapter(
             session = self.get_session()
             await session.delete(entity)
         except Exception as e:
-            raise InternalError(details=f"Async entity deletion failed: {e!s}") from e
+            raise InternalError() from e
 
     @override
     async def bulk_delete(self, entities: list[BaseEntity]) -> None:
@@ -515,7 +515,7 @@ class AsyncBaseSQLAlchemyAdapter(
             for entity in entities:
                 await self.delete(entity)
         except Exception as e:
-            raise InternalError(details=f"Async bulk delete operation failed: {e!s}") from e
+            raise InternalError() from e
 
     @override
     async def execute(self, statement: Executable, params: AnyExecuteParams | None = None) -> Result[Any]:
@@ -535,7 +535,7 @@ class AsyncBaseSQLAlchemyAdapter(
             session = self.get_session()
             return await session.execute(statement, params)
         except Exception as e:
-            raise InternalError(details=f"Async statement execution failed: {e!s}") from e
+            raise InternalError() from e
 
     @override
     async def scalars(self, statement: Executable, params: AnyExecuteParams | None = None) -> ScalarResult[Any]:
@@ -558,4 +558,4 @@ class AsyncBaseSQLAlchemyAdapter(
             session = self.get_session()
             return await session.scalars(statement, params)
         except Exception as e:
-            raise InternalError(details=f"Async scalar query failed: {e!s}") from e
+            raise InternalError() from e

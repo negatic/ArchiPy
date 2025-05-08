@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from archipy.adapters.base.sqlalchemy.session_manager_ports import AsyncSessionManagerPort, SessionManagerPort
 from archipy.configs.config_template import SQLAlchemyConfig
-from archipy.models.errors.custom_errors import InvalidArgumentError
+from archipy.models.errors import InvalidArgumentError
 
 
 class BaseSQLAlchemySessionManager(SessionManagerPort):

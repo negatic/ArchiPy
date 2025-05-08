@@ -53,8 +53,7 @@ from archipy.models.dtos.error_dto import ErrorDetailDTO
 
 error = ErrorDetailDTO(
     code="USER_NOT_FOUND",
-    message="User not found",
-    details={"user_id": "123"}
+    message_en="User not found",
 )
 ```
 
@@ -223,7 +222,7 @@ show_source: true
 Application-specific error classes.
 
 ```python
-from archipy.models.errors.custom_errors import (
+from archipy.models.errors import (
     BaseError,
     InvalidTokenError,
     InvalidEntityTypeError
@@ -237,7 +236,7 @@ class UserNotFoundError(BaseError):
         )
 ```
 
-::: archipy.models.errors.custom_errors
+::: archipy.models.errors
 options:
 show_root_heading: true
 show_source: true
@@ -324,7 +323,7 @@ Base class for SQLAlchemy entities with features:
 
 ### BaseError
 
-Class: `archipy.models.errors.custom_errors.BaseError`
+Class: `archipy.models.errors.BaseError`
 
 Base class for custom errors with features:
 
