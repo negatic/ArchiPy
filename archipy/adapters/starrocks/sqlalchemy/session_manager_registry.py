@@ -2,12 +2,13 @@ from typing import TYPE_CHECKING
 
 from archipy.adapters.base.sqlalchemy.session_manager_registry import SessionManagerRegistry
 from archipy.helpers.metaclasses.singleton import Singleton
+from archipy.models.errors import DatabaseConnectionError, InvalidArgumentError
 
 if TYPE_CHECKING:
     from archipy.adapters.base.sqlalchemy.session_manager_ports import AsyncSessionManagerPort, SessionManagerPort
 
 
-class StarrocksSessionManagerRegistry(SessionManagerRegistry, metaclass=Singleton):
+class StarRocksSessionManagerRegistry(SessionManagerRegistry, metaclass=Singleton):
     """Registry for StarRocks SQLAlchemy session managers.
 
     This registry provides a centralized access point for both synchronous and
@@ -15,8 +16,8 @@ class StarrocksSessionManagerRegistry(SessionManagerRegistry, metaclass=Singleto
     It lazily initializes the appropriate session manager when first requested.
 
     The registry maintains singleton instances of:
-    - A synchronous session manager (StarrocksSQlAlchemySessionManager)
-    - An asynchronous session manager (AsyncStarrocksSQlAlchemySessionManager)
+    - A synchronous session manager (StarRocksSQlAlchemySessionManager)
+    - An asynchronous session manager (AsyncStarRocksSQlAlchemySessionManager)
     """
 
     _sync_instance: "SessionManagerPort | None" = None
@@ -26,15 +27,23 @@ class StarrocksSessionManagerRegistry(SessionManagerRegistry, metaclass=Singleto
     def get_sync_manager(cls) -> "SessionManagerPort":
         """Get the synchronous StarRocks session manager instance.
 
-        Lazily initializes a default StarrocksSQlAlchemySessionManager if none has been set.
+        Lazily initializes a default StarRocksSQlAlchemySessionManager if none has been set.
 
         Returns:
             SessionManagerPort: The registered synchronous session manager
+
+        Raises:
+            DatabaseConnectionError: If there's an error initializing the session manager
         """
         if cls._sync_instance is None:
-            from archipy.adapters.starrocks.sqlalchemy.session_managers import StarrocksSQlAlchemySessionManager
+            try:
+                from archipy.adapters.starrocks.sqlalchemy.session_managers import StarRocksSQlAlchemySessionManager
 
-            cls._sync_instance = StarrocksSQlAlchemySessionManager()
+                cls._sync_instance = StarRocksSQlAlchemySessionManager()
+            except Exception as e:
+                raise DatabaseConnectionError(
+                    database="starrocks",
+                ) from e
         return cls._sync_instance
 
     @classmethod
@@ -43,22 +52,41 @@ class StarrocksSessionManagerRegistry(SessionManagerRegistry, metaclass=Singleto
 
         Args:
             manager: An instance implementing SessionManagerPort
+
+        Raises:
+            InvalidArgumentError: If the manager is None or doesn't implement SessionManagerPort
         """
+        if manager is None:
+            raise InvalidArgumentError("StarRocks session manager cannot be None")
+        from archipy.adapters.base.sqlalchemy.session_manager_ports import SessionManagerPort
+
+        if not isinstance(manager, SessionManagerPort):
+            raise InvalidArgumentError(f"Manager must implement SessionManagerPort, got {type(manager).__name__}")
         cls._sync_instance = manager
 
     @classmethod
     def get_async_manager(cls) -> "AsyncSessionManagerPort":
         """Get the asynchronous StarRocks session manager instance.
 
-        Lazily initializes a default AsyncStarrocksSQlAlchemySessionManager if none has been set.
+        Lazily initializes a default AsyncStarRocksSQlAlchemySessionManager if none has been set.
 
         Returns:
             AsyncSessionManagerPort: The registered asynchronous session manager
+
+        Raises:
+            DatabaseConnectionError: If there's an error initializing the session manager
         """
         if cls._async_instance is None:
-            from archipy.adapters.starrocks.sqlalchemy.session_managers import AsyncStarrocksSQlAlchemySessionManager
+            try:
+                from archipy.adapters.starrocks.sqlalchemy.session_managers import (
+                    AsyncStarRocksSQlAlchemySessionManager,
+                )
 
-            cls._async_instance = AsyncStarrocksSQlAlchemySessionManager()
+                cls._async_instance = AsyncStarRocksSQlAlchemySessionManager()
+            except Exception as e:
+                raise DatabaseConnectionError(
+                    database="starrocks",
+                ) from e
         return cls._async_instance
 
     @classmethod
@@ -67,7 +95,16 @@ class StarrocksSessionManagerRegistry(SessionManagerRegistry, metaclass=Singleto
 
         Args:
             manager: An instance implementing AsyncSessionManagerPort
+
+        Raises:
+            InvalidArgumentError: If the manager is None or doesn't implement AsyncSessionManagerPort
         """
+        if manager is None:
+            raise InvalidArgumentError("StarRocks async session manager cannot be None")
+        from archipy.adapters.base.sqlalchemy.session_manager_ports import AsyncSessionManagerPort
+
+        if not isinstance(manager, AsyncSessionManagerPort):
+            raise InvalidArgumentError(f"Manager must implement AsyncSessionManagerPort, got {type(manager).__name__}")
         cls._async_instance = manager
 
     @classmethod

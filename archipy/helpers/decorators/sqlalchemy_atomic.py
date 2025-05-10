@@ -9,11 +9,27 @@ from collections.abc import Callable
 from functools import partial, wraps
 from typing import Any, TypeVar
 
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import (
+    IntegrityError,
+    OperationalError,
+    SQLAlchemyError,
+    TimeoutError as SQLAlchemyTimeoutError,
+)
 
 from archipy.adapters.base.sqlalchemy.session_manager_ports import AsyncSessionManagerPort, SessionManagerPort
 from archipy.adapters.base.sqlalchemy.session_manager_registry import SessionManagerRegistry
-from archipy.models.errors import AbortedError, BaseError, DeadlockDetectedError, InternalError
+from archipy.models.errors import (
+    DatabaseConfigurationError,
+    DatabaseConnectionError,
+    DatabaseConstraintError,
+    DatabaseDeadlockError,
+    DatabaseError,
+    DatabaseIntegrityError,
+    DatabaseQueryError,
+    DatabaseSerializationError,
+    DatabaseTimeoutError,
+    DatabaseTransactionError,
+)
 
 # Constants for tracking atomic blocks and their corresponding registries
 ATOMIC_BLOCK_CONFIGS = {
@@ -23,11 +39,11 @@ ATOMIC_BLOCK_CONFIGS = {
     },
     "sqlite": {
         "flag": "in_sqlite_sqlalchemy_atomic_block",
-        "registry": "archipy.adapters.sqlite.sqlalchemy.session_manager_registry.SqliteSessionManagerRegistry",
+        "registry": "archipy.adapters.sqlite.sqlalchemy.session_manager_registry.SQLiteSessionManagerRegistry",
     },
     "starrocks": {
         "flag": "in_starrocks_sqlalchemy_atomic_block",
-        "registry": "archipy.adapters.starrocks.sqlalchemy.session_manager_registry.StarrocksSessionManagerRegistry",
+        "registry": "archipy.adapters.starrocks.sqlalchemy.session_manager_registry.StarRocksSessionManagerRegistry",
     },
 }
 
@@ -44,24 +60,71 @@ def _handle_db_exception(exception: Exception, db_type: str, func_name: str) -> 
         func_name (str): The name of the function being executed.
 
     Raises:
-        AbortedError: If a serialization failure is detected.
-        DeadlockDetectedError: If a deadlock or database lock is detected.
-        InternalError: For other unexpected errors.
+        DatabaseSerializationError: If a serialization failure is detected.
+        DatabaseDeadlockError: If a deadlock or database lock is detected.
+        DatabaseTransactionError: If a transaction-related error occurs.
+        DatabaseQueryError: If a query-related error occurs.
+        DatabaseConnectionError: If a connection-related error occurs.
+        DatabaseIntegrityError: If an integrity constraint violation occurs.
+        DatabaseTimeoutError: If a database operation times out.
+        DatabaseConstraintError: If a constraint violation occurs.
+        DatabaseError: If a generic exception occurs within a database transaction.
     """
     logging.debug(f"Exception in {db_type} atomic block (func: {func_name}): {exception}")
+
+    # Handle specific SQLAlchemy errors
     if isinstance(exception, OperationalError):
         if hasattr(exception, "orig") and exception.orig:
             sqlstate = getattr(exception.orig, "pgcode", None)
             if sqlstate == "40001":  # Serialization failure
-                raise AbortedError(reason=str(exception)) from exception
+                raise DatabaseSerializationError(database=db_type) from exception
             if sqlstate == "40P01":  # Deadlock detected
-                raise DeadlockDetectedError() from exception
+                raise DatabaseDeadlockError(database=db_type) from exception
+
+        # SQLite-specific errors
         if "database is locked" in str(exception):
-            raise DeadlockDetectedError() from exception
-        raise InternalError() from exception
-    if isinstance(exception, BaseError):
+            raise DatabaseDeadlockError(database=db_type) from exception
+
+        # Generic operational errors
+        raise DatabaseConnectionError(database=db_type) from exception
+
+    # Handle integrity errors
+    if isinstance(exception, IntegrityError):
+        if hasattr(exception, "orig") and exception.orig:
+            sqlstate = getattr(exception.orig, "pgcode", None)
+            if sqlstate in ("23503", "23505"):  # Foreign key or unique constraint violation
+                raise DatabaseConstraintError(database=db_type) from exception
+        raise DatabaseIntegrityError(database=db_type) from exception
+
+    # Handle timeout errors
+    if isinstance(exception, SQLAlchemyTimeoutError):
+        raise DatabaseTimeoutError(database=db_type) from exception
+
+    # Handle other SQLAlchemy errors
+    if isinstance(exception, SQLAlchemyError):
+        if "transaction" in str(exception).lower():
+            raise DatabaseTransactionError(database=db_type) from exception
+        else:
+            raise DatabaseQueryError(database=db_type) from exception
+
+    # Wrap normal exceptions with DatabaseError
+    # Check if the exception is one of our database-specific errors
+    if isinstance(
+        exception,
+        (
+            DatabaseConnectionError,
+            DatabaseConstraintError,
+            DatabaseDeadlockError,
+            DatabaseError,
+            DatabaseIntegrityError,
+            DatabaseQueryError,
+            DatabaseSerializationError,
+            DatabaseTimeoutError,
+            DatabaseTransactionError,
+        ),
+    ):
         raise exception
-    raise InternalError() from exception
+    raise DatabaseError(database=db_type) from exception
 
 
 def sqlalchemy_atomic_decorator(
@@ -85,9 +148,15 @@ def sqlalchemy_atomic_decorator(
 
     Raises:
         ValueError: If an invalid db_type is provided.
-        AbortedError: If a serialization failure or deadlock is detected.
-        DeadlockDetectedError: If an operational error occurs due to a serialization failure.
-        InternalError: If any other exception occurs during execution.
+        DatabaseSerializationError: If a serialization failure is detected.
+        DatabaseDeadlockError: If an operational error occurs due to a deadlock.
+        DatabaseTransactionError: If a transaction-related error occurs.
+        DatabaseQueryError: If a query-related error occurs.
+        DatabaseConnectionError: If a connection-related error occurs.
+        DatabaseConstraintError: If a constraint violation is detected.
+        DatabaseIntegrityError: If an integrity violation is detected.
+        DatabaseTimeoutError: If a database operation times out.
+        DatabaseConfigurationError: If there's an error in the database configuration.
 
     Example:
         # Synchronous PostgreSQL example
@@ -115,14 +184,19 @@ def sqlalchemy_atomic_decorator(
             type[SessionManagerRegistry]: The session manager registry class.
 
         Raises:
-            ImportError: If the registry module cannot be imported.
-            AttributeError: If the registry class cannot be found.
+            DatabaseConfigurationError: If the registry cannot be loaded.
         """
-        import importlib
+        try:
+            import importlib
 
-        module_path, class_name = ATOMIC_BLOCK_CONFIGS[db_type]["registry"].rsplit(".", 1)
-        module = importlib.import_module(module_path)
-        return getattr(module, class_name)
+            module_path, class_name = ATOMIC_BLOCK_CONFIGS[db_type]["registry"].rsplit(".", 1)
+            module = importlib.import_module(module_path)
+            return getattr(module, class_name)
+        except (ImportError, AttributeError) as e:
+            raise DatabaseConfigurationError(
+                database=db_type,
+                additional_data={"registry_path": ATOMIC_BLOCK_CONFIGS[db_type]["registry"]},
+            ) from e
 
     def decorator(func: Callable[..., R]) -> Callable[..., R]:
         """Create a transaction-aware wrapper for the given function.
@@ -147,9 +221,14 @@ def sqlalchemy_atomic_decorator(
                     R: The result of the wrapped function.
 
                 Raises:
-                    AbortedError: If a serialization failure or deadlock is detected.
-                    DeadlockDetectedError: If an operational error occurs due to a deadlock.
-                    InternalError: If any other exception occurs during execution.
+                    DatabaseSerializationError: If a serialization failure is detected.
+                    DatabaseDeadlockError: If an operational error occurs due to a deadlock.
+                    DatabaseTransactionError: If a transaction-related error occurs.
+                    DatabaseQueryError: If a query-related error occurs.
+                    DatabaseConnectionError: If a connection-related error occurs.
+                    DatabaseConstraintError: If a constraint violation is detected.
+                    DatabaseIntegrityError: If an integrity violation is detected.
+                    DatabaseTimeoutError: If a database operation times out.
                 """
                 registry = get_registry()
                 session_manager: AsyncSessionManagerPort = registry.get_async_manager()
@@ -189,9 +268,14 @@ def sqlalchemy_atomic_decorator(
                     R: The result of the wrapped function.
 
                 Raises:
-                    AbortedError: If a serialization failure or deadlock is detected.
-                    DeadlockDetectedError: If an operational error occurs due to a deadlock.
-                    InternalError: If any other exception occurs during execution.
+                    DatabaseSerializationError: If a serialization failure is detected.
+                    DatabaseDeadlockError: If an operational error occurs due to a deadlock.
+                    DatabaseTransactionError: If a transaction-related error occurs.
+                    DatabaseQueryError: If a query-related error occurs.
+                    DatabaseConnectionError: If a connection-related error occurs.
+                    DatabaseConstraintError: If a constraint violation is detected.
+                    DatabaseIntegrityError: If an integrity violation is detected.
+                    DatabaseTimeoutError: If a database operation times out.
                 """
                 registry = get_registry()
                 session_manager: SessionManagerPort = registry.get_sync_manager()

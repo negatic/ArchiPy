@@ -10,7 +10,6 @@ class NetworkError(BaseError):
     def __init__(
         self,
         service: str | None = None,
-        error_details: str | None = None,
         lang: LanguageType = LanguageType.FA,
         error: ErrorDetailDTO = ErrorMessageType.NETWORK_ERROR.value,
         additional_data: dict | None = None,
@@ -18,8 +17,6 @@ class NetworkError(BaseError):
         data = {}
         if service:
             data["service"] = service
-        if error_details:
-            data["error_details"] = error_details
         if additional_data:
             data.update(additional_data)
         super().__init__(error, lang, data if data else None)
@@ -94,7 +91,6 @@ class BadGatewayError(BaseError):
     def __init__(
         self,
         gateway: str | None = None,
-        error_details: str | None = None,
         lang: LanguageType = LanguageType.FA,
         error: ErrorDetailDTO = ErrorMessageType.BAD_GATEWAY.value,
         additional_data: dict | None = None,
@@ -102,8 +98,6 @@ class BadGatewayError(BaseError):
         data = {}
         if gateway:
             data["gateway"] = gateway
-        if error_details:
-            data["error_details"] = error_details
         if additional_data:
             data.update(additional_data)
         super().__init__(error, lang, data if data else None)

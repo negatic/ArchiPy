@@ -490,6 +490,14 @@ class ErrorMessageType(Enum):
     )
 
     # Database & Storage Errors
+    DATABASE_ERROR = ErrorDetailDTO.create_error_detail(
+        code="DATABASE_ERROR",
+        message_en="Database error occurred",
+        message_fa="خطای پایگاه داده رخ داده است",
+        http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INTERNAL if GRPC_AVAILABLE else None,
+    )
+
     DATABASE_CONNECTION_ERROR = ErrorDetailDTO.create_error_detail(
         code="DATABASE_CONNECTION_ERROR",
         message_en="Failed to connect to the database",
@@ -514,9 +522,57 @@ class ErrorMessageType(Enum):
         grpc_status=StatusCode.INTERNAL if GRPC_AVAILABLE else None,
     )
 
+    DATABASE_TIMEOUT_ERROR = ErrorDetailDTO.create_error_detail(
+        code="DATABASE_TIMEOUT_ERROR",
+        message_en="Database operation timed out",
+        message_fa="عملیات پایگاه داده با تایم‌اوت مواجه شد",
+        http_status=HTTPStatus.REQUEST_TIMEOUT if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.DEADLINE_EXCEEDED if GRPC_AVAILABLE else None,
+    )
+
+    DATABASE_CONSTRAINT_ERROR = ErrorDetailDTO.create_error_detail(
+        code="DATABASE_CONSTRAINT_ERROR",
+        message_en="Database constraint violation",
+        message_fa="نقض محدودیت پایگاه داده",
+        http_status=HTTPStatus.CONFLICT if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.FAILED_PRECONDITION if GRPC_AVAILABLE else None,
+    )
+
+    DATABASE_INTEGRITY_ERROR = ErrorDetailDTO.create_error_detail(
+        code="DATABASE_INTEGRITY_ERROR",
+        message_en="Database integrity violation",
+        message_fa="نقض یکپارچگی پایگاه داده",
+        http_status=HTTPStatus.CONFLICT if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.FAILED_PRECONDITION if GRPC_AVAILABLE else None,
+    )
+
+    DATABASE_DEADLOCK_ERROR = ErrorDetailDTO.create_error_detail(
+        code="DATABASE_DEADLOCK_ERROR",
+        message_en="Database deadlock detected",
+        message_fa="قفل‌شدگی پایگاه داده تشخیص داده شد",
+        http_status=HTTPStatus.CONFLICT if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.ABORTED if GRPC_AVAILABLE else None,
+    )
+
+    DATABASE_SERIALIZATION_ERROR = ErrorDetailDTO.create_error_detail(
+        code="DATABASE_SERIALIZATION_ERROR",
+        message_en="Database serialization failure",
+        message_fa="خطای سریال‌سازی پایگاه داده",
+        http_status=HTTPStatus.CONFLICT if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.ABORTED if GRPC_AVAILABLE else None,
+    )
+
+    DATABASE_CONFIGURATION_ERROR = ErrorDetailDTO.create_error_detail(
+        code="DATABASE_CONFIGURATION_ERROR",
+        message_en="Database configuration error",
+        message_fa="خطای پیکربندی پایگاه داده",
+        http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,
+        grpc_status=StatusCode.INTERNAL if GRPC_AVAILABLE else None,
+    )
+
     STORAGE_ERROR = ErrorDetailDTO.create_error_detail(
         code="STORAGE_ERROR",
-        message_en="Error accessing storage",
+        message_en="Storage access error occurred",
         message_fa="خطا در دسترسی به فضای ذخیره‌سازی",
         http_status=HTTPStatus.INTERNAL_SERVER_ERROR if HTTP_AVAILABLE else None,
         grpc_status=StatusCode.INTERNAL if GRPC_AVAILABLE else None,

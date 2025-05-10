@@ -104,15 +104,11 @@ class DataLossError(BaseError):
 
     def __init__(
         self,
-        details: str | None = None,
         lang: LanguageType = LanguageType.FA,
         error: ErrorDetailDTO = ErrorMessageType.DATA_LOSS.value,
         additional_data: dict | None = None,
     ) -> None:
-        data = {"details": details} if details else {}
-        if additional_data:
-            data.update(additional_data)
-        super().__init__(error, lang, data if data else None)
+        super().__init__(error, lang, additional_data)
 
 
 class InvalidEntityTypeError(BaseError):
@@ -120,16 +116,23 @@ class InvalidEntityTypeError(BaseError):
 
     def __init__(
         self,
-        entity_type: object | None = None,
-        expected_type: type | None = None,
+        message: str | None = None,
+        expected_type: str | None = None,
+        actual_type: str | None = None,
         lang: LanguageType = LanguageType.FA,
         error: ErrorDetailDTO = ErrorMessageType.INVALID_ENTITY_TYPE.value,
         additional_data: dict | None = None,
     ) -> None:
-        data = {"entity_type": entity_type, "expected_type": expected_type}
+        data = {}
+        if message:
+            data["message"] = message
+        if expected_type:
+            data["expected_type"] = expected_type
+        if actual_type:
+            data["actual_type"] = actual_type
         if additional_data:
             data.update(additional_data)
-        super().__init__(error, lang, data)
+        super().__init__(error, lang, data if data else None)
 
 
 class FileTooLargeError(BaseError):

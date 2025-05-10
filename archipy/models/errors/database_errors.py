@@ -4,34 +4,44 @@ from archipy.models.types.error_message_types import ErrorMessageType
 from archipy.models.types.language_type import LanguageType
 
 
-class DatabaseConnectionError(BaseError):
-    """Exception raised for database connection errors."""
+class DatabaseError(BaseError):
+    """Base class for all database-related errors."""
 
     def __init__(
         self,
         database: str | None = None,
-        error_details: str | None = None,
         lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ErrorMessageType.DATABASE_CONNECTION_ERROR.value,
+        error: ErrorDetailDTO = ErrorMessageType.DATABASE_ERROR.value,
         additional_data: dict | None = None,
     ) -> None:
         data = {}
         if database:
             data["database"] = database
-        if error_details:
-            data["error_details"] = error_details
         if additional_data:
             data.update(additional_data)
         super().__init__(error, lang, data if data else None)
 
 
-class DatabaseQueryError(BaseError):
+class DatabaseConnectionError(DatabaseError):
+    """Exception raised for database connection errors."""
+
+    def __init__(
+        self,
+        database: str | None = None,
+        lang: LanguageType = LanguageType.FA,
+        error: ErrorDetailDTO = ErrorMessageType.DATABASE_CONNECTION_ERROR.value,
+        additional_data: dict | None = None,
+    ) -> None:
+        super().__init__(database, lang, error, additional_data)
+
+
+class DatabaseQueryError(DatabaseError):
     """Exception raised for database query errors."""
 
     def __init__(
         self,
+        database: str | None = None,
         query: str | None = None,
-        error_details: str | None = None,
         lang: LanguageType = LanguageType.FA,
         error: ErrorDetailDTO = ErrorMessageType.DATABASE_QUERY_ERROR.value,
         additional_data: dict | None = None,
@@ -39,20 +49,18 @@ class DatabaseQueryError(BaseError):
         data = {}
         if query:
             data["query"] = query
-        if error_details:
-            data["error_details"] = error_details
         if additional_data:
             data.update(additional_data)
-        super().__init__(error, lang, data if data else None)
+        super().__init__(database, lang, error, data if data else None)
 
 
-class DatabaseTransactionError(BaseError):
+class DatabaseTransactionError(DatabaseError):
     """Exception raised for database transaction errors."""
 
     def __init__(
         self,
+        database: str | None = None,
         transaction_id: str | None = None,
-        error_details: str | None = None,
         lang: LanguageType = LanguageType.FA,
         error: ErrorDetailDTO = ErrorMessageType.DATABASE_TRANSACTION_ERROR.value,
         additional_data: dict | None = None,
@@ -60,11 +68,99 @@ class DatabaseTransactionError(BaseError):
         data = {}
         if transaction_id:
             data["transaction_id"] = transaction_id
-        if error_details:
-            data["error_details"] = error_details
         if additional_data:
             data.update(additional_data)
-        super().__init__(error, lang, data if data else None)
+        super().__init__(database, lang, error, data if data else None)
+
+
+class DatabaseTimeoutError(DatabaseError):
+    """Exception raised for database timeout errors."""
+
+    def __init__(
+        self,
+        database: str | None = None,
+        timeout: int | None = None,
+        lang: LanguageType = LanguageType.FA,
+        error: ErrorDetailDTO = ErrorMessageType.DATABASE_TIMEOUT_ERROR.value,
+        additional_data: dict | None = None,
+    ) -> None:
+        data = {}
+        if timeout:
+            data["timeout"] = timeout
+        if additional_data:
+            data.update(additional_data)
+        super().__init__(database, lang, error, data if data else None)
+
+
+class DatabaseConstraintError(DatabaseError):
+    """Exception raised for database constraint violations."""
+
+    def __init__(
+        self,
+        database: str | None = None,
+        constraint: str | None = None,
+        lang: LanguageType = LanguageType.FA,
+        error: ErrorDetailDTO = ErrorMessageType.DATABASE_CONSTRAINT_ERROR.value,
+        additional_data: dict | None = None,
+    ) -> None:
+        data = {}
+        if constraint:
+            data["constraint"] = constraint
+        if additional_data:
+            data.update(additional_data)
+        super().__init__(database, lang, error, data if data else None)
+
+
+class DatabaseIntegrityError(DatabaseError):
+    """Exception raised for database integrity violations."""
+
+    def __init__(
+        self,
+        database: str | None = None,
+        lang: LanguageType = LanguageType.FA,
+        error: ErrorDetailDTO = ErrorMessageType.DATABASE_INTEGRITY_ERROR.value,
+        additional_data: dict | None = None,
+    ) -> None:
+        super().__init__(database, lang, error, additional_data)
+
+
+class DatabaseDeadlockError(DatabaseError):
+    """Exception raised for database deadlock errors."""
+
+    def __init__(
+        self,
+        database: str | None = None,
+        lang: LanguageType = LanguageType.FA,
+        error: ErrorDetailDTO = ErrorMessageType.DATABASE_DEADLOCK_ERROR.value,
+        additional_data: dict | None = None,
+    ) -> None:
+        super().__init__(database, lang, error, additional_data)
+
+
+class DatabaseSerializationError(DatabaseError):
+    """Exception raised for database serialization errors."""
+
+    def __init__(
+        self,
+        database: str | None = None,
+        lang: LanguageType = LanguageType.FA,
+        error: ErrorDetailDTO = ErrorMessageType.DATABASE_SERIALIZATION_ERROR.value,
+        additional_data: dict | None = None,
+    ) -> None:
+        super().__init__(database, lang, error, additional_data)
+
+
+class DatabaseConfigurationError(DatabaseError):
+    """Exception raised for database configuration errors."""
+
+    def __init__(
+        self,
+        database: str | None = None,
+        lang: LanguageType = LanguageType.FA,
+        error: ErrorDetailDTO = ErrorMessageType.DATABASE_CONFIGURATION_ERROR.value,
+        additional_data: dict | None = None,
+    ) -> None:
+        super().__init__(database, lang, error, additional_data)
 
 
 class StorageError(BaseError):
@@ -73,7 +169,6 @@ class StorageError(BaseError):
     def __init__(
         self,
         storage_type: str | None = None,
-        error_details: str | None = None,
         lang: LanguageType = LanguageType.FA,
         error: ErrorDetailDTO = ErrorMessageType.STORAGE_ERROR.value,
         additional_data: dict | None = None,
@@ -81,8 +176,6 @@ class StorageError(BaseError):
         data = {}
         if storage_type:
             data["storage_type"] = storage_type
-        if error_details:
-            data["error_details"] = error_details
         if additional_data:
             data.update(additional_data)
         super().__init__(error, lang, data if data else None)
@@ -94,7 +187,6 @@ class CacheError(BaseError):
     def __init__(
         self,
         cache_type: str | None = None,
-        error_details: str | None = None,
         lang: LanguageType = LanguageType.FA,
         error: ErrorDetailDTO = ErrorMessageType.CACHE_ERROR.value,
         additional_data: dict | None = None,
@@ -102,8 +194,6 @@ class CacheError(BaseError):
         data = {}
         if cache_type:
             data["cache_type"] = cache_type
-        if error_details:
-            data["error_details"] = error_details
         if additional_data:
             data.update(additional_data)
         super().__init__(error, lang, data if data else None)

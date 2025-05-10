@@ -9,15 +9,11 @@ class InternalError(BaseError):
 
     def __init__(
         self,
-        error_details: str | None = None,
         lang: LanguageType = LanguageType.FA,
         error: ErrorDetailDTO = ErrorMessageType.INTERNAL_ERROR.value,
         additional_data: dict | None = None,
     ) -> None:
-        data = {"error_details": error_details} if error_details else {}
-        if additional_data:
-            data.update(additional_data)
-        super().__init__(error, lang, data if data else None)
+        super().__init__(error, lang, additional_data)
 
 
 class UnknownError(BaseError):
@@ -25,15 +21,12 @@ class UnknownError(BaseError):
 
     def __init__(
         self,
-        error_details: str | None = None,
         error_code: str | None = None,
         lang: LanguageType = LanguageType.FA,
         error: ErrorDetailDTO = ErrorMessageType.UNKNOWN_ERROR.value,
         additional_data: dict | None = None,
     ) -> None:
         data = {}
-        if error_details:
-            data["error_details"] = error_details
         if error_code:
             data["error_code"] = error_code
         if additional_data:
@@ -68,7 +61,6 @@ class DeadlockDetectedError(BaseError):
     def __init__(
         self,
         resource_type: str | None = None,
-        deadlock_details: str | None = None,
         lang: LanguageType = LanguageType.FA,
         error: ErrorDetailDTO = ErrorMessageType.DEADLOCK.value,
         additional_data: dict | None = None,
@@ -76,8 +68,6 @@ class DeadlockDetectedError(BaseError):
         data = {}
         if resource_type:
             data["resource_type"] = resource_type
-        if deadlock_details:
-            data["deadlock_details"] = deadlock_details
         if additional_data:
             data.update(additional_data)
         super().__init__(error, lang, data if data else None)
@@ -89,7 +79,6 @@ class ConfigurationError(BaseError):
     def __init__(
         self,
         config_key: str | None = None,
-        error_details: str | None = None,
         lang: LanguageType = LanguageType.FA,
         error: ErrorDetailDTO = ErrorMessageType.CONFIGURATION_ERROR.value,
         additional_data: dict | None = None,
@@ -97,8 +86,6 @@ class ConfigurationError(BaseError):
         data = {}
         if config_key:
             data["config_key"] = config_key
-        if error_details:
-            data["error_details"] = error_details
         if additional_data:
             data.update(additional_data)
         super().__init__(error, lang, data if data else None)
@@ -110,7 +97,6 @@ class ResourceExhaustedError(BaseError):
     def __init__(
         self,
         resource_type: str | None = None,
-        error_details: str | None = None,
         lang: LanguageType = LanguageType.FA,
         error: ErrorDetailDTO = ErrorMessageType.RESOURCE_EXHAUSTED.value,
         additional_data: dict | None = None,
@@ -118,8 +104,6 @@ class ResourceExhaustedError(BaseError):
         data = {}
         if resource_type:
             data["resource_type"] = resource_type
-        if error_details:
-            data["error_details"] = error_details
         if additional_data:
             data.update(additional_data)
         super().__init__(error, lang, data if data else None)

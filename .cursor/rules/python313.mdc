@@ -1,8 +1,49 @@
---
+---
 description:
 globs:
 alwaysApply: true
 ---
-i use python 3.13 therefore
-don`t use Optional, use | None
-don`t use Dict, Tuple, Set and ... use dict, tuple, set and ...
+# Python 3.13 Type Hints Rule
+
+Use modern Python 3.13 type hints and avoid deprecated typing patterns. This ensures type safety and better IDE support.
+
+Examples:
+```python
+# Good - Using modern type hints
+from typing import Any, override
+from uuid import UUID
+
+def get_by_uuid(self, entity_type: type, entity_uuid: UUID) -> BaseEntity | None:
+    ...
+
+# Good - Using override decorator
+@override
+async def create(self, entity: BaseEntity) -> BaseEntity | None:
+    ...
+
+# Bad - Using deprecated typing patterns
+from typing import Optional, Union, Type
+
+def get_by_uuid(self, entity_type: Type, entity_uuid: UUID) -> Optional[BaseEntity]:
+    ...
+
+# Bad - Not using override decorator
+async def create(self, entity: BaseEntity) -> BaseEntity | None:
+    ...
+```
+
+Key points:
+- Use `|` for union types instead of `Union`
+- Use lowercase built-in types instead of capitalized ones
+- Use `override` decorator for interface implementations
+- Use `type` instead of `Type` for class types
+- Use `Any` for truly dynamic types
+- Avoid using `Optional` - use `| None` instead
+- Use `override` to ensure interface compliance
+- Keep type hints simple and readable
+- Use `X | Y` in `isinstance` call instead of `(X, Y)`
+
+globs:
+alwaysApply: true
+---
+Use modern Python 3.13 type hints and avoid deprecated typing patterns

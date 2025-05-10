@@ -2,14 +2,14 @@ from typing import override
 
 from archipy.adapters.base.sqlalchemy.adapters import AsyncBaseSQLAlchemyAdapter, BaseSQLAlchemyAdapter
 from archipy.adapters.sqlite.sqlalchemy.session_managers import (
-    AsyncSqliteSQlAlchemySessionManager,
-    SqliteSQlAlchemySessionManager,
+    AsyncSQLiteSQLAlchemySessionManager,
+    SQLiteSQLAlchemySessionManager,
 )
 from archipy.configs.base_config import BaseConfig
-from archipy.configs.config_template import SqliteSQLAlchemyConfig
+from archipy.configs.config_template import SQLiteSQLAlchemyConfig
 
 
-class SqliteSQLAlchemyAdapter(BaseSQLAlchemyAdapter):
+class SQLiteSQLAlchemyAdapter(BaseSQLAlchemyAdapter):
     """Synchronous SQLAlchemy adapter for SQLite.
 
     Inherits from BaseSQLAlchemyAdapter to provide SQLite-specific session management
@@ -19,7 +19,7 @@ class SqliteSQLAlchemyAdapter(BaseSQLAlchemyAdapter):
         orm_config: SQLite-specific configuration. If None, uses global config.
     """
 
-    def __init__(self, orm_config: SqliteSQLAlchemyConfig | None = None) -> None:
+    def __init__(self, orm_config: SQLiteSQLAlchemyConfig | None = None) -> None:
         """Initialize the SQLite adapter with a session manager.
 
         Args:
@@ -29,7 +29,7 @@ class SqliteSQLAlchemyAdapter(BaseSQLAlchemyAdapter):
         super().__init__(configs)
 
     @override
-    def _create_session_manager(self, configs: SqliteSQLAlchemyConfig) -> SqliteSQlAlchemySessionManager:
+    def _create_session_manager(self, configs: SQLiteSQLAlchemyConfig) -> SQLiteSQLAlchemySessionManager:
         """Create a SQLite-specific session manager.
 
         Args:
@@ -38,10 +38,10 @@ class SqliteSQLAlchemyAdapter(BaseSQLAlchemyAdapter):
         Returns:
             A SQLite session manager instance.
         """
-        return SqliteSQlAlchemySessionManager(configs)
+        return SQLiteSQLAlchemySessionManager(configs)
 
 
-class AsyncSqliteSQLAlchemyAdapter(AsyncBaseSQLAlchemyAdapter):
+class AsyncSQLiteSQLAlchemyAdapter(AsyncBaseSQLAlchemyAdapter):
     """Asynchronous SQLAlchemy adapter for SQLite.
 
     Inherits from AsyncBaseSQLAlchemyAdapter to provide async SQLite-specific session
@@ -51,7 +51,7 @@ class AsyncSqliteSQLAlchemyAdapter(AsyncBaseSQLAlchemyAdapter):
         orm_config: SQLite-specific configuration. If None, uses global config.
     """
 
-    def __init__(self, orm_config: SqliteSQLAlchemyConfig | None = None) -> None:
+    def __init__(self, orm_config: SQLiteSQLAlchemyConfig | None = None) -> None:
         """Initialize the async SQLite adapter with a session manager.
 
         Args:
@@ -61,7 +61,7 @@ class AsyncSqliteSQLAlchemyAdapter(AsyncBaseSQLAlchemyAdapter):
         super().__init__(configs)
 
     @override
-    def _create_async_session_manager(self, configs: SqliteSQLAlchemyConfig) -> AsyncSqliteSQlAlchemySessionManager:
+    def _create_async_session_manager(self, configs: SQLiteSQLAlchemyConfig) -> AsyncSQLiteSQLAlchemySessionManager:
         """Create an async SQLite-specific session manager.
 
         Args:
@@ -70,4 +70,4 @@ class AsyncSqliteSQLAlchemyAdapter(AsyncBaseSQLAlchemyAdapter):
         Returns:
             An async SQLite session manager instance.
         """
-        return AsyncSqliteSQlAlchemySessionManager(configs)
+        return AsyncSQLiteSQLAlchemySessionManager(configs)

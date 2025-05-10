@@ -6,7 +6,7 @@ from archipy.adapters.starrocks.sqlalchemy.session_managers import (
     StarrocksSQlAlchemySessionManager,
 )
 from archipy.configs.base_config import BaseConfig
-from archipy.configs.config_template import StarrocksSQLAlchemyConfig
+from archipy.configs.config_template import StarRocksSQLAlchemyConfig
 
 
 class StarrocksSQLAlchemyAdapter(BaseSQLAlchemyAdapter):
@@ -19,7 +19,7 @@ class StarrocksSQLAlchemyAdapter(BaseSQLAlchemyAdapter):
         orm_config: Starrocks-specific configuration. If None, uses global config.
     """
 
-    def __init__(self, orm_config: StarrocksSQLAlchemyConfig | None = None) -> None:
+    def __init__(self, orm_config: StarRocksSQLAlchemyConfig | None = None) -> None:
         """Initialize the Starrocks adapter with a session manager.
 
         Args:
@@ -29,7 +29,7 @@ class StarrocksSQLAlchemyAdapter(BaseSQLAlchemyAdapter):
         super().__init__(configs)
 
     @override
-    def _create_session_manager(self, configs: StarrocksSQLAlchemyConfig) -> StarrocksSQlAlchemySessionManager:
+    def _create_session_manager(self, configs: StarRocksSQLAlchemyConfig) -> StarrocksSQlAlchemySessionManager:
         """Create a Starrocks-specific session manager.
 
         Args:
@@ -51,7 +51,7 @@ class AsyncStarrocksSQLAlchemyAdapter(AsyncBaseSQLAlchemyAdapter):
         orm_config: Starrocks-specific configuration. If None, uses global config.
     """
 
-    def __init__(self, orm_config: StarrocksSQLAlchemyConfig | None = None) -> None:
+    def __init__(self, orm_config: StarRocksSQLAlchemyConfig | None = None) -> None:
         """Initialize the async Starrocks adapter with a session manager.
 
         Args:
@@ -63,7 +63,7 @@ class AsyncStarrocksSQLAlchemyAdapter(AsyncBaseSQLAlchemyAdapter):
     @override
     def _create_async_session_manager(
         self,
-        configs: StarrocksSQLAlchemyConfig,
+        configs: StarRocksSQLAlchemyConfig,
     ) -> AsyncStarrocksSQlAlchemySessionManager:
         """Create an async Starrocks-specific session manager.
 

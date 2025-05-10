@@ -156,6 +156,7 @@ lint.ignore = [
     "ANN003", # Missing type annotation for **kwargs
     "ANN101", # Missing type annotation for self in method
     "ANN102", # Missing type annotation for cls in classmethod
+    "BLE001", # Do not catch blind exception: `Exception`
     "C901", # Function is too complex (McCabe complexity)
     "D100", # Missing docstring in public module
     "D104", # Missing docstring in public package

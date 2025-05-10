@@ -180,7 +180,6 @@ class InvalidJsonError(BaseError):
     def __init__(
         self,
         json_data: str | None = None,
-        error_details: str | None = None,
         lang: LanguageType = LanguageType.FA,
         error: ErrorDetailDTO = ErrorMessageType.INVALID_JSON.value,
         additional_data: dict | None = None,
@@ -188,8 +187,6 @@ class InvalidJsonError(BaseError):
         data = {}
         if json_data:
             data["json_data"] = json_data
-        if error_details:
-            data["error_details"] = error_details
         if additional_data:
             data.update(additional_data)
         super().__init__(error, lang, data if data else None)

@@ -26,8 +26,8 @@ from archipy.configs.config_template import (
     RedisConfig,
     SentryConfig,
     SQLAlchemyConfig,
-    SqliteSQLAlchemyConfig,
-    StarrocksSQLAlchemyConfig,
+    SQLiteSQLAlchemyConfig,
+    StarRocksSQLAlchemyConfig,
 )
 from archipy.configs.environment_type import EnvironmentType
 
@@ -153,9 +153,9 @@ class BaseConfig(BaseSettings, Generic[R]):
     REDIS: RedisConfig = RedisConfig()
     SENTRY: SentryConfig = SentryConfig()
     SQLALCHEMY: SQLAlchemyConfig = SQLAlchemyConfig()
-    STARROCKS_SQLALCHEMY: StarrocksSQLAlchemyConfig = StarrocksSQLAlchemyConfig()
+    STARROCKS_SQLALCHEMY: StarRocksSQLAlchemyConfig = StarRocksSQLAlchemyConfig()
     POSTGRES_SQLALCHEMY: PostgresSQLAlchemyConfig = PostgresSQLAlchemyConfig()
-    SQLITE_SQLALCHEMY: SqliteSQLAlchemyConfig = SqliteSQLAlchemyConfig()
+    SQLITE_SQLALCHEMY: SQLiteSQLAlchemyConfig = SQLiteSQLAlchemyConfig()
 
     def customize(self) -> None:
         """Customize configuration after loading.

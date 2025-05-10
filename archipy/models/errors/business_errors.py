@@ -31,7 +31,6 @@ class FailedPreconditionError(BaseError):
     def __init__(
         self,
         precondition: str | None = None,
-        details: str | None = None,
         lang: LanguageType = LanguageType.FA,
         error: ErrorDetailDTO = ErrorMessageType.FAILED_PRECONDITION.value,
         additional_data: dict | None = None,
@@ -39,8 +38,6 @@ class FailedPreconditionError(BaseError):
         data = {}
         if precondition:
             data["precondition"] = precondition
-        if details:
-            data["details"] = details
         if additional_data:
             data.update(additional_data)
         super().__init__(error, lang, data if data else None)
@@ -52,7 +49,6 @@ class BusinessRuleViolationError(BaseError):
     def __init__(
         self,
         rule: str | None = None,
-        details: str | None = None,
         lang: LanguageType = LanguageType.FA,
         error: ErrorDetailDTO = ErrorMessageType.BUSINESS_RULE_VIOLATION.value,
         additional_data: dict | None = None,
@@ -60,8 +56,6 @@ class BusinessRuleViolationError(BaseError):
         data = {}
         if rule:
             data["rule"] = rule
-        if details:
-            data["details"] = details
         if additional_data:
             data.update(additional_data)
         super().__init__(error, lang, data if data else None)
