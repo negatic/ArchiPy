@@ -510,6 +510,42 @@ class KeycloakAdapter(KeycloakPort):
             raise InternalError() from e
 
     @override
+    def create_client_role(self, client_id: str, role_name: str, description: str | None = None) -> dict[str, Any]:
+        """Create a new client role.
+
+        Args:
+            client_id: Client ID or client name
+            role_name: Role name
+            description: Optional role description
+
+        Returns:
+            Created role details
+
+        Raises:
+            ValueError: If role creation fails
+        """
+        # This is a write operation, no caching needed
+        try:
+            client_id = self.admin_adapter.get_client_id(client_id)
+
+            # Prepare role data
+            role_data = {"name": role_name}
+            if description:
+                role_data["description"] = description
+
+            # Create client role
+            self.admin_adapter.create_client_role(client_id, role_data)
+
+            # Clear related caches if they exist
+            if hasattr(self.get_client_roles_for_user, "clear_cache"):
+                self.get_client_roles_for_user.clear_cache()
+
+            # Return created role
+            return self.admin_adapter.get_client_role(client_id, role_name)
+        except KeycloakError as e:
+            raise InternalError() from e
+
+    @override
     def delete_realm_role(self, role_name: str) -> None:
         """Delete a realm role.
 
@@ -1464,6 +1500,42 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             raise InternalError() from e
         else:
             return created_role
+
+    @override
+    async def create_client_role(self, client_id: str, role_name: str, description: str | None = None) -> dict[str, Any]:
+        """Create a new client role.
+
+        Args:
+            client_id: Client ID or client name
+            role_name: Role name
+            description: Optional role description
+
+        Returns:
+            Created role details
+
+        Raises:
+            ValueError: If role creation fails
+        """
+        # This is a write operation, no caching needed
+        try:
+            client_id = await self.admin_adapter.a_get_client_id(client_id)
+
+            # Prepare role data
+            role_data = {"name": role_name}
+            if description:
+                role_data["description"] = description
+
+            # Create client role
+            await self.admin_adapter.a_create_client_role(client_id, role_data)
+
+            # Clear related caches if they exist
+            if hasattr(self.get_client_roles_for_user, "clear_cache"):
+                self.get_client_roles_for_user.clear_cache()
+
+            # Return created role
+            return await self.admin_adapter.a_get_client_role(client_id, role_name)
+        except KeycloakError as e:
+            raise InternalError() from e
 
     @override
     async def delete_realm_role(self, role_name: str) -> None:
