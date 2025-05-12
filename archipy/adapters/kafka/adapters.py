@@ -300,7 +300,6 @@ class KafkaConsumerAdapter(KafkaConsumerPort, KafkaExceptionHandlerMixin):
                 logger.debug("Message consumed", message)
                 message.set_value(message.value())
                 result_list.append(message)
-                self.commit(message, asynchronous=True)
         except Exception as e:
             self._handle_kafka_exception(e, "batch_consume")
         else:
