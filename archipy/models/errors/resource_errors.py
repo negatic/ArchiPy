@@ -205,3 +205,35 @@ class QuotaExceededError(BaseError):
         if additional_data:
             data.update(additional_data)
         super().__init__(error, lang, data if data else None)
+
+
+class ResourceExhaustedError(BaseError):
+    """Exception raised when a resource is exhausted."""
+
+    def __init__(
+        self,
+        resource_type: str | None = None,
+        lang: LanguageType = LanguageType.FA,
+        error: ErrorDetailDTO = ErrorMessageType.RESOURCE_EXHAUSTED.value,
+        additional_data: dict | None = None,
+    ) -> None:
+        data = {"resource_type": resource_type} if resource_type else {}
+        if additional_data:
+            data.update(additional_data)
+        super().__init__(error, lang, data if data else None)
+
+
+class StorageError(BaseError):
+    """Exception raised for storage-related errors."""
+
+    def __init__(
+        self,
+        storage_type: str | None = None,
+        lang: LanguageType = LanguageType.FA,
+        error: ErrorDetailDTO = ErrorMessageType.STORAGE_ERROR.value,
+        additional_data: dict | None = None,
+    ) -> None:
+        data = {"storage_type": storage_type} if storage_type else {}
+        if additional_data:
+            data.update(additional_data)
+        super().__init__(error, lang, data if data else None)

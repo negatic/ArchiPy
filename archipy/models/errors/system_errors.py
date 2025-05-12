@@ -91,24 +91,6 @@ class ConfigurationError(BaseError):
         super().__init__(error, lang, data if data else None)
 
 
-class ResourceExhaustedError(BaseError):
-    """Exception raised when system resources are exhausted."""
-
-    def __init__(
-        self,
-        resource_type: str | None = None,
-        lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ErrorMessageType.RESOURCE_EXHAUSTED.value,
-        additional_data: dict | None = None,
-    ) -> None:
-        data = {}
-        if resource_type:
-            data["resource_type"] = resource_type
-        if additional_data:
-            data.update(additional_data)
-        super().__init__(error, lang, data if data else None)
-
-
 class UnavailableError(BaseError):
     """Exception raised when a requested service or feature is unavailable."""
 

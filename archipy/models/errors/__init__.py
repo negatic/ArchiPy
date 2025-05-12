@@ -38,7 +38,6 @@ from archipy.models.errors.database_errors import (
     DatabaseSerializationError,
     DatabaseTimeoutError,
     DatabaseTransactionError,
-    StorageError,
 )
 from archipy.models.errors.network_errors import (
     BadGatewayError,
@@ -58,14 +57,15 @@ from archipy.models.errors.resource_errors import (
     NotFoundError,
     QuotaExceededError,
     ResourceBusyError,
+    ResourceExhaustedError,
     ResourceLockedError,
+    StorageError,
 )
 from archipy.models.errors.system_errors import (
     AbortedError,
     ConfigurationError,
     DeadlockDetectedError,
     InternalError,
-    ResourceExhaustedError,
     UnavailableError,
     UnknownError,
 )
@@ -122,6 +122,8 @@ __all__ = [
     "FileTooLargeError",
     "InvalidFileTypeError",
     "QuotaExceededError",
+    "ResourceExhaustedError",
+    "StorageError",
     # Network Errors
     "NetworkError",
     "ConnectionTimeoutError",
@@ -148,13 +150,11 @@ __all__ = [
     "DatabaseDeadlockError",
     "DatabaseSerializationError",
     "DatabaseConfigurationError",
-    "StorageError",
     "CacheError",
     "CacheMissError",
     # System Errors
     "InternalError",
     "ConfigurationError",
-    "ResourceExhaustedError",
     "UnavailableError",
     "UnknownError",
     "AbortedError",

@@ -163,24 +163,6 @@ class DatabaseConfigurationError(DatabaseError):
         super().__init__(database, lang, error, additional_data)
 
 
-class StorageError(BaseError):
-    """Exception raised for storage access errors."""
-
-    def __init__(
-        self,
-        storage_type: str | None = None,
-        lang: LanguageType = LanguageType.FA,
-        error: ErrorDetailDTO = ErrorMessageType.STORAGE_ERROR.value,
-        additional_data: dict | None = None,
-    ) -> None:
-        data = {}
-        if storage_type:
-            data["storage_type"] = storage_type
-        if additional_data:
-            data.update(additional_data)
-        super().__init__(error, lang, data if data else None)
-
-
 class CacheError(BaseError):
     """Exception raised for cache access errors."""
 
