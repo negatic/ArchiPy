@@ -34,7 +34,8 @@ logger = logging.getLogger(__name__)
 class MinioExceptionHandlerMixin:
     """Mixin class to handle MinIO/S3 exceptions in a consistent way."""
 
-    def _handle_s3_exception(self, exception: S3Error, operation: str) -> None:
+    @classmethod
+    def _handle_s3_exception(cls, exception: S3Error, operation: str) -> None:
         """Handle S3Error exceptions and map them to appropriate application errors.
 
         Args:
@@ -78,7 +79,8 @@ class MinioExceptionHandlerMixin:
         # Default: general storage error
         raise StorageError(additional_data={"operation": operation}) from exception
 
-    def _handle_general_exception(self, exception: Exception, component: str) -> None:
+    @classmethod
+    def _handle_general_exception(cls, exception: Exception, component: str) -> None:
         """Handle general exceptions by converting them to appropriate application errors.
 
         Args:

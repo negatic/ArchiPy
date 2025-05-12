@@ -38,11 +38,13 @@ class SQLAlchemyExceptionHandlerMixin:
     converting them to appropriate application-specific exceptions.
     """
 
-    def _handle_db_exception(self, exception: Exception) -> None:
+    @classmethod
+    def _handle_db_exception(cls, exception: Exception, db_name: str | None = None) -> None:
         """Handle database exceptions and raise appropriate errors.
 
         Args:
             exception: The exception to handle.
+            db_name: Optional database name for error context.
 
         Raises:
             DatabaseTimeoutError: If a timeout is detected.
@@ -52,9 +54,6 @@ class SQLAlchemyExceptionHandlerMixin:
             DatabaseConstraintError: If a constraint violation is detected.
             DatabaseQueryError: For other database errors.
         """
-        # Get the database name from the session manager
-        db_name = self.session_manager._get_database_name()
-
         if "timeout" in str(exception).lower():
             raise DatabaseTimeoutError(database=db_name) from exception
         if "integrity" in str(exception).lower():
@@ -263,7 +262,7 @@ class BaseSQLAlchemyAdapter(
             count_query = select(func.count()).select_from(query.subquery())
             total_count = session.execute(count_query).scalar_one()
         except Exception as e:
-            self._handle_db_exception(e)
+            self._handle_db_exception(e, self.session_manager._get_database_name())
         else:
             return results, total_count
 
@@ -310,7 +309,7 @@ class BaseSQLAlchemyAdapter(
             session.add(entity)
             session.flush()
         except Exception as e:
-            self._handle_db_exception(e)
+            self._handle_db_exception(e, self.session_manager._get_database_name())
         else:
             return entity
 
@@ -344,7 +343,7 @@ class BaseSQLAlchemyAdapter(
             session.add_all(entities)
             session.flush()
         except Exception as e:
-            self._handle_db_exception(e)
+            self._handle_db_exception(e, self.session_manager._get_database_name())
         else:
             return entities
 
@@ -377,7 +376,7 @@ class BaseSQLAlchemyAdapter(
             session = self.get_session()
             result = session.get(entity_type, entity_uuid)
         except Exception as e:
-            self._handle_db_exception(e)
+            self._handle_db_exception(e, self.session_manager._get_database_name())
         else:
             return result
 
@@ -408,7 +407,7 @@ class BaseSQLAlchemyAdapter(
             session.delete(entity)
             session.flush()
         except Exception as e:
-            self._handle_db_exception(e)
+            self._handle_db_exception(e, self.session_manager._get_database_name())
         else:
             return ...
 
@@ -440,7 +439,7 @@ class BaseSQLAlchemyAdapter(
                 session.delete(entity)
             session.flush()
         except Exception as e:
-            self._handle_db_exception(e)
+            self._handle_db_exception(e, self.session_manager._get_database_name())
         else:
             return ...
 
@@ -465,7 +464,7 @@ class BaseSQLAlchemyAdapter(
             session = self.get_session()
             result = session.execute(statement, params or {})
         except Exception as e:
-            self._handle_db_exception(e)
+            self._handle_db_exception(e, self.session_manager._get_database_name())
         else:
             return result
 
@@ -490,7 +489,7 @@ class BaseSQLAlchemyAdapter(
             session = self.get_session()
             result = session.scalars(statement, params or {})
         except Exception as e:
-            self._handle_db_exception(e)
+            self._handle_db_exception(e, self.session_manager._get_database_name())
         else:
             return result
 
@@ -568,7 +567,7 @@ class AsyncBaseSQLAlchemyAdapter(
             total_count = await session.execute(count_query)
             total_count = total_count.scalar_one()
         except Exception as e:
-            self._handle_db_exception(e)
+            self._handle_db_exception(e, self.session_manager._get_database_name())
         else:
             return results, total_count
 
@@ -615,7 +614,7 @@ class AsyncBaseSQLAlchemyAdapter(
             session.add(entity)
             await session.flush()
         except Exception as e:
-            self._handle_db_exception(e)
+            self._handle_db_exception(e, self.session_manager._get_database_name())
         else:
             return entity
 
@@ -649,7 +648,7 @@ class AsyncBaseSQLAlchemyAdapter(
             session.add_all(entities)
             await session.flush()
         except Exception as e:
-            self._handle_db_exception(e)
+            self._handle_db_exception(e, self.session_manager._get_database_name())
         else:
             return entities
 
@@ -682,7 +681,7 @@ class AsyncBaseSQLAlchemyAdapter(
             session = self.get_session()
             result = await session.get(entity_type, entity_uuid)
         except Exception as e:
-            self._handle_db_exception(e)
+            self._handle_db_exception(e, self.session_manager._get_database_name())
         else:
             return result
 
@@ -713,7 +712,7 @@ class AsyncBaseSQLAlchemyAdapter(
             await session.delete(entity)
             await session.flush()
         except Exception as e:
-            self._handle_db_exception(e)
+            self._handle_db_exception(e, self.session_manager._get_database_name())
         else:
             return ...
 
@@ -745,7 +744,7 @@ class AsyncBaseSQLAlchemyAdapter(
                 await session.delete(entity)
             await session.flush()
         except Exception as e:
-            self._handle_db_exception(e)
+            self._handle_db_exception(e, self.session_manager._get_database_name())
         else:
             return ...
 
@@ -770,7 +769,7 @@ class AsyncBaseSQLAlchemyAdapter(
             session = self.get_session()
             result = await session.execute(statement, params or {})
         except Exception as e:
-            self._handle_db_exception(e)
+            self._handle_db_exception(e, self.session_manager._get_database_name())
         else:
             return result
 
@@ -795,6 +794,6 @@ class AsyncBaseSQLAlchemyAdapter(
             session = self.get_session()
             result = await session.scalars(statement, params or {})
         except Exception as e:
-            self._handle_db_exception(e)
+            self._handle_db_exception(e, self.session_manager._get_database_name())
         else:
             return result

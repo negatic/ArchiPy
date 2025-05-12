@@ -21,7 +21,73 @@ from archipy.models.errors import (
 logger = logging.getLogger(__name__)
 
 
-class KafkaAdminAdapter(KafkaAdminPort):
+class KafkaExceptionHandlerMixin:
+    """Mixin class to handle Kafka exceptions in a consistent way."""
+
+    @classmethod
+    def _handle_kafka_exception(cls, exception: Exception, operation: str) -> None:
+        """Handle Kafka exceptions and map them to appropriate application errors.
+
+        Args:
+            exception: The original exception
+            operation: The name of the operation that failed
+
+        Raises:
+            Various application-specific errors based on the exception type/content
+        """
+        error_msg = str(exception).lower()
+
+        # Configuration errors
+        if "configuration" in error_msg:
+            raise ConfigurationError(config_key="kafka") from exception
+
+        # Invalid argument errors
+        if "invalid" in error_msg:
+            raise InvalidArgumentError(argument_name=operation) from exception
+
+        # Timeout errors
+        if "timeout" in error_msg:
+            # Extract timeout value if available
+            timeout = None
+            if hasattr(exception, "args") and len(exception.args) > 1:
+                try:
+                    timeout = int(exception.args[1])
+                except (IndexError, ValueError):
+                    pass
+            raise ConnectionTimeoutError(service="Kafka", timeout=timeout) from exception
+
+        # Network/connectivity errors
+        if "network" in error_msg:
+            raise NetworkError(service="Kafka") from exception
+
+        # Service availability errors
+        if "unavailable" in error_msg or "connection" in error_msg:
+            raise ServiceUnavailableError(service="Kafka") from exception
+
+        # Default: general internal error
+        raise InternalError(additional_data={"operation": operation}) from exception
+
+    @classmethod
+    def _handle_producer_exception(cls, exception: Exception, operation: str) -> None:
+        """Handle producer-specific exceptions.
+
+        Args:
+            exception: The original exception
+            operation: The name of the operation that failed
+
+        Raises:
+            ResourceExhaustedError: If the producer queue is full
+            Various other errors from _handle_kafka_exception
+        """
+        # Producer-specific error handling
+        if isinstance(exception, BufferError):
+            raise ResourceExhaustedError(resource_type="producer_queue") from exception
+
+        # Fall back to general Kafka error handling
+        cls._handle_kafka_exception(exception, operation)
+
+
+class KafkaAdminAdapter(KafkaAdminPort, KafkaExceptionHandlerMixin):
     """Synchronous Kafka admin adapter.
 
     This adapter provides synchronous administrative operations for Kafka topics.
@@ -55,10 +121,7 @@ class KafkaAdminAdapter(KafkaAdminPort):
                 }
             self.adapter: AdminClient = AdminClient(config)
         except Exception as e:
-            if "configuration" in str(e).lower():
-                raise ConfigurationError(config_key="kafka") from e
-            else:
-                raise InternalError(additional_data={"component": "KafkaAdmin"}) from e
+            self._handle_kafka_exception(e, "KafkaAdmin_init")
 
     @override
     def create_topic(self, topic: str, num_partitions: int = 1, replication_factor: int = 1) -> None:
@@ -78,13 +141,7 @@ class KafkaAdminAdapter(KafkaAdminPort):
             new_topic = NewTopic(topic, num_partitions, replication_factor)
             self.adapter.create_topics([new_topic])
         except Exception as e:
-            error_msg = str(e).lower()
-            if "invalid" in error_msg:
-                raise InvalidArgumentError(argument_name="topic or partition configuration") from e
-            elif "unavailable" in error_msg or "connection" in error_msg:
-                raise ServiceUnavailableError(service="Kafka") from e
-            else:
-                raise InternalError(additional_data={"topic": topic}) from e
+            self._handle_kafka_exception(e, "create_topic")
 
     @override
     def delete_topic(self, topics: list[str]) -> None:
@@ -102,13 +159,7 @@ class KafkaAdminAdapter(KafkaAdminPort):
             self.adapter.delete_topics(topics)
             logger.debug("Deleted topics", topics)
         except Exception as e:
-            error_msg = str(e).lower()
-            if "invalid" in error_msg:
-                raise InvalidArgumentError(argument_name="topics") from e
-            elif "unavailable" in error_msg or "connection" in error_msg:
-                raise ServiceUnavailableError(service="Kafka") from e
-            else:
-                raise InternalError(additional_data={"topics": topics}) from e
+            self._handle_kafka_exception(e, "delete_topic")
 
     @override
     def list_topics(
@@ -134,18 +185,12 @@ class KafkaAdminAdapter(KafkaAdminPort):
         try:
             result = self.adapter.list_topics(topic=topic, timeout=timeout)
         except Exception as e:
-            error_msg = str(e).lower()
-            if "timeout" in error_msg:
-                raise ConnectionTimeoutError(service="Kafka", timeout=timeout) from e
-            elif "unavailable" in error_msg or "connection" in error_msg:
-                raise ServiceUnavailableError(service="Kafka") from e
-            else:
-                raise UnavailableError(service="Kafka") from e
+            self._handle_kafka_exception(e, "list_topics")
         else:
             return result
 
 
-class KafkaConsumerAdapter(KafkaConsumerPort):
+class KafkaConsumerAdapter(KafkaConsumerPort, KafkaExceptionHandlerMixin):
     """Synchronous Kafka consumer adapter.
 
     This adapter provides synchronous message consumption from Kafka topics.
@@ -189,8 +234,8 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
                 additional_data={"reason": "Exactly one of topic_list or partition_list must be provided"},
             )
 
-    @staticmethod
-    def _get_adapter(group_id: str, configs: KafkaConfig) -> Consumer:
+    @classmethod
+    def _get_adapter(cls, group_id: str, configs: KafkaConfig) -> Consumer:
         """Creates and configures a Kafka Consumer instance.
 
         Args:
@@ -224,11 +269,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
                 }
             consumer = Consumer(config)
         except Exception as e:
-            error_msg = str(e).lower()
-            if "configuration" in error_msg:
-                raise ConfigurationError(config_key="kafka.consumer") from e
-            else:
-                raise InternalError(additional_data={"component": "KafkaConsumer"}) from e
+            cls._handle_kafka_exception(cls, e, "KafkaConsumer_init")
         else:
             return consumer
 
@@ -261,13 +302,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
                 result_list.append(message)
                 self.commit(message, asynchronous=True)
         except Exception as e:
-            error_msg = str(e).lower()
-            if "timeout" in error_msg:
-                raise ConnectionTimeoutError(service="Kafka", timeout=timeout) from e
-            elif "unavailable" in error_msg or "connection" in error_msg:
-                raise ServiceUnavailableError(service="Kafka") from e
-            else:
-                raise InternalError(additional_data={"operation": "batch_consume"}) from e
+            self._handle_kafka_exception(e, "batch_consume")
         else:
             return result_list
 
@@ -297,13 +332,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
             logger.debug("Message consumed", message)
             message.set_value(message.value())
         except Exception as e:
-            error_msg = str(e).lower()
-            if "timeout" in error_msg:
-                raise ConnectionTimeoutError(service="Kafka", timeout=timeout) from e
-            elif "unavailable" in error_msg or "connection" in error_msg:
-                raise ServiceUnavailableError(service="Kafka") from e
-            else:
-                raise InternalError(additional_data={"operation": "poll"}) from e
+            self._handle_kafka_exception(e, "poll")
         else:
             return message
 
@@ -330,13 +359,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
             else:
                 result = self._adapter.commit(message=message, asynchronous=False)
         except Exception as e:
-            error_msg = str(e).lower()
-            if "invalid" in error_msg:
-                raise InvalidArgumentError(argument_name="message") from e
-            elif "unavailable" in error_msg or "connection" in error_msg:
-                raise ServiceUnavailableError(service="Kafka") from e
-            else:
-                raise InternalError(additional_data={"operation": "commit"}) from e
+            self._handle_kafka_exception(e, "commit")
         else:
             return result
 
@@ -355,13 +378,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
         try:
             self._adapter.subscribe(topic_list)
         except Exception as e:
-            error_msg = str(e).lower()
-            if "invalid" in error_msg:
-                raise InvalidArgumentError(argument_name="topic_list") from e
-            elif "unavailable" in error_msg or "connection" in error_msg:
-                raise ServiceUnavailableError(service="Kafka") from e
-            else:
-                raise InternalError(additional_data={"topics": topic_list}) from e
+            self._handle_kafka_exception(e, "subscribe")
 
     @override
     def assign(self, partition_list: list[TopicPartition]) -> None:
@@ -378,16 +395,10 @@ class KafkaConsumerAdapter(KafkaConsumerPort):
         try:
             self._adapter.assign(partition_list)
         except Exception as e:
-            error_msg = str(e).lower()
-            if "invalid" in error_msg:
-                raise InvalidArgumentError(argument_name="partition_list") from e
-            elif "unavailable" in error_msg or "connection" in error_msg:
-                raise ServiceUnavailableError(service="Kafka") from e
-            else:
-                raise InternalError(additional_data={"operation": "assign"}) from e
+            self._handle_kafka_exception(e, "assign")
 
 
-class KafkaProducerAdapter(KafkaProducerPort):
+class KafkaProducerAdapter(KafkaProducerPort, KafkaExceptionHandlerMixin):
     """Synchronous Kafka producer adapter.
 
     This adapter provides synchronous message production to Kafka topics.
@@ -410,8 +421,8 @@ class KafkaProducerAdapter(KafkaProducerPort):
         configs: KafkaConfig = kafka_configs or BaseConfig.global_config().KAFKA
         self._adapter: Producer = self._get_adapter(configs)
 
-    @staticmethod
-    def _get_adapter(configs: KafkaConfig) -> Producer:
+    @classmethod
+    def _get_adapter(cls, configs: KafkaConfig) -> Producer:
         """Creates and configures a Kafka Producer instance.
 
         Args:
@@ -445,11 +456,7 @@ class KafkaProducerAdapter(KafkaProducerPort):
                 }
             producer = Producer(config)
         except Exception as e:
-            error_msg = str(e).lower()
-            if "configuration" in error_msg:
-                raise ConfigurationError(config_key="kafka.producer") from e
-            else:
-                raise InternalError(additional_data={"component": "KafkaProducer"}) from e
+            cls._handle_kafka_exception(cls, e, "KafkaProducer_init")
         else:
             return producer
 
@@ -508,14 +515,8 @@ class KafkaProducerAdapter(KafkaProducerPort):
                 value=processed_message,
                 callback=self._delivery_callback,
             )
-        except BufferError as e:
-            raise ResourceExhaustedError(resource_type="producer_queue") from e
         except Exception as e:
-            error_msg = str(e).lower()
-            if "network" in error_msg or "connection" in error_msg:
-                raise NetworkError(service="Kafka") from e
-            else:
-                raise InternalError(additional_data={"operation": "produce"}) from e
+            self._handle_producer_exception(e, "produce")
 
     @override
     def flush(self, timeout: int | None = None) -> None:
@@ -534,13 +535,7 @@ class KafkaProducerAdapter(KafkaProducerPort):
             if remaining_messages > 0:
                 logger.warning(f"{remaining_messages} messages left in the queue after flush")
         except Exception as e:
-            error_msg = str(e).lower()
-            if "timeout" in error_msg:
-                raise ConnectionTimeoutError(service="Kafka", timeout=timeout) from e
-            elif "unavailable" in error_msg or "connection" in error_msg:
-                raise ServiceUnavailableError(service="Kafka") from e
-            else:
-                raise InternalError(additional_data={"operation": "flush"}) from e
+            self._handle_kafka_exception(e, "flush")
 
     @override
     def validate_healthiness(self) -> None:
@@ -578,12 +573,6 @@ class KafkaProducerAdapter(KafkaProducerPort):
         try:
             result = self._adapter.list_topics(topic=topic, timeout=timeout)
         except Exception as e:
-            error_msg = str(e).lower()
-            if "timeout" in error_msg:
-                raise ConnectionTimeoutError(service="Kafka", timeout=timeout) from e
-            elif "unavailable" in error_msg or "connection" in error_msg:
-                raise ServiceUnavailableError(service="Kafka") from e
-            else:
-                raise UnavailableError(service="Kafka") from e
+            self._handle_kafka_exception(e, "list_topics")
         else:
             return result
