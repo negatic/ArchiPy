@@ -2,6 +2,14 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [3.0.1] - 2025-04-27
+
+### Fixed
+
+#### Code Quality
+
+- Fixed import error in module dependencies
+
 ## [3.0.0] - 2025-04-27
 
 ### Changed
