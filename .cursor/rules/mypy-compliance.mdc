@@ -1,10 +1,46 @@
----
-description:
-globs:
-alwaysApply: true
----
+# Rules to Enforce
 
-# Your rule content
+Type Annotations:
+   - Always include explicit type annotations for all function parameters, return types, and variables.
+   - Never use untyped function definitions or calls (e.g., avoid functions without parameter or return type annotations).
+   - Example: Instead of `def add(a, b): return a + b`, use `def add(a: int, b: int) -> int: return a + b`.
 
-- You can @ files here
-- You can use markdown but dont have to
+Pydantic Compatibility:
+   - When generating or editing code involving Pydantic models, ensure classes inherit from `pydantic.BaseModel` or use `pydantic.dataclasses`.
+   - Use type annotations compatible with Pydantic’s runtime validation (e.g., `str`, `int`, `list[str]`, etc.).
+   - Example: `class User(BaseModel): name: str; age: int`.
+
+Avoid `Any` Type:
+   - Avoid using `typing.Any` in generic types or elsewhere unless explicitly required.
+   - Prefer specific types (e.g., `list[str]` over `list[Any]`).
+
+Decorators:
+   - Ensure all decorators have type annotations or are compatible with typed functions.
+   - Avoid untyped decorators (e.g., custom decorators without `@wraps` or type hints).
+
+Return Statements:
+   - Ensure every function has an explicit return type annotation, even if it returns `None` (use `-> None`).
+   - Avoid missing return statements in non-`None`-returning functions to prevent `warn_no_return` errors.
+
+Python Version:
+   - Generate code compatible with Python 3.13 syntax and features.
+   - Avoid deprecated features or syntax not supported in Python 3.13.
+
+Code Quality:
+   - Avoid redundant casts (e.g., casting a variable to its already-known type).
+   - Ensure code is reachable to avoid `warn_unreachable` errors.
+   - Do not use unnecessary `# type: ignore` comments unless justified, and remove unused ones to satisfy `warn_unused_ignores`.
+
+Imports:
+   - Follow imports silently as per `follow_imports = "silent"`. Do not rely on implicit re-exports of types or modules.
+
+Error Prevention:
+   - Generate code that avoids incomplete type definitions (e.g., partial class or function annotations).
+   - Do not subclass `Any` or use it as a base class.
+
+Formatting:
+    - Generate clean, readable code that aligns with MyPy’s `pretty = true` output for error messages.
+
+Strict Optional Checking:
+    - Respect `strict_optional = true` by explicitly handling `Optional` types (e.g.,  `str | None` using Python 3.13’s union syntax).
+    - Ensure `None` checks are explicit in code logic.
