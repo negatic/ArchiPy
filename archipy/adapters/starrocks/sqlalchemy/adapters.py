@@ -2,8 +2,8 @@ from typing import override
 
 from archipy.adapters.base.sqlalchemy.adapters import AsyncBaseSQLAlchemyAdapter, BaseSQLAlchemyAdapter
 from archipy.adapters.starrocks.sqlalchemy.session_managers import (
-    AsyncStarrocksSQlAlchemySessionManager,
-    StarrocksSQlAlchemySessionManager,
+    AsyncStarRocksSQlAlchemySessionManager,
+    StarRocksSQlAlchemySessionManager,
 )
 from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import StarRocksSQLAlchemyConfig
@@ -29,7 +29,7 @@ class StarrocksSQLAlchemyAdapter(BaseSQLAlchemyAdapter):
         super().__init__(configs)
 
     @override
-    def _create_session_manager(self, configs: StarRocksSQLAlchemyConfig) -> StarrocksSQlAlchemySessionManager:
+    def _create_session_manager(self, configs: StarRocksSQLAlchemyConfig) -> StarRocksSQlAlchemySessionManager:
         """Create a Starrocks-specific session manager.
 
         Args:
@@ -38,7 +38,7 @@ class StarrocksSQLAlchemyAdapter(BaseSQLAlchemyAdapter):
         Returns:
             A Starrocks session manager instance.
         """
-        return StarrocksSQlAlchemySessionManager(configs)
+        return StarRocksSQlAlchemySessionManager(configs)
 
 
 class AsyncStarrocksSQLAlchemyAdapter(AsyncBaseSQLAlchemyAdapter):
@@ -64,7 +64,7 @@ class AsyncStarrocksSQLAlchemyAdapter(AsyncBaseSQLAlchemyAdapter):
     def _create_async_session_manager(
         self,
         configs: StarRocksSQLAlchemyConfig,
-    ) -> AsyncStarrocksSQlAlchemySessionManager:
+    ) -> AsyncStarRocksSQlAlchemySessionManager:
         """Create an async Starrocks-specific session manager.
 
         Args:
@@ -73,4 +73,4 @@ class AsyncStarrocksSQLAlchemyAdapter(AsyncBaseSQLAlchemyAdapter):
         Returns:
             An async Starrocks session manager instance.
         """
-        return AsyncStarrocksSQlAlchemySessionManager(configs)
+        return AsyncStarRocksSQlAlchemySessionManager(configs)
