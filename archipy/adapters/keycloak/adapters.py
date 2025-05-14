@@ -1547,7 +1547,9 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             return created_role
 
     @override
-    async def create_client_role(self, client_id: str, role_name: str, description: str | None = None) -> dict[str, Any]:
+    async def create_client_role(
+        self, client_id: str, role_name: str, description: str | None = None
+    ) -> dict[str, Any]:
         """Create a new client role.
 
         Args:
