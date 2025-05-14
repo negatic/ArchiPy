@@ -3,6 +3,7 @@ from asyncio import current_task
 from typing import override
 
 from sqlalchemy import URL, Engine, create_engine
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -14,7 +15,12 @@ from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from archipy.adapters.base.sqlalchemy.session_manager_ports import AsyncSessionManagerPort, SessionManagerPort
 from archipy.configs.config_template import SQLAlchemyConfig
-from archipy.models.errors.custom_errors import InvalidArgumentError
+from archipy.models.errors import (
+    DatabaseConfigurationError,
+    DatabaseConnectionError,
+    DatabaseError,
+    InvalidArgumentError,
+)
 
 
 class BaseSQLAlchemySessionManager(SessionManagerPort):
@@ -36,13 +42,24 @@ class BaseSQLAlchemySessionManager(SessionManagerPort):
 
         Raises:
             InvalidArgumentError: If the configuration type is invalid.
+            DatabaseConnectionError: If there's an error creating the database connection.
+            DatabaseConfigurationError: If there's an error in the database configuration.
         """
         if not isinstance(orm_config, self._expected_config_type()):
             raise InvalidArgumentError(
                 f"Expected {self._expected_config_type().__name__}, got {type(orm_config).__name__}",
             )
-        self.engine = self._create_engine(orm_config)
-        self._session_generator = self._get_session_generator()
+        try:
+            self.engine = self._create_engine(orm_config)
+            self._session_generator = self._get_session_generator()
+        except SQLAlchemyError as e:
+            if "configuration" in str(e).lower():
+                raise DatabaseConfigurationError(
+                    database=self._get_database_name(),
+                ) from e
+            raise DatabaseConnectionError(
+                database=self._get_database_name(),
+            ) from e
 
     @abstractmethod
     def _expected_config_type(self) -> type[SQLAlchemyConfig]:
@@ -50,6 +67,15 @@ class BaseSQLAlchemySessionManager(SessionManagerPort):
 
         Returns:
             The SQLAlchemy configuration class expected by this session manager.
+        """
+        pass
+
+    @abstractmethod
+    def _get_database_name(self) -> str:
+        """Return the name of the database being used.
+
+        Returns:
+            str: The name of the database (e.g., 'postgresql', 'sqlite', 'starrocks').
         """
         pass
 
@@ -61,25 +87,38 @@ class BaseSQLAlchemySessionManager(SessionManagerPort):
 
         Returns:
             A configured SQLAlchemy engine.
+
+        Raises:
+            DatabaseConnectionError: If there's an error creating the engine.
+            DatabaseConfigurationError: If there's an error in the database configuration.
         """
-        url = self._create_url(configs)
-        return create_engine(
-            url,
-            isolation_level=configs.ISOLATION_LEVEL,
-            echo=configs.ECHO,
-            echo_pool=configs.ECHO_POOL,
-            enable_from_linting=configs.ENABLE_FROM_LINTING,
-            hide_parameters=configs.HIDE_PARAMETERS,
-            pool_pre_ping=configs.POOL_PRE_PING,
-            pool_size=configs.POOL_SIZE,
-            pool_recycle=configs.POOL_RECYCLE_SECONDS,
-            pool_reset_on_return=configs.POOL_RESET_ON_RETURN,
-            pool_timeout=configs.POOL_TIMEOUT,
-            pool_use_lifo=configs.POOL_USE_LIFO,
-            query_cache_size=configs.QUERY_CACHE_SIZE,
-            max_overflow=configs.POOL_MAX_OVERFLOW,
-            connect_args=self._get_connect_args(),
-        )
+        try:
+            url = self._create_url(configs)
+            return create_engine(
+                url,
+                isolation_level=configs.ISOLATION_LEVEL,
+                echo=configs.ECHO,
+                echo_pool=configs.ECHO_POOL,
+                enable_from_linting=configs.ENABLE_FROM_LINTING,
+                hide_parameters=configs.HIDE_PARAMETERS,
+                pool_pre_ping=configs.POOL_PRE_PING,
+                pool_size=configs.POOL_SIZE,
+                pool_recycle=configs.POOL_RECYCLE_SECONDS,
+                pool_reset_on_return=configs.POOL_RESET_ON_RETURN,
+                pool_timeout=configs.POOL_TIMEOUT,
+                pool_use_lifo=configs.POOL_USE_LIFO,
+                query_cache_size=configs.QUERY_CACHE_SIZE,
+                max_overflow=configs.POOL_MAX_OVERFLOW,
+                connect_args=self._get_connect_args(),
+            )
+        except SQLAlchemyError as e:
+            if "configuration" in str(e).lower():
+                raise DatabaseConfigurationError(
+                    database=self._get_database_name(),
+                ) from e
+            raise DatabaseConnectionError(
+                database=self._get_database_name(),
+            ) from e
 
     @abstractmethod
     def _create_url(self, configs: SQLAlchemyConfig) -> URL:
@@ -90,6 +129,9 @@ class BaseSQLAlchemySessionManager(SessionManagerPort):
 
         Returns:
             A SQLAlchemy URL object for the database.
+
+        Raises:
+            DatabaseConfigurationError: If there's an error in the database configuration.
         """
         pass
 
@@ -106,9 +148,21 @@ class BaseSQLAlchemySessionManager(SessionManagerPort):
 
         Returns:
             A scoped_session instance used by `get_session` to provide thread-safe sessions.
+
+        Raises:
+            DatabaseConfigurationError: If there's an error in the database configuration.
         """
-        session_maker = sessionmaker(self.engine)
-        return scoped_session(session_maker)
+        try:
+            session_maker = sessionmaker(self.engine)
+            return scoped_session(session_maker)
+        except SQLAlchemyError as e:
+            if "configuration" in str(e).lower():
+                raise DatabaseConfigurationError(
+                    database=self._get_database_name(),
+                ) from e
+            raise DatabaseError(
+                database=self._get_database_name(),
+            ) from e
 
     @override
     def get_session(self) -> Session:
@@ -116,8 +170,21 @@ class BaseSQLAlchemySessionManager(SessionManagerPort):
 
         Returns:
             Session: A SQLAlchemy session instance for database operations.
+
+        Raises:
+            DatabaseConnectionError: If there's an error creating the session.
+            DatabaseConfigurationError: If there's an error in the database configuration.
         """
-        return self._session_generator()  # type: ignore[no-any-return]
+        try:
+            return self._session_generator()  # type: ignore[no-any-return]
+        except SQLAlchemyError as e:
+            if "configuration" in str(e).lower():
+                raise DatabaseConfigurationError(
+                    database=self._get_database_name(),
+                ) from e
+            raise DatabaseConnectionError(
+                database=self._get_database_name(),
+            ) from e
 
     @override
     def remove_session(self) -> None:
@@ -125,8 +192,21 @@ class BaseSQLAlchemySessionManager(SessionManagerPort):
 
         Cleans up the session to prevent resource leaks, typically called at the end
         of a request.
+
+        Raises:
+            DatabaseConnectionError: If there's an error removing the session.
+            DatabaseConfigurationError: If there's an error in the database configuration.
         """
-        self._session_generator.remove()
+        try:
+            self._session_generator.remove()
+        except SQLAlchemyError as e:
+            if "configuration" in str(e).lower():
+                raise DatabaseConfigurationError(
+                    database=self._get_database_name(),
+                ) from e
+            raise DatabaseConnectionError(
+                database=self._get_database_name(),
+            ) from e
 
 
 class AsyncBaseSQLAlchemySessionManager(AsyncSessionManagerPort):
@@ -148,13 +228,24 @@ class AsyncBaseSQLAlchemySessionManager(AsyncSessionManagerPort):
 
         Raises:
             InvalidArgumentError: If the configuration type is invalid.
+            DatabaseConnectionError: If there's an error creating the database connection.
+            DatabaseConfigurationError: If there's an error in the database configuration.
         """
         if not isinstance(orm_config, self._expected_config_type()):
             raise InvalidArgumentError(
                 f"Expected {self._expected_config_type().__name__}, got {type(orm_config).__name__}",
             )
-        self.engine = self._create_async_engine(orm_config)
-        self._session_generator = self._get_session_generator()
+        try:
+            self.engine = self._create_async_engine(orm_config)
+            self._session_generator = self._get_session_generator()
+        except SQLAlchemyError as e:
+            if "configuration" in str(e).lower():
+                raise DatabaseConfigurationError(
+                    database=self._get_database_name(),
+                ) from e
+            raise DatabaseConnectionError(
+                database=self._get_database_name(),
+            ) from e
 
     @abstractmethod
     def _expected_config_type(self) -> type[SQLAlchemyConfig]:
@@ -162,6 +253,15 @@ class AsyncBaseSQLAlchemySessionManager(AsyncSessionManagerPort):
 
         Returns:
             The SQLAlchemy configuration class expected by this session manager.
+        """
+        pass
+
+    @abstractmethod
+    def _get_database_name(self) -> str:
+        """Return the name of the database being used.
+
+        Returns:
+            str: The name of the database (e.g., 'postgresql', 'sqlite', 'starrocks').
         """
         pass
 
@@ -173,40 +273,56 @@ class AsyncBaseSQLAlchemySessionManager(AsyncSessionManagerPort):
 
         Returns:
             A configured async SQLAlchemy engine.
+
+        Raises:
+            DatabaseConnectionError: If there's an error creating the engine.
+            DatabaseConfigurationError: If there's an error in the database configuration.
         """
-        url = self._create_url(configs)
-        return create_async_engine(
-            url,
-            isolation_level=configs.ISOLATION_LEVEL,
-            echo=configs.ECHO,
-            echo_pool=configs.ECHO_POOL,
-            enable_from_linting=configs.ENABLE_FROM_LINTING,
-            hide_parameters=configs.HIDE_PARAMETERS,
-            pool_pre_ping=configs.POOL_PRE_PING,
-            pool_size=configs.POOL_SIZE,
-            pool_recycle=configs.POOL_RECYCLE_SECONDS,
-            pool_reset_on_return=configs.POOL_RESET_ON_RETURN,
-            pool_timeout=configs.POOL_TIMEOUT,
-            pool_use_lifo=configs.POOL_USE_LIFO,
-            query_cache_size=configs.QUERY_CACHE_SIZE,
-            max_overflow=configs.POOL_MAX_OVERFLOW,
-            connect_args=self._get_connect_args(),
-        )
+        try:
+            url = self._create_url(configs)
+            return create_async_engine(
+                url,
+                isolation_level=configs.ISOLATION_LEVEL,
+                echo=configs.ECHO,
+                echo_pool=configs.ECHO_POOL,
+                enable_from_linting=configs.ENABLE_FROM_LINTING,
+                hide_parameters=configs.HIDE_PARAMETERS,
+                pool_pre_ping=configs.POOL_PRE_PING,
+                pool_size=configs.POOL_SIZE,
+                pool_recycle=configs.POOL_RECYCLE_SECONDS,
+                pool_reset_on_return=configs.POOL_RESET_ON_RETURN,
+                pool_timeout=configs.POOL_TIMEOUT,
+                pool_use_lifo=configs.POOL_USE_LIFO,
+                query_cache_size=configs.QUERY_CACHE_SIZE,
+                max_overflow=configs.POOL_MAX_OVERFLOW,
+                connect_args=self._get_connect_args(),
+            )
+        except SQLAlchemyError as e:
+            if "configuration" in str(e).lower():
+                raise DatabaseConfigurationError(
+                    database=self._get_database_name(),
+                ) from e
+            raise DatabaseConnectionError(
+                database=self._get_database_name(),
+            ) from e
 
     @abstractmethod
     def _create_url(self, configs: SQLAlchemyConfig) -> URL:
-        """Create a database connection URL for async connections.
+        """Create a database connection URL.
 
         Args:
             configs: SQLAlchemy configuration.
 
         Returns:
             A SQLAlchemy URL object for the database.
+
+        Raises:
+            DatabaseConfigurationError: If there's an error in the database configuration.
         """
         pass
 
     def _get_connect_args(self) -> dict:
-        """Return additional connection arguments for the async engine.
+        """Return additional connection arguments for the engine.
 
         Returns:
             A dictionary of connection arguments (default is empty).
@@ -214,13 +330,25 @@ class AsyncBaseSQLAlchemySessionManager(AsyncSessionManagerPort):
         return {}
 
     def _get_session_generator(self) -> async_scoped_session:
-        """Create a scoped session factory for async sessions.
+        """Create an async scoped session factory.
 
         Returns:
-            An async_scoped_session instance used by `get_session` to provide task-safe async sessions.
+            An async_scoped_session instance used by `get_session` to provide task-safe sessions.
+
+        Raises:
+            DatabaseConfigurationError: If there's an error in the database configuration.
         """
-        session_maker = async_sessionmaker(self.engine)
-        return async_scoped_session(session_maker, scopefunc=current_task)
+        try:
+            session_maker = async_sessionmaker(self.engine)
+            return async_scoped_session(session_maker, scopefunc=current_task)
+        except SQLAlchemyError as e:
+            if "configuration" in str(e).lower():
+                raise DatabaseConfigurationError(
+                    database=self._get_database_name(),
+                ) from e
+            raise DatabaseError(
+                database=self._get_database_name(),
+            ) from e
 
     @override
     def get_session(self) -> AsyncSession:
@@ -228,14 +356,40 @@ class AsyncBaseSQLAlchemySessionManager(AsyncSessionManagerPort):
 
         Returns:
             AsyncSession: An async SQLAlchemy session instance for database operations.
+
+        Raises:
+            DatabaseConnectionError: If there's an error creating the session.
+            DatabaseConfigurationError: If there's an error in the database configuration.
         """
-        return self._session_generator()  # type: ignore[no-any-return]
+        try:
+            return self._session_generator()  # type: ignore[no-any-return]
+        except SQLAlchemyError as e:
+            if "configuration" in str(e).lower():
+                raise DatabaseConfigurationError(
+                    database=self._get_database_name(),
+                ) from e
+            raise DatabaseConnectionError(
+                database=self._get_database_name(),
+            ) from e
 
     @override
     async def remove_session(self) -> None:
-        """Asynchronously remove the current session from the registry.
+        """Remove the current session from the registry.
 
-        Cleans up the async session to prevent resource leaks, typically called at
-        the end of an async request.
+        Cleans up the session to prevent resource leaks, typically called at the end
+        of a request.
+
+        Raises:
+            DatabaseConnectionError: If there's an error removing the session.
+            DatabaseConfigurationError: If there's an error in the database configuration.
         """
-        await self._session_generator.remove()
+        try:
+            await self._session_generator.remove()
+        except SQLAlchemyError as e:
+            if "configuration" in str(e).lower():
+                raise DatabaseConfigurationError(
+                    database=self._get_database_name(),
+                ) from e
+            raise DatabaseConnectionError(
+                database=self._get_database_name(),
+            ) from e

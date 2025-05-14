@@ -1,0 +1,51 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Exception Chaining Rule
+
+Always use Python's exception chaining mechanism with `raise ... from exception` to preserve the original error context. This ensures proper error tracking and debugging.
+
+Examples:
+```python
+# Good - Preserving original error context
+try:
+    result = session.get(entity_type, entity_uuid)
+except Exception as e:
+    raise DatabaseQueryError() from e
+
+# Good - Type validation with specific error
+if not isinstance(entity, BaseEntity):
+    raise InvalidEntityTypeError(
+        message=f"Expected BaseEntity subclass, got {type(entity).__name__}",
+        expected_type="BaseEntity",
+        actual_type=type(entity).__name__,
+    )
+
+# Bad - Losing original error context
+try:
+    result = session.get(entity_type, entity_uuid)
+except Exception as e:
+    raise DatabaseQueryError()  # Missing 'from e'
+
+# Bad - Adding redundant query messages
+try:
+    result = session.get(entity_type, entity_uuid)
+except Exception as e:
+    raise DatabaseQueryError(query=f"Get {entity_type.__name__}") from e
+```
+
+Key points:
+- Always use `from e` when raising a new exception
+- Preserve the original exception context
+- Don't add query or operation messages to exceptions
+- Use specific exception types for different error cases
+- Let the original error message provide the context
+- For type validation, use specific error types with clear messages
+- Keep error messages focused on the validation failure, not the operation
+
+globs:
+alwaysApply: true
+---
+Use Python's exception chaining mechanism with raise ... from catch exception to preserve the original error context

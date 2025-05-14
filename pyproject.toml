@@ -156,9 +156,11 @@ lint.ignore = [
     "ANN003", # Missing type annotation for **kwargs
     "ANN101", # Missing type annotation for self in method
     "ANN102", # Missing type annotation for cls in classmethod
+    "BLE001", # Do not catch blind exception: `Exception`
     "C901", # Function is too complex (McCabe complexity)
     "D100", # Missing docstring in public module
     "D104", # Missing docstring in public package
+    "D107", # Missing docstring in `__init__`
     "E501", # Line too long (handled by Black)
     "F811", # Redefinition of unused function
     "G004", # Logging statement uses f-string
@@ -199,8 +201,8 @@ target-version = "py313"
 "archipy/adapters/orm/sqlalchemy/ports.py" = ["ANN401"]
 "archipy/adapters/orm/sqlalchemy/adapters.py" = ["ANN401"]
 "archipy/adapters/redis/ports.py" = ["ANN401", "D102", "FBT001", "FBT002", "A002"]
-"archipy/adapters/redis/adapters.py" = ["ANN401", "FBT001", "FBT002", "D107", "RET504", "PGH003"]
-"archipy/adapters/redis/mocks.py" = ["D107", "ARG002", "ARG004", "ANN401"]
+"archipy/adapters/redis/adapters.py" = ["ANN401", "FBT001", "FBT002", "RET504", "PGH003"]
+"archipy/adapters/redis/mocks.py" = ["ARG002", "ARG004", "ANN401"]
 "archipy//helpers/utils/keycloak_utils.py" = ["B008"]
 "archipy/adapters/keycloak/adapters.py" = ["BLE001"]
 "archipy/adapters/kafka/adapters.py" = ["BLE001"]
@@ -301,8 +303,6 @@ warn_unused_ignores = true
 # Enable Pydantic plugin for better type checking
 plugins = [
     "pydantic.mypy", # Pydantic plugin for better type checking
-    #    "sqlalchemy.ext.mypy.plugin", # SQLAlchemy plugin for ORM type checking
-    #    "fastapi.mypy", # FastAPI plugin for route and dependency type checking
 ]
 
 [[tool.mypy.overrides]]

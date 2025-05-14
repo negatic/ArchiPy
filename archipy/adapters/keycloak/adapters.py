@@ -4,7 +4,7 @@ from typing import Any, override
 
 from async_lru import alru_cache
 from keycloak import KeycloakAdmin, KeycloakOpenID
-from keycloak.exceptions import KeycloakError, KeycloakGetError
+from keycloak.exceptions import KeycloakAuthenticationError, KeycloakConnectionError, KeycloakError, KeycloakGetError
 
 from archipy.adapters.keycloak.ports import (
     AsyncKeycloakPort,
@@ -17,10 +17,13 @@ from archipy.adapters.keycloak.ports import (
 from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import KeycloakConfig
 from archipy.helpers.decorators.cache import ttl_cache_decorator
-from archipy.models.errors.custom_errors import (
+from archipy.models.errors import (
+    ConnectionTimeoutError,
     InternalError,
+    InvalidCredentialsError,
     InvalidTokenError,
     NotFoundError,
+    ServiceUnavailableError,
     UnauthenticatedError,
     UnavailableError,
 )
@@ -101,10 +104,18 @@ class KeycloakAdapter(KeycloakPort):
                 timeout=self.configs.TIMEOUT,
             )
             logger.debug("Admin client initialized successfully")
+        except KeycloakAuthenticationError as e:
+            self._admin_adapter = None
+            self._admin_token_expiry = 0
+            raise UnauthenticatedError("Failed to authenticate with Keycloak service account") from e
+        except KeycloakConnectionError as e:
+            self._admin_adapter = None
+            self._admin_token_expiry = 0
+            raise ConnectionTimeoutError("Failed to connect to Keycloak server") from e
         except KeycloakError as e:
             self._admin_adapter = None
             self._admin_token_expiry = 0
-            raise UnavailableError(service="Keycloak") from e
+            raise ServiceUnavailableError("Keycloak service is currently unavailable") from e
 
     @property
     def admin_adapter(self) -> KeycloakAdmin:
@@ -114,17 +125,18 @@ class KeycloakAdapter(KeycloakPort):
             KeycloakAdmin instance
 
         Raises:
-            ValueError: If admin client is not available
+            UnauthenticatedError: If admin client is not available due to authentication issues
+            UnavailableError: If Keycloak service is unavailable
         """
         if not self.configs.CLIENT_SECRET_KEY:
-            raise UnauthenticatedError()
+            raise UnauthenticatedError("Service account credentials not configured")
 
         # Check if token is about to expire and refresh if needed
         if self._admin_adapter is None or time.time() >= self._admin_token_expiry:
             self._initialize_admin_client()
 
         if self._admin_adapter is None:
-            raise UnavailableError(service="Keycloak")
+            raise UnavailableError("Keycloak admin client is not available")
 
         return self._admin_adapter
 
@@ -135,6 +147,10 @@ class KeycloakAdapter(KeycloakPort):
 
         Returns:
             JWK key object used to verify signatures
+
+        Raises:
+            ServiceUnavailableError: If Keycloak service is unavailable
+            InternalError: If there's an internal error processing the public key
         """
         try:
             from jwcrypto import jwk
@@ -142,8 +158,10 @@ class KeycloakAdapter(KeycloakPort):
             keys_info = self._openid_adapter.public_key()
             key = f"-----BEGIN PUBLIC KEY-----\n{keys_info}\n-----END PUBLIC KEY-----"
             return jwk.JWK.from_pem(key.encode("utf-8"))
+        except KeycloakError as e:
+            raise ServiceUnavailableError("Failed to retrieve public key from Keycloak") from e
         except Exception as e:
-            raise InternalError() from e
+            raise InternalError("Failed to process Keycloak public key") from e
 
     @override
     def get_token(self, username: str, password: str) -> KeycloakTokenType:
@@ -164,12 +182,15 @@ class KeycloakAdapter(KeycloakPort):
             Token response containing access_token, refresh_token, etc.
 
         Raises:
-            ValueError: If token acquisition fails
+            InvalidCredentialsError: If username or password is invalid
+            ServiceUnavailableError: If Keycloak service is unavailable
         """
         try:
             return self._openid_adapter.token(grant_type="password", username=username, password=password)
+        except KeycloakAuthenticationError as e:
+            raise InvalidCredentialsError("Invalid username or password") from e
         except KeycloakError as e:
-            raise UnauthenticatedError() from e
+            raise ServiceUnavailableError("Keycloak service is currently unavailable") from e
 
     @override
     def refresh_token(self, refresh_token: str) -> KeycloakTokenType:
@@ -182,12 +203,15 @@ class KeycloakAdapter(KeycloakPort):
             New token response containing access_token, refresh_token, etc.
 
         Raises:
-            ValueError: If token refresh fails
+            InvalidTokenError: If refresh token is invalid or expired
+            ServiceUnavailableError: If Keycloak service is unavailable
         """
         try:
             return self._openid_adapter.refresh_token(refresh_token)
+        except KeycloakAuthenticationError as e:
+            raise InvalidTokenError("Invalid or expired refresh token") from e
         except KeycloakError as e:
-            raise InvalidTokenError() from e
+            raise ServiceUnavailableError("Keycloak service is currently unavailable") from e
 
     @override
     def validate_token(self, token: str) -> bool:
@@ -1092,10 +1116,18 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
                 timeout=self.configs.TIMEOUT,
             )
             logger.debug("Admin client initialized successfully")
+        except KeycloakAuthenticationError as e:
+            self._admin_adapter = None
+            self._admin_token_expiry = 0
+            raise UnauthenticatedError("Failed to authenticate with Keycloak service account") from e
+        except KeycloakConnectionError as e:
+            self._admin_adapter = None
+            self._admin_token_expiry = 0
+            raise ConnectionTimeoutError("Failed to connect to Keycloak server") from e
         except KeycloakError as e:
             self._admin_adapter = None
             self._admin_token_expiry = 0
-            raise UnavailableError(service="Keycloak") from e
+            raise ServiceUnavailableError("Keycloak service is currently unavailable") from e
 
     @property
     def admin_adapter(self) -> KeycloakAdmin:
@@ -1105,17 +1137,18 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             KeycloakAdmin instance
 
         Raises:
-            ValueError: If admin client is not available
+            UnauthenticatedError: If admin client is not available due to authentication issues
+            UnavailableError: If Keycloak service is unavailable
         """
         if not self.configs.CLIENT_SECRET_KEY:
-            raise UnauthenticatedError()
+            raise UnauthenticatedError("Service account credentials not configured")
 
         # Check if token is about to expire and refresh if needed
         if self._admin_adapter is None or time.time() >= self._admin_token_expiry:
             self._initialize_admin_client()
 
         if self._admin_adapter is None:
-            raise UnavailableError(service="Keycloak")
+            raise UnavailableError("Keycloak admin client is not available")
 
         return self._admin_adapter
 
@@ -1126,6 +1159,10 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
 
         Returns:
             JWK key object used to verify signatures
+
+        Raises:
+            ServiceUnavailableError: If Keycloak service is unavailable
+            InternalError: If there's an internal error processing the public key
         """
         try:
             from jwcrypto import jwk
@@ -1133,8 +1170,10 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             keys_info = await self.openid_adapter.a_public_key()
             key = f"-----BEGIN PUBLIC KEY-----\n{keys_info}\n-----END PUBLIC KEY-----"
             return jwk.JWK.from_pem(key.encode("utf-8"))
+        except KeycloakError as e:
+            raise ServiceUnavailableError("Failed to retrieve public key from Keycloak") from e
         except Exception as e:
-            raise InternalError() from e
+            raise InternalError("Failed to process Keycloak public key") from e
 
     @override
     async def get_token(self, username: str, password: str) -> KeycloakTokenType:
@@ -1155,12 +1194,15 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             Token response containing access_token, refresh_token, etc.
 
         Raises:
-            ValueError: If token acquisition fails
+            InvalidCredentialsError: If username or password is invalid
+            ServiceUnavailableError: If Keycloak service is unavailable
         """
         try:
             return await self.openid_adapter.a_token(grant_type="password", username=username, password=password)
+        except KeycloakAuthenticationError as e:
+            raise InvalidCredentialsError("Invalid username or password") from e
         except KeycloakError as e:
-            raise UnauthenticatedError() from e
+            raise ServiceUnavailableError("Keycloak service is currently unavailable") from e
 
     @override
     async def refresh_token(self, refresh_token: str) -> KeycloakTokenType:
@@ -1173,12 +1215,15 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
             New token response containing access_token, refresh_token, etc.
 
         Raises:
-            ValueError: If token refresh fails
+            InvalidTokenError: If refresh token is invalid or expired
+            ServiceUnavailableError: If Keycloak service is unavailable
         """
         try:
             return await self.openid_adapter.a_refresh_token(refresh_token)
+        except KeycloakAuthenticationError as e:
+            raise InvalidTokenError("Invalid or expired refresh token") from e
         except KeycloakError as e:
-            raise InvalidTokenError() from e
+            raise ServiceUnavailableError("Keycloak service is currently unavailable") from e
 
     @override
     async def validate_token(self, token: str) -> bool:

@@ -5,7 +5,6 @@ from pydantic import Field, model_validator
 
 from archipy.models.dtos.base_dtos import BaseDTO
 from archipy.models.errors import OutOfRangeError
-from archipy.models.types.language_type import LanguageType
 
 # Generic types
 T = TypeVar("T", bound=Enum)
@@ -59,7 +58,7 @@ class PaginationDTO(BaseDTO):
         """
         total_items = self.page * self.page_size
         if total_items > self.MAX_ITEMS:
-            raise OutOfRangeError(field_name="pagination", lang=LanguageType.FA)
+            raise OutOfRangeError(field_name="pagination")
         return self
 
     @property

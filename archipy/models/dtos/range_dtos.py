@@ -6,7 +6,6 @@ from pydantic import field_validator, model_validator
 
 from archipy.models.dtos.base_dtos import BaseDTO
 from archipy.models.errors import InvalidArgumentError, OutOfRangeError
-from archipy.models.types.language_type import LanguageType
 from archipy.models.types.time_interval_unit_type import TimeIntervalUnitType
 
 # Generic types
@@ -34,7 +33,7 @@ class BaseRangeDTO(BaseDTO, Generic[R]):
             OutOfRangeError: If from_ is greater than to.
         """
         if self.from_ is not None and self.to is not None and self.from_ > self.to:
-            raise OutOfRangeError(field_name="from_", lang=LanguageType.FA)
+            raise OutOfRangeError(field_name="from_")
         return self
 
 
@@ -63,7 +62,7 @@ class DecimalRangeDTO(BaseRangeDTO[Decimal]):
         try:
             return Decimal(value)
         except (TypeError, ValueError) as e:
-            raise InvalidArgumentError(argument_name="value", lang=LanguageType.FA) from e
+            raise InvalidArgumentError(argument_name="value") from e
 
 
 class IntegerRangeDTO(BaseRangeDTO[int]):
@@ -152,7 +151,7 @@ class DatetimeIntervalRangeDTO(BaseRangeDTO[datetime]):
             range_size = self.to - self.from_
             max_range_size = self.RANGE_SIZE_LIMITS.get(self.interval)
             if max_range_size and range_size > max_range_size:
-                raise OutOfRangeError(field_name="range_size", lang=LanguageType.FA)
+                raise OutOfRangeError(field_name="range_size")
 
             # Validate 'to' age limit
             current_time = datetime.now()
@@ -160,7 +159,7 @@ class DatetimeIntervalRangeDTO(BaseRangeDTO[datetime]):
             if max_to_age:
                 age_threshold = current_time - max_to_age
                 if self.to < age_threshold:
-                    raise OutOfRangeError(field_name="to", lang=LanguageType.FA)
+                    raise OutOfRangeError(field_name="to")
 
             # Calculate number of intervals
             step = self.INTERVAL_TO_TIMEDELTA[self.interval]
@@ -169,6 +168,6 @@ class DatetimeIntervalRangeDTO(BaseRangeDTO[datetime]):
 
             # Reject if number of intervals exceeds MAX_ITEMS
             if num_intervals > self.MAX_ITEMS:
-                raise OutOfRangeError(field_name="interval_count", lang=LanguageType.FA)
+                raise OutOfRangeError(field_name="interval_count")
 
         return self

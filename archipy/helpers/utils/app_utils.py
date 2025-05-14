@@ -38,7 +38,9 @@ class FastAPIExceptionHandler:
         """
         BaseUtils.capture_exception(exception)
         # Default to internal server error if status code is not set
-        status_code = exception.http_status_code if exception.http_status_code else HTTPStatus.INTERNAL_SERVER_ERROR
+        status_code = (
+            exception.http_status_code if exception.http_status_code else HTTPStatus.INTERNAL_SERVER_ERROR.value
+        )
         return JSONResponse(status_code=status_code, content=exception.to_dict())
 
     @staticmethod
