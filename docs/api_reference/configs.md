@@ -114,9 +114,9 @@ Attributes:
 - `QUERY_CACHE_SIZE`: Size of the query cache
 - `USERNAME`: Database username
 
-### SqliteSQLAlchemyConfig
+### SQLiteSQLAlchemyConfig
 
-Class: `archipy.configs.config_template.SqliteSQLAlchemyConfig`
+Class: `archipy.configs.config_template.SQLiteSQLAlchemyConfig`
 
 Configures:
 

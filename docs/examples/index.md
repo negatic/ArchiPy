@@ -26,3 +26,7 @@ This section contains practical examples of using ArchiPy components.
 ## Testing
 
 - [BDD Testing](bdd_testing.md)
+
+## Error Handling
+
+- [Error Handling Examples](error_handling.md)

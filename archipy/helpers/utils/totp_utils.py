@@ -14,7 +14,7 @@ from uuid import UUID
 from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import AuthConfig
 from archipy.helpers.utils.datetime_utils import DatetimeUtils
-from archipy.models.errors.custom_errors import (
+from archipy.models.errors import (
     InternalError,
     InvalidArgumentError,
     InvalidTokenError,
@@ -191,6 +191,4 @@ class TOTPUtils:
             return base64.b32encode(hmac_obj.digest()).decode("utf-8")
         except Exception as e:
             # Convert any errors to our custom errors
-            raise InternalError(
-                details=str(e),
-            ) from e
+            raise InternalError() from e

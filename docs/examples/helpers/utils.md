@@ -68,7 +68,7 @@ Secure password handling:
 import logging
 from archipy.helpers.utils.password_utils import PasswordUtils
 from archipy.models.types.language_type import LanguageType
-from archipy.models.errors.custom_errors import InvalidPasswordError
+from archipy.models.errors import InvalidPasswordError
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -108,7 +108,7 @@ Handle files securely:
 ```python
 import logging
 from archipy.helpers.utils.file_utils import FileUtils
-from archipy.models.errors.custom_errors import InvalidArgumentError, OutOfRangeError
+from archipy.models.errors import InvalidArgumentError, OutOfRangeError
 
 # Configure logging
 logger = logging.getLogger(__name__)

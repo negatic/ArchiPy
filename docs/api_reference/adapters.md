@@ -75,10 +75,10 @@ show_source: true
 SQLite database adapter with SQLAlchemy integration.
 
 ```python
-from archipy.adapters.sqlite.sqlalchemy.adapters import SqliteSQLAlchemyAdapter, AsyncSqliteSQLAlchemyAdapter
+from archipy.adapters.sqlite.sqlalchemy.adapters import SQLiteSQLAlchemyAdapter, AsyncSQLiteSQLAlchemyAdapter
 
 # Create an ORM adapter (uses global config)
-orm_adapter = SqliteSQLAlchemyAdapter()
+orm_adapter = SQLiteSQLAlchemyAdapter()
 ```
 
 ::: archipy.adapters.sqlite.sqlalchemy.adapters

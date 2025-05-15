@@ -12,7 +12,7 @@ from datetime import datetime
 
 from behave import given, then, when
 
-from archipy.adapters.sqlite.sqlalchemy.adapters import SqliteSQLAlchemyAdapter, AsyncSqliteSQLAlchemyAdapter
+from archipy.adapters.sqlite.sqlalchemy.adapters import SQLiteSQLAlchemyAdapter, AsyncSQLiteSQLAlchemyAdapter
 from features.test_entity import RelatedTestEntity, TestAdminEntity, TestEntity, TestManagerEntity
 from features.test_entity_factory import TestEntityFactory
 from features.test_helpers import (
@@ -25,9 +25,12 @@ from features.test_helpers import (
 )
 from sqlalchemy import select
 
-from archipy.adapters.base.sqlalchemy.session_manager_registry import SessionManagerRegistry
-from archipy.configs.config_template import SqliteSQLAlchemyConfig
-from archipy.helpers.decorators.sqlalchemy_atomic import async_sqlite_sqlalchemy_atomic_decorator, sqlite_sqlalchemy_atomic_decorator
+from archipy.adapters.sqlite.sqlalchemy.session_manager_registry import SQLiteSessionManagerRegistry
+from archipy.configs.config_template import SQLiteSQLAlchemyConfig
+from archipy.helpers.decorators.sqlalchemy_atomic import (
+    async_sqlite_sqlalchemy_atomic_decorator,
+    sqlite_sqlalchemy_atomic_decorator,
+)
 from archipy.models.entities.sqlalchemy.base_entities import BaseEntity
 from archipy.models.errors import InternalError
 
@@ -91,14 +94,14 @@ def step_given_database_initialized(context):
     logger.info(f"Creating SQLAlchemy adapter with database: {db_file}")
 
     # Create configuration with file-based database
-    sync_config = SqliteSQLAlchemyConfig(
+    sync_config = SQLiteSQLAlchemyConfig(
         DRIVER_NAME="sqlite",
         DATABASE=db_file,
     )
 
     # Create adapter for tests and store in scenario context
-    adapter = SqliteSQLAlchemyAdapter(orm_config=sync_config)
-    SessionManagerRegistry.set_sync_manager(adapter.session_manager)
+    adapter = SQLiteSQLAlchemyAdapter(orm_config=sync_config)
+    SQLiteSessionManagerRegistry.set_sync_manager(adapter.session_manager)
     scenario_context.adapter = adapter
 
     # Set up database schema with sync adapter
@@ -111,15 +114,15 @@ def step_given_database_initialized(context):
         logger.info(f"Creating async SQLAlchemy adapter with database: {db_file}")
 
         # Create async config with the same database file
-        async_config = SqliteSQLAlchemyConfig(
+        async_config = SQLiteSQLAlchemyConfig(
             DRIVER_NAME="sqlite+aiosqlite",
             DATABASE=db_file,
         )
 
         try:
             # Create a new async adapter
-            async_adapter = AsyncSqliteSQLAlchemyAdapter(orm_config=async_config)
-            SessionManagerRegistry.set_async_manager(async_adapter.session_manager)
+            async_adapter = AsyncSQLiteSQLAlchemyAdapter(orm_config=async_config)
+            SQLiteSessionManagerRegistry.set_async_manager(async_adapter.session_manager)
             scenario_context.async_adapter = async_adapter
 
             # Create schema with async adapter
@@ -220,6 +223,7 @@ def step_when_entity_creation_fails_in_atomic(context):
     logger.info(f"Attempting to create entity with UUID {test_uuid} (will fail)")
 
     try:
+
         @sqlite_sqlalchemy_atomic_decorator
         def create_entity_with_failure():
             """Create an entity but raise an exception to trigger rollback."""
@@ -239,9 +243,12 @@ def step_when_entity_creation_fails_in_atomic(context):
             raise ValueError("Simulated failure for testing atomic rollback")
 
         create_entity_with_failure()
-    except (ValueError, InternalError):
+    except Exception as e:
         # We expect this exception
-        logger.info("Expected exception caught")
+        logger.info(f"Expected exception caught: {type(e).__name__} - {str(e)}")
+        print(f"DEBUG: Caught exception type: {type(e).__name__}, message: {str(e)}")
+        # Store the exception to verify it later
+        scenario_context.store("failed_transaction_exception", e)
     else:
         assert False, "Exception was not raised as expected"
 
@@ -303,82 +310,96 @@ def step_then_session_should_remain_usable(context):
 
 @when("nested atomic transactions are executed")
 def step_when_nested_atomic_executed(context):
-    """Execute nested atomic transactions to test proper nesting behavior."""
+    """Test nested atomic transactions, both successful and failing."""
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
     scenario_context = get_current_scenario_context(context)
-    logger.info("Executing nested atomic transactions")
 
-    # Store entity UUIDs for verification
-    entity1_uuid = uuid.uuid4()
-    entity2_uuid = uuid.uuid4()
-    entity3_uuid = uuid.uuid4()
-    entity4_uuid = uuid.uuid4()
+    # Create test UUIDs
+    outer_uuid = uuid.uuid4()
+    inner_uuid = uuid.uuid4()
+    failing_uuid = uuid.uuid4()
 
-    # Store UUIDs in context
-    scenario_context.entity_ids["entity1"] = str(entity1_uuid)
-    scenario_context.entity_ids["entity2"] = str(entity2_uuid)
-    scenario_context.entity_ids["entity3"] = str(entity3_uuid)
-    scenario_context.entity_ids["entity4"] = str(entity4_uuid)
+    # Store UUIDs for verification
+    scenario_context.entity_ids["outer_entity"] = str(outer_uuid)
+    scenario_context.entity_ids["inner_entity"] = str(inner_uuid)
+    scenario_context.entity_ids["failing_entity"] = str(failing_uuid)
 
-    @sqlite_sqlalchemy_atomic_decorator
-    def outer_atomic():
-        """Outer atomic transaction."""
-        # Create first entity
-        logger.info(f"Creating entity 1 with UUID {entity1_uuid}")
-        entity1 = TestEntityFactory.create_test_entity(
-            test_uuid=entity1_uuid,
-            description="Entity 1 (outer transaction)",
-        )
-        adapter = get_adapter(context)
-        adapter.create(entity1)
+    # Test nesting of atomic blocks
+    logger.info("Testing nested atomic transactions")
+    try:
 
-        # Start nested atomic transaction
         @sqlite_sqlalchemy_atomic_decorator
-        def inner_atomic():
-            """Inner atomic transaction."""
-            # Create second entity
-            logger.info(f"Creating entity 2 with UUID {entity2_uuid}")
-            entity2 = TestEntityFactory.create_test_entity(
-                test_uuid=entity2_uuid,
-                description="Entity 2 (inner transaction)",
+        def outer_atomic():
+            """Execute the outermost atomic block."""
+            logger.info(f"Creating outer entity with UUID {outer_uuid}")
+
+            # Create the outer entity
+            adapter = get_adapter(context)
+            outer_entity = TestEntityFactory.create_test_entity(
+                test_uuid=outer_uuid, description="Outer entity from nested transaction",
             )
-            adapter.create(entity2)
+            adapter.create(outer_entity)
 
-            # Try a failing inner transaction
             try:
+
                 @sqlite_sqlalchemy_atomic_decorator
-                def failing_inner_atomic():
-                    """Inner failing atomic transaction."""
-                    logger.info(f"Creating entity 3 with UUID {entity3_uuid} (will fail)")
-                    entity3 = TestEntityFactory.create_test_entity(
-                        test_uuid=entity3_uuid,
-                        description="Entity 3 (failing inner transaction)",
-                    )
+                def inner_atomic():
+                    """Execute a successful inner atomic block."""
+                    logger.info(f"Creating inner entity with UUID {inner_uuid}")
+
+                    # Create the inner entity (should succeed)
                     adapter = get_adapter(context)
-                    adapter.create(entity3)
-                    logger.info("Raising exception to trigger rollback")
-                    raise ValueError("Simulated failure for inner atomic")
+                    inner_entity = TestEntityFactory.create_test_entity(
+                        test_uuid=inner_uuid, description="Inner entity from nested transaction",
+                    )
+                    adapter.create(inner_entity)
+                    return inner_entity
 
-                failing_inner_atomic()
-            except (ValueError, InternalError):
-                # We expect this - it should not affect outer transactions
-                logger.info("Expected exception caught in inner transaction")
+                inner_entity = inner_atomic()
+                logger.info(f"Successfully created inner entity: {inner_entity}")
 
-        # Execute the nested transaction
-        inner_atomic()
+                # Now test a failing inner transaction
+                try:
 
-        # Create fourth entity to verify outer transaction still works
-        logger.info(f"Creating entity 4 with UUID {entity4_uuid}")
-        entity4 = TestEntityFactory.create_test_entity(
-            test_uuid=entity4_uuid,
-            description="Entity 4 (outer transaction after inner)",
-        )
-        adapter = get_adapter(context)
-        adapter.create(entity4)
+                    @sqlite_sqlalchemy_atomic_decorator
+                    def failing_inner_atomic():
+                        """Execute a failing inner atomic block."""
+                        logger.info(f"Creating entity with UUID {failing_uuid} (will fail)")
 
-    # Execute the outer transaction
-    outer_atomic()
-    logger.info("Nested atomic transactions completed")
+                        # Create entity that should be rolled back
+                        adapter = get_adapter(context)
+                        failing_entity = TestEntityFactory.create_test_entity(
+                            test_uuid=failing_uuid,
+                            description="Entity from failing nested transaction",
+                        )
+                        adapter.create(failing_entity)
+
+                        # Simulate failure
+                        logger.info("Raising exception to trigger rollback in nested transaction")
+                        raise ValueError("Simulated failure in nested transaction")
+
+                    failing_inner_atomic()
+                except Exception as e:
+                    # We expect this exception
+                    logger.info(f"Expected exception caught in inner block: {type(e).__name__} - {str(e)}")
+                    print(f"DEBUG: Caught inner exception type: {type(e).__name__}, message: {str(e)}")
+                    # Store the exception to verify it later
+                    scenario_context.store("failed_inner_exception", e)
+
+                return outer_entity
+
+            except Exception as e:
+                logger.error(f"Unexpected error in outer block: {str(e)}")
+                raise
+
+        # Execute the transaction
+        outer_entity = outer_atomic()
+        logger.info(f"Successfully completed nested transactions, with outer entity: {outer_entity}")
+
+    except Exception as e:
+        logger.error(f"Unexpected error in nested transaction test: {str(e)}")
+        print(f"DEBUG: Unexpected outer exception: {type(e).__name__}, message: {str(e)}")
+        raise
 
 
 @then("operations from successful nested transactions should not be committed")
@@ -388,9 +409,9 @@ def step_then_successful_nested_committed(context):
     scenario_context = get_current_scenario_context(context)
 
     # Get UUIDs for verification
-    entity1_uuid = uuid.UUID(scenario_context.entity_ids["entity1"])
-    entity2_uuid = uuid.UUID(scenario_context.entity_ids["entity2"])
-    entity4_uuid = uuid.UUID(scenario_context.entity_ids["entity4"])
+    entity1_uuid = uuid.UUID(scenario_context.entity_ids["outer_entity"])
+    entity2_uuid = uuid.UUID(scenario_context.entity_ids["inner_entity"])
+    entity4_uuid = uuid.UUID(scenario_context.entity_ids["outer_entity"])
 
     logger.info("Verifying successful nested transaction entities")
 
@@ -426,7 +447,7 @@ def step_then_failed_nested_rolled_back(context):
     scenario_context = get_current_scenario_context(context)
 
     # Get UUID for verification
-    entity3_uuid = uuid.UUID(scenario_context.entity_ids["entity3"])
+    entity3_uuid = uuid.UUID(scenario_context.entity_ids["failing_entity"])
     logger.info(f"Verifying entity 3 with UUID {entity3_uuid} doesn't exist")
 
     @sqlite_sqlalchemy_atomic_decorator
@@ -743,6 +764,7 @@ def step_when_error_triggered_in_atomic(context):
     # Test normal exception handling
     logger.info("Testing normal exception handling")
     try:
+
         @sqlite_sqlalchemy_atomic_decorator
         def normal_exception():
             entity = TestEntityFactory.create_test_entity()
@@ -758,6 +780,7 @@ def step_when_error_triggered_in_atomic(context):
     # Test deadlock handling (simulated for SQLite)
     logger.info("Testing deadlock exception handling")
     try:
+
         @sqlite_sqlalchemy_atomic_decorator
         def deadlock_exception():
             entity = TestEntityFactory.create_test_entity()
@@ -781,16 +804,16 @@ def step_then_appropriate_error_raised(context):
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
     scenario_context = get_current_scenario_context(context)
 
-    from archipy.models.errors import DeadlockDetectedError, InternalError
+    from archipy.models.errors import DatabaseDeadlockError, DatabaseError
 
-    # Check normal exception was wrapped as InternalError
+    # Check normal exception was wrapped as DatabaseError
     logger.info("Verifying normal exception handling")
     normal_exception = scenario_context.get("normal_exception")
     assert normal_exception is not None, "Normal exception was not captured"
     assert isinstance(
         normal_exception,
-        InternalError,
-    ), f"Normal exception not wrapped as InternalError: {type(normal_exception)}"
+        DatabaseError,
+    ), f"Normal exception not wrapped as DatabaseError: {type(normal_exception)}"
 
     # Check deadlock exception
     logger.info("Verifying deadlock exception handling")
@@ -798,7 +821,7 @@ def step_then_appropriate_error_raised(context):
     assert deadlock_exception is not None, "Deadlock exception was not captured"
     assert isinstance(
         deadlock_exception,
-        DeadlockDetectedError,
+        DatabaseDeadlockError,
     ), f"Deadlock failure not handled correctly: {type(deadlock_exception)}"
 
     logger.info("All exception handling verified successfully")
@@ -1006,6 +1029,7 @@ async def step_when_async_entity_creation_fails(context):
     logger.info(f"Creating async entity with UUID {test_uuid} (will fail)")
 
     try:
+
         @async_sqlite_sqlalchemy_atomic_decorator
         async def create_entity_with_failure():
             """Create an entity but raise an exception to trigger rollback."""

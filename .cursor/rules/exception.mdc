@@ -1,0 +1,40 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+Rule: Enforce else block with return ... after try-except
+Description
+Ensure that every try-except block is followed by an else block that returns result when no exception occurs.
+Pattern to Match
+try:
+    {{code_block}}
+except {{exception_type}}:
+    {{exception_handling}}
+
+Suggestion
+Add an else block with return result after the except block.
+Replacement
+try:
+    {{code_block}}
+except {{exception_type}}:
+    {{exception_handling}}
+else:
+    return result
+
+Example
+Incorrect
+def example_function():
+    try:
+        result = some_function()
+    except ValueError:
+        print("Error occurred")
+
+Correct
+def example_function():
+    try:
+        result = some_function()
+    except ValueError:
+        print("Error occurred")
+    else:
+        return result

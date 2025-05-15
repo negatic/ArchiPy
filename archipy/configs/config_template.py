@@ -425,7 +425,7 @@ class SQLAlchemyConfig(BaseModel):
     USERNAME: str | None = None
 
 
-class SqliteSQLAlchemyConfig(SQLAlchemyConfig):
+class SQLiteSQLAlchemyConfig(SQLAlchemyConfig):
     """Configuration settings for SQLite SQLAlchemy ORM.
 
     Extends SQLAlchemyConfig with SQLite-specific settings.
@@ -529,7 +529,7 @@ class PostgresSQLAlchemyConfig(SQLAlchemyConfig):
         return self
 
 
-class StarrocksSQLAlchemyConfig(SQLAlchemyConfig):
+class StarRocksSQLAlchemyConfig(SQLAlchemyConfig):
     """Configuration settings for Starrocks SQLAlchemy ORM.
 
     Extends SQLAlchemyConfig with Starrocks-specific settings.

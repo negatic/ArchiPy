@@ -5,7 +5,7 @@ from pathlib import Path
 from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import FileConfig
 from archipy.helpers.utils.datetime_utils import DatetimeUtils
-from archipy.models.errors.custom_errors import InvalidArgumentError, OutOfRangeError
+from archipy.models.errors import InvalidArgumentError, OutOfRangeError
 
 
 class FileUtils:
