@@ -1100,10 +1100,11 @@ class KeycloakAdapter(KeycloakPort):
 
         try:
             self.admin_adapter.create_realm(payload=payload, skip_exists=skip_exists)
-            return {"realm": realm_name, "status": "created", "config": payload}
         except KeycloakError as e:
             logger.debug(f"Failed to create realm: {e!s}")
             raise InternalError() from e
+        else:
+            return {"realm": realm_name, "status": "created", "config": payload}
 
     @override
     def create_client(
@@ -2242,10 +2243,11 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort):
 
         try:
             await self.admin_adapter.a_create_realm(payload=payload, skip_exists=skip_exists)
-            return {"realm": realm_name, "status": "created", "config": payload}
         except KeycloakError as e:
             logger.debug(f"Failed to create realm: {e!s}")
             raise InternalError() from e
+        else:
+            return {"realm": realm_name, "status": "created", "config": payload}
 
     @override
     async def create_client(
