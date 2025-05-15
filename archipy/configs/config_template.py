@@ -9,7 +9,7 @@ import logging
 from typing import Any, Literal, Self
 from urllib.parse import urlparse
 
-from pydantic import BaseModel, Field, HttpUrl, PostgresDsn, SecretStr, model_validator
+from pydantic import BaseModel, Field, PostgresDsn, SecretStr, model_validator
 
 from archipy.models.errors import FailedPreconditionError, InvalidArgumentError
 
@@ -783,18 +783,23 @@ class ParsianShaparakConfig(BaseModel):
         PAYMENT_WSDL_URL (HttpUrl): WSDL URL for the payment service.
         CONFIRM_WSDL_URL (HttpUrl): WSDL URL for the confirm service.
         REVERSAL_WSDL_URL (HttpUrl): WSDL URL for the reversal service.
+        PROXIES (dict[str, str] | None): Optional HTTP/HTTPS proxy configuration (e.g. {"http": "http://proxy:port", "https": "https://proxy:port"}).
     """
 
     LOGIN_ACCOUNT: str | None = Field(default=None, description="Merchant login account for authentication")
-    PAYMENT_WSDL_URL: HttpUrl = Field(
+    PAYMENT_WSDL_URL: str = Field(
         default="https://pec.shaparak.ir/NewIPGServices/Sale/SaleService.asmx?WSDL",
         description="WSDL URL for the payment service",
     )
-    CONFIRM_WSDL_URL: HttpUrl = Field(
+    CONFIRM_WSDL_URL: str = Field(
         default="https://pec.shaparak.ir/NewIPGServices/Confirm/ConfirmService.asmx?WSDL",
         description="WSDL URL for the confirm service",
     )
-    REVERSAL_WSDL_URL: HttpUrl = Field(
+    REVERSAL_WSDL_URL: str = Field(
         default="https://pec.shaparak.ir/NewIPGServices/Reverse/ReversalService.asmx?WSDL",
         description="WSDL URL for the reversal service",
+    )
+    PROXIES: dict[str, str] | None = Field(
+        default=None,
+        description="Optional HTTP/HTTPS proxy configuration dictionary",
     )

@@ -1,8 +1,10 @@
 import logging
 
+import requests
 import zeep
 from pydantic import Field, HttpUrl
 from zeep.exceptions import Fault
+from zeep.transports import Transport
 
 from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import ParsianShaparakConfig
@@ -79,25 +81,39 @@ class ReverseResponseDTO(BaseDTO):
 
 
 class ParsianShaparakPaymentAdapter:
-    """Adapter for interacting with Parsian Shaparak payment gateway services."""
+    """Adapter for interacting with Parsian Shaparak payment gateway services.
+
+    Provides methods for initiating payments, confirming transactions, and reversing
+    payments through the Parsian Shaparak payment gateway SOAP services. Supports
+    proxy configuration for environments where direct connections are not possible.
+    """
 
     def __init__(self, config: ParsianShaparakConfig | None = None) -> None:
         """Initialize the adapter with Parsian Shaparak configuration.
 
         Args:
             config (ParsianShaparakConfig | None): Configuration for Parsian Shaparak services.
-                If None, uses global config.
+                If None, uses global config. Includes optional proxy configuration via
+                the PROXIES field.
+
+        Raises:
+            ValueError: If LOGIN_ACCOUNT is not a valid string.
         """
         configs = BaseConfig.global_config().PARSIAN_SHAPARAK if config is None else config
         if not configs.LOGIN_ACCOUNT or not isinstance(configs.LOGIN_ACCOUNT, str):
             raise ValueError("LOGIN_ACCOUNT must be a non-empty string")
 
         self.login_account = configs.LOGIN_ACCOUNT
+        transport = None
+        if configs.PROXIES:
+            session = requests.Session()
+            session.proxies = configs.PROXIES
+            transport = Transport(session=session)
 
         # Initialize SOAP clients
-        self.sale_client = zeep.Client(wsdl=configs.PAYMENT_WSDL_URL)
-        self.confirm_client = zeep.Client(wsdl=configs.CONFIRM_WSDL_URL)
-        self.reversal_client = zeep.Client(wsdl=configs.REVERSAL_WSDL_URL)
+        self.sale_client = zeep.Client(wsdl=configs.PAYMENT_WSDL_URL, transport=transport)
+        self.confirm_client = zeep.Client(wsdl=configs.CONFIRM_WSDL_URL, transport=transport)
+        self.reversal_client = zeep.Client(wsdl=configs.REVERSAL_WSDL_URL, transport=transport)
 
     def initiate_payment(self, request: PaymentRequestDTO) -> PaymentResponseDTO:
         """Initiate a payment request.
@@ -125,9 +141,9 @@ class ParsianShaparakPaymentAdapter:
             logger.debug(f"Initiating payment: {request_data}")
             response = self.sale_client.service.SalePaymentRequest(requestData=request_data)
             result = PaymentResponseDTO(
-                token=response.SalePaymentRequestResult.Token,
-                status=response.SalePaymentRequestResult.Status,
-                message=response.SalePaymentRequestResult.Message,
+                token=response.Token,
+                status=response.Status,
+                message=response.Message,
             )
             logger.debug(f"Payment response: {result}")
         except Fault as exception:
@@ -156,10 +172,10 @@ class ParsianShaparakPaymentAdapter:
             logger.debug(f"Confirming payment: {request_data}")
             response = self.confirm_client.service.ConfirmPayment(requestData=request_data)
             result = ConfirmResponseDTO(
-                status=response.ConfirmPaymentResult.Status,
-                rrn=response.ConfirmPaymentResult.RRN,
-                card_number_masked=response.ConfirmPaymentResult.CardNumberMasked,
-                token=response.ConfirmPaymentResult.Token,
+                status=response.Status,
+                rrn=response.RRN,
+                card_number_masked=response.CardNumberMasked,
+                token=response.Token,
             )
             logger.debug(f"Confirm response: {result}")
         except Fault as exception:
@@ -193,10 +209,10 @@ class ParsianShaparakPaymentAdapter:
             logger.debug(f"Confirming payment with amount: {request_data}")
             response = self.confirm_client.service.ConfirmPaymentWithAmount(requestData=request_data)
             result = ConfirmWithAmountResponseDTO(
-                status=response.ConfirmPaymentWithAmountResult.Status,
-                rrn=response.ConfirmPaymentWithAmountResult.RRN,
-                card_number_masked=response.ConfirmPaymentWithAmountResult.CardNumberMasked,
-                token=response.ConfirmPaymentWithAmountResult.Token,
+                status=response.Status,
+                rrn=response.RRN,
+                card_number_masked=response.CardNumberMasked,
+                token=response.Token,
             )
             logger.debug(f"Confirm with amount response: {result}")
         except Fault as exception:
@@ -225,9 +241,9 @@ class ParsianShaparakPaymentAdapter:
             logger.debug(f"Reversing payment: {request_data}")
             response = self.reversal_client.service.ReversalRequest(requestData=request_data)
             result = ReverseResponseDTO(
-                status=response.ReversalRequestResult.Status,
-                message=response.ReversalRequestResult.Message,
-                token=response.ReversalRequestResult.Token,
+                status=response.Status,
+                message=response.Message,
+                token=response.Token,
             )
             logger.debug(f"Reversal response: {result}")
         except Fault as exception:
