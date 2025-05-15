@@ -2,6 +2,28 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+
+## [3.1.0] - 2025-05-15
+
+### Added
+
+#### Payment Gateway
+- Implemented Parsian Internet Payment Gateway adapter
+- Added comprehensive IPG integration support
+- Enhanced payment processing capabilities
+
+### Changed
+
+#### Documentation
+- Updated adapter documentation
+- Improved IPG integration examples
+- Refactored Parsian adapter code structure
+
+### Removed
+- Eliminated redundant error messages
+- Streamlined error handling
+
+
 ## [3.0.1] - 2025-04-27
 
 ### Fixed
