@@ -133,7 +133,7 @@ class ParsianShaparakPaymentAdapter:
         except Fault as exception:
             raise UnavailableError(service="Parsian Shaparak Sale Service") from exception
         except Exception as exception:
-            raise InternalError(details="Error initiating payment") from exception
+            raise InternalError() from exception
         else:
             return result
 
@@ -165,7 +165,7 @@ class ParsianShaparakPaymentAdapter:
         except Fault as exception:
             raise UnavailableError(service="Parsian Shaparak Confirm Service") from exception
         except Exception as exception:
-            raise InternalError(details="Error confirming payment") from exception
+            raise InternalError() from exception
         else:
             return result
 
@@ -202,7 +202,7 @@ class ParsianShaparakPaymentAdapter:
         except Fault as exception:
             raise UnavailableError(service="Parsian Shaparak Confirm Service") from exception
         except Exception as exception:
-            raise InternalError(details="Error confirming payment with amount") from exception
+            raise InternalError() from exception
         else:
             return result
 
@@ -233,6 +233,6 @@ class ParsianShaparakPaymentAdapter:
         except Fault as exception:
             raise UnavailableError(service="Parsian Shaparak Reversal Service") from exception
         except Exception as exception:
-            raise InternalError(details="Error reversing payment") from exception
+            raise InternalError() from exception
         else:
             return result
