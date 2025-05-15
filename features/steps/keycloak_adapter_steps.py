@@ -287,3 +287,110 @@ def step_token_validation_succeeds(context, adapter_type):
     assert result is not None, f"{adapter_type.capitalize()} token validation failed"
     assert result.get("active", False), "Token is not active"
     context.logger.info(f"{adapter_type.capitalize()} token validation verified")
+
+# Create realm steps
+@when('I create a realm named "{realm_name}" with display name "{display_name}" using {adapter_type} adapter')
+def step_create_realm(context, realm_name, display_name, adapter_type):
+    adapter = get_keycloak_adapter(context)
+    scenario_context = get_current_scenario_context(context)
+    is_async = "async" in context.scenario.tags
+
+    try:
+        if is_async:
+            async def create_realm_async(context):
+                realm_result = await adapter.create_realm(
+                    realm_name=realm_name,
+                    display_name=display_name,
+                    skip_exists=True
+                )
+                scenario_context.store("latest_realm_result", realm_result)
+                scenario_context.store(f"realm_{realm_name}", realm_result)
+
+            safe_run_async(create_realm_async)(context)
+        else:
+            realm_result = adapter.create_realm(
+                realm_name=realm_name,
+                display_name=display_name,
+                skip_exists=True
+            )
+            scenario_context.store("latest_realm_result", realm_result)
+            scenario_context.store(f"realm_{realm_name}", realm_result)
+        context.logger.info(f"Created realm {realm_name}")
+    except Exception as e:
+        scenario_context.store("realm_error", str(e))
+        context.logger.exception(f"Realm creation failed: {e!s}")
+
+@then("the {adapter_type} realm creation should succeed")
+def step_realm_creation_succeeds(context, adapter_type):
+    scenario_context = get_current_scenario_context(context)
+    assert not scenario_context.get("realm_error"), f"Realm creation failed: {scenario_context.get('realm_error')}"
+    assert scenario_context.get("latest_realm_result"), "No realm creation result found"
+    context.logger.info("Realm creation succeeded")
+
+@then('the realm "{realm_name}" should exist')
+def step_realm_exists_after_creation(context, realm_name):
+    scenario_context = get_current_scenario_context(context)
+    realm_result = scenario_context.get(f"realm_{realm_name}")
+    assert realm_result, f"Realm {realm_name} not found in results"
+    assert realm_result["realm"] == realm_name, f"Expected realm name {realm_name}, got {realm_result['realm']}"
+    context.logger.info(f"Verified realm {realm_name} exists")
+
+@then('the realm should have display name "{display_name}"')
+def step_realm_has_display_name(context, display_name):
+    scenario_context = get_current_scenario_context(context)
+    realm_result = scenario_context.get("latest_realm_result")
+    assert realm_result, "No realm creation result found"
+    assert realm_result["config"]["displayName"] == display_name, f"Expected display name {display_name}, got {realm_result['config']['displayName']}"
+    context.logger.info(f"Verified realm has display name {display_name}")
+
+# Create client steps
+@when('I create a client named "{client_name}" in realm "{realm_name}" using {adapter_type} adapter')
+def step_create_client(context, client_name, realm_name, adapter_type):
+    adapter = get_keycloak_adapter(context)
+    scenario_context = get_current_scenario_context(context)
+    is_async = "async" in context.scenario.tags
+
+    try:
+        if is_async:
+            async def create_client_async(context):
+                client_result = await adapter.create_client(
+                    client_id=client_name,
+                    realm=realm_name,
+                    skip_exists=True,
+                    public_client=False,
+                    service_account_enabled=True
+                )
+                scenario_context.store("latest_client_result", client_result)
+                scenario_context.store(f"client_{client_name}", client_result)
+
+            safe_run_async(create_client_async)(context)
+        else:
+            client_result = adapter.create_client(
+                client_id=client_name,
+                realm=realm_name,
+                skip_exists=True,
+                public_client=False,
+                service_account_enabled=True
+            )
+            scenario_context.store("latest_client_result", client_result)
+            scenario_context.store(f"client_{client_name}", client_result)
+        context.logger.info(f"Created client {client_name} in realm {realm_name}")
+    except Exception as e:
+        scenario_context.store("client_error", str(e))
+        context.logger.exception(f"Client creation failed: {e!s}")
+
+@then("the {adapter_type} client creation should succeed")
+def step_client_creation_succeeds(context, adapter_type):
+    scenario_context = get_current_scenario_context(context)
+    assert not scenario_context.get("client_error"), f"Client creation failed: {scenario_context.get('client_error')}"
+    assert scenario_context.get("latest_client_result"), "No client creation result found"
+    context.logger.info("Client creation succeeded")
+
+@then('the client "{client_name}" should exist in realm "{realm_name}"')
+def step_client_exists_in_realm(context, client_name, realm_name):
+    scenario_context = get_current_scenario_context(context)
+    client_result = scenario_context.get(f"client_{client_name}")
+    assert client_result, f"Client {client_name} not found in results"
+    assert client_result["client_id"] == client_name, f"Expected client name {client_name}, got {client_result['client_id']}"
+    assert client_result["realm"] == realm_name, f"Expected realm {realm_name}, got {client_result['realm']}"
+    context.logger.info(f"Verified client {client_name} exists in realm {realm_name}")
