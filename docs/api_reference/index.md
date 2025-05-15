@@ -19,6 +19,8 @@ The adapters module provides standardized interfaces to external systems:
 - [Keycloak Adapters](adapters.md#keycloak)
 - [MinIO Adapters](adapters.md#minio)
 - [Kafka Adapters](adapters.md#kafka)
+- [Payment Gateway Adapters](adapters.md#payment-gateways)
+    - [Parsian Shaparak](adapters.md#parsian-shaparak)
 
 ### Configs
 
@@ -58,6 +60,9 @@ archipy/
 │   ├── base/          # Base adapter implementations
 │   │   └── sqlalchemy/  # Base SQLAlchemy components
 │   ├── email/         # Email service adapters
+│   ├── internet_payment_gateways/ # Payment gateway adapters
+│   │   └── ir/        # Country-specific implementations
+│   │       └── parsian/  # Parsian Shaparak gateway adapter
 │   ├── keycloak/      # Keycloak authentication adapters
 │   ├── kafka/         # Kafka message streaming adapters
 │   ├── minio/         # MinIO object storage adapters

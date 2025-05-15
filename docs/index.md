@@ -22,6 +22,7 @@ ArchiPy is built with the following objectives in mind:
 - **Database Integration**: Dedicated adapters for PostgreSQL, SQLite, and StarRocks with SQLAlchemy integration
 - **Configuration Management**: Type-safe configuration with environment variable support
 - **Service Adapters**: Pre-built adapters for Redis, Email, Keycloak, MinIO, and Kafka
+- **Payment Processing**: Payment gateway adapters for online transaction processing
 - **Data Standardization**: Base entities, DTOs, and modern type hints
 - **Helper Utilities**: Decorators, interceptors, and security utilities
 - **Testing & Quality**: BDD testing and automated code quality tools

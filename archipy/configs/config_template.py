@@ -770,3 +770,36 @@ class DatetimeConfig(BaseModel):
     REQUEST_TIMEOUT: int = 5
     MAX_RETRIES: int = 3
     CACHE_TTL: int = 86400  # TTL for cache in seconds (24 hours)
+
+
+class ParsianShaparakConfig(BaseModel):
+    """Configuration settings for Parsian Shaparak payment gateway integration.
+
+    Controls connection parameters and authentication for the Parsian Shaparak
+    payment gateway services.
+
+    Attributes:
+        LOGIN_ACCOUNT (str): Merchant login account for authentication.
+        PAYMENT_WSDL_URL (HttpUrl): WSDL URL for the payment service.
+        CONFIRM_WSDL_URL (HttpUrl): WSDL URL for the confirm service.
+        REVERSAL_WSDL_URL (HttpUrl): WSDL URL for the reversal service.
+        PROXIES (dict[str, str] | None): Optional HTTP/HTTPS proxy configuration (e.g. {"http": "http://proxy:port", "https": "https://proxy:port"}).
+    """
+
+    LOGIN_ACCOUNT: str | None = Field(default=None, description="Merchant login account for authentication")
+    PAYMENT_WSDL_URL: str = Field(
+        default="https://pec.shaparak.ir/NewIPGServices/Sale/SaleService.asmx?WSDL",
+        description="WSDL URL for the payment service",
+    )
+    CONFIRM_WSDL_URL: str = Field(
+        default="https://pec.shaparak.ir/NewIPGServices/Confirm/ConfirmService.asmx?WSDL",
+        description="WSDL URL for the confirm service",
+    )
+    REVERSAL_WSDL_URL: str = Field(
+        default="https://pec.shaparak.ir/NewIPGServices/Reverse/ReversalService.asmx?WSDL",
+        description="WSDL URL for the reversal service",
+    )
+    PROXIES: dict[str, str] | None = Field(
+        default=None,
+        description="Optional HTTP/HTTPS proxy configuration dictionary",
+    )
