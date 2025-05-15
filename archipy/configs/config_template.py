@@ -314,21 +314,99 @@ class KafkaConfig(BaseModel):
         LIST_TOPICS_TIMEOUT (int): Timeout for listing topics.
     """
 
-    ACKNOWLEDGE_COUNT: int = 1
-    AUTO_OFFSET_RESET: str = "earliest"
-    BROKERS_LIST: list[str] | None = None
-    CERT_PEM: str | None = None
-    ENABLE_AUTO_COMMIT: bool = False
-    MAX_BUFFER_MS: int = 1
-    MAX_BUFFER_SIZE: int = 1000
-    PASSWORD: str | None = None
-    SASL_MECHANISMS: str = "SCRAM-SHA-512"
-    SECURITY_PROTOCOL: str = "SASL_SSL"
-    SESSION_TIMEOUT_MS: int = 6000
-    REQUEST_ACK_TIMEOUT_MS: int = 2000
-    DELIVERY_MESSAGE_TIMEOUT_MS: int = 2300
-    USER_NAME: str | None = None
-    LIST_TOPICS_TIMEOUT: int = 1
+    BROKERS_LIST: list[str] = Field(default=["localhost:9092"], description="List of Kafka broker addresses")
+    SECURITY_PROTOCOL: str = Field(default="PLAINTEXT", description="Security protocol for Kafka connections")
+    SASL_MECHANISM: str | None = Field(default=None, description="SASL mechanism for authentication")
+    USERNAME: str | None = Field(default=None, description="Username for SASL authentication")
+    PASSWORD: SecretStr | None = Field(default=None, description="Password for SASL authentication")
+    SSL_CA_FILE: str | None = Field(default=None, description="Path to SSL CA certificate file")
+    SSL_CERT_FILE: str | None = Field(default=None, description="Path to SSL certificate file")
+    SSL_KEY_FILE: str | None = Field(default=None, description="Path to SSL key file")
+    ACKS: Literal["0", "1", "all"] = Field(default="all", description="Acknowledgment mode for producers")
+    AUTO_OFFSET_RESET: Literal["earliest", "latest", "none"] = Field(
+        default="earliest",
+        description="Offset reset policy for consumers",
+    )
+    ENABLE_AUTO_COMMIT: bool = Field(default=False, description="Enable auto-commit for consumer offsets")
+    MAX_POLL_RECORDS: int = Field(default=500, ge=1, description="Maximum records per consumer poll")
+    FETCH_MIN_BYTES: int = Field(default=1, ge=1, description="Minimum bytes to fetch per poll")
+    FETCH_MAX_WAIT_MS: int = Field(default=500, ge=0, description="Maximum wait time for fetching data (ms)")
+    SESSION_TIMEOUT_MS: int = Field(default=10000, ge=1000, description="Consumer session timeout (ms)")
+    HEARTBEAT_INTERVAL_MS: int = Field(default=3000, ge=100, description="Consumer heartbeat interval (ms)")
+    REQUEST_TIMEOUT_MS: int = Field(default=30000, ge=1000, description="Request timeout (ms)")
+    DELIVERY_TIMEOUT_MS: int = Field(default=120000, ge=1000, description="Message delivery timeout (ms)")
+    COMPRESSION_TYPE: Literal["none", "gzip", "snappy", "lz4", "zstd"] | None = Field(
+        default=None,
+        description="Compression type for messages",
+    )
+    LINGER_MS: int = Field(default=5, ge=0, description="Time to buffer messages before sending (ms)")
+    BATCH_SIZE: int = Field(default=16384, ge=0, description="Maximum batch size in bytes")
+    BUFFER_MEMORY: int = Field(default=33554432, ge=0, description="Total buffer memory for producer (bytes)")
+    MAX_IN_FLIGHT_REQUESTS: int = Field(default=5, ge=1, description="Maximum unacknowledged requests per connection")
+    RETRIES: int = Field(default=5, ge=0, description="Number of retries for failed producer requests")
+    LIST_TOPICS_TIMEOUT_MS: int = Field(default=5000, ge=1000, description="Timeout for listing topics (ms)")
+    CLIENT_ID: str = Field(default="kafka-client", description="Client identifier")
+    CONNECTIONS_MAX_IDLE_MS: int = Field(
+        default=540000,
+        description="Close idle connections after this number of milliseconds",
+    )
+    ENABLE_IDEMPOTENCE: bool = Field(default=False, description="Enable idempotent producer for exactly-once delivery")
+    TRANSACTIONAL_ID: str | None = Field(default=None, description="Transactional ID for the producer")
+    ISOLATION_LEVEL: Literal["read_uncommitted", "read_committed"] = Field(
+        default="read_uncommitted",
+        description="Isolation level for consumer",
+    )
+    MAX_POLL_INTERVAL_MS: int = Field(default=300000, ge=1000, description="Maximum time between poll invocations")
+    PARTITION_ASSIGNMENT_STRATEGY: str = Field(
+        default="range",
+        description="Partition assignment strategy for consumer",
+    )
+    FETCH_MAX_BYTES: int = Field(
+        default=52428800,
+        ge=0,
+        description="Maximum amount of data the server returns for a fetch request",
+    )
+    MAX_PARTITION_FETCH_BYTES: int = Field(
+        default=1048576,
+        ge=0,
+        description="Maximum amount of data per partition the server returns",
+    )
+    QUEUE_BUFFERING_MAX_MESSAGES: int = Field(
+        default=100000,
+        ge=0,
+        description="Maximum number of messages allowed on the producer queue",
+    )
+    STATISTICS_INTERVAL_MS: int = Field(
+        default=0,
+        ge=0,
+        description="Frequency in milliseconds to send statistics data",
+    )
+
+    @model_validator(mode="after")
+    def validate_security_settings(self) -> "KafkaConfig":
+        if self.SECURITY_PROTOCOL in ["SASL_PLAINTEXT", "SASL_SSL"]:
+            if not (self.SASL_MECHANISM and self.USERNAME and self.PASSWORD):
+                raise ValueError("SASL authentication requires SASL_MECHANISM, USERNAME, and PASSWORD to be set.")
+        if self.SECURITY_PROTOCOL == "SSL":
+            if not (self.SSL_CA_FILE or self.SSL_CERT_FILE or self.SSL_KEY_FILE):
+                logging.warning("SSL enabled but no SSL certificates provided; this may cause connection issues.")
+        return self
+
+    @model_validator(mode="after")
+    def validate_consumer_settings(self) -> "KafkaConfig":
+        if self.ENABLE_AUTO_COMMIT and self.AUTO_OFFSET_RESET == "none":
+            raise ValueError("ENABLE_AUTO_COMMIT cannot be True when AUTO_OFFSET_RESET is 'none'.")
+        if self.HEARTBEAT_INTERVAL_MS >= self.SESSION_TIMEOUT_MS:
+            raise ValueError("HEARTBEAT_INTERVAL_MS must be less than SESSION_TIMEOUT_MS.")
+        return self
+
+    @model_validator(mode="after")
+    def validate_idempotence_and_transactions(self) -> "KafkaConfig":
+        if self.ENABLE_IDEMPOTENCE and self.ACKS != "all":
+            raise ValueError("ENABLE_IDEMPOTENCE requires ACKS to be 'all'.")
+        if self.TRANSACTIONAL_ID is not None and not self.ENABLE_IDEMPOTENCE:
+            raise ValueError("TRANSACTIONAL_ID requires ENABLE_IDEMPOTENCE to be True.")
+        return self
 
 
 class KeycloakConfig(BaseModel):
