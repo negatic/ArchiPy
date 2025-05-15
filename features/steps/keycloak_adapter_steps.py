@@ -321,28 +321,24 @@ def step_create_realm(context: Context, realm_name: str, display_name: str, adap
 
     try:
         if is_async:
+
             async def create_realm_async(context: Context) -> None:
                 realm_result = await adapter.create_realm(
-                    realm_name=realm_name,
-                    display_name=display_name,
-                    skip_exists=True
+                    realm_name=realm_name, display_name=display_name, skip_exists=True
                 )
                 scenario_context.store("latest_realm_result", realm_result)
                 scenario_context.store(f"realm_{realm_name}", realm_result)
 
             safe_run_async(create_realm_async)(context)
         else:
-            realm_result = adapter.create_realm(
-                realm_name=realm_name,
-                display_name=display_name,
-                skip_exists=True
-            )
+            realm_result = adapter.create_realm(realm_name=realm_name, display_name=display_name, skip_exists=True)
             scenario_context.store("latest_realm_result", realm_result)
             scenario_context.store(f"realm_{realm_name}", realm_result)
         context.logger.info(f"Created realm {realm_name}")
     except Exception as e:
         scenario_context.store("realm_error", str(e))
         context.logger.exception("Realm creation failed")
+
 
 @then("the {adapter_type} realm creation should succeed")
 def step_realm_creation_succeeds(context: Context, adapter_type: str) -> None:
@@ -369,7 +365,9 @@ def step_realm_has_display_name(context: Context, display_name: str) -> None:
     scenario_context = get_current_scenario_context(context)
     realm_result = scenario_context.get("latest_realm_result")
     assert realm_result, "No realm creation result found"
-    assert realm_result["config"]["displayName"] == display_name, f"Expected display name {display_name}, got {realm_result['config']['displayName']}"
+    assert (
+        realm_result["config"]["displayName"] == display_name
+    ), f"Expected display name {display_name}, got {realm_result['config']['displayName']}"
     context.logger.info(f"Verified realm has display name {display_name}")
 
 
@@ -383,13 +381,14 @@ def step_create_client(context: Context, client_name: str, realm_name: str, adap
 
     try:
         if is_async:
+
             async def create_client_async(context: Context) -> None:
                 client_result = await adapter.create_client(
                     client_id=client_name,
                     realm=realm_name,
                     skip_exists=True,
                     public_client=False,
-                    service_account_enabled=True
+                    service_account_enabled=True,
                 )
                 scenario_context.store("latest_client_result", client_result)
                 scenario_context.store(f"client_{client_name}", client_result)
@@ -401,7 +400,7 @@ def step_create_client(context: Context, client_name: str, realm_name: str, adap
                 realm=realm_name,
                 skip_exists=True,
                 public_client=False,
-                service_account_enabled=True
+                service_account_enabled=True,
             )
             scenario_context.store("latest_client_result", client_result)
             scenario_context.store(f"client_{client_name}", client_result)
@@ -409,6 +408,7 @@ def step_create_client(context: Context, client_name: str, realm_name: str, adap
     except Exception as e:
         scenario_context.store("client_error", str(e))
         context.logger.exception("Client creation failed")
+
 
 @then("the {adapter_type} client creation should succeed")
 def step_client_creation_succeeds(context: Context, adapter_type: str) -> None:
@@ -425,6 +425,8 @@ def step_client_exists_in_realm(context: Context, client_name: str, realm_name: 
     scenario_context = get_current_scenario_context(context)
     client_result = scenario_context.get(f"client_{client_name}")
     assert client_result, f"Client {client_name} not found in results"
-    assert client_result["client_id"] == client_name, f"Expected client name {client_name}, got {client_result['client_id']}"
+    assert (
+        client_result["client_id"] == client_name
+    ), f"Expected client name {client_name}, got {client_result['client_id']}"
     assert client_result["realm"] == realm_name, f"Expected realm {realm_name}, got {client_result['realm']}"
     context.logger.info(f"Verified client {client_name} exists in realm {realm_name}")

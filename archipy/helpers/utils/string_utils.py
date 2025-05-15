@@ -441,9 +441,9 @@ class StringUtils(StringUtilsConstants):
         if cls.is_string_none_or_empty(text):
             return text
 
-        components = text.split('_')
+        components = text.split("_")
         # First component remains lowercase, the rest get capitalized
-        return components[0] + ''.join(x.title() for x in components[1:])
+        return components[0] + "".join(x.title() for x in components[1:])
 
     @classmethod
     def camel_to_snake_case(cls, text: str) -> str:
@@ -459,5 +459,5 @@ class StringUtils(StringUtilsConstants):
             return text
 
         # Add underscore before each capital letter and convert to lowercase
-        s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', text)
-        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+        s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", text)
+        return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
