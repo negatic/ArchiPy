@@ -2,7 +2,7 @@ import logging
 from typing import override
 
 from confluent_kafka import Consumer, KafkaError, Message, Producer, TopicPartition
-from confluent_kafka.admin import AdminClient, ClusterMetadata, NewTopic  # Direct import
+from confluent_kafka.admin import AdminClient, ClusterMetadata, NewTopic
 
 from archipy.adapters.kafka.ports import KafkaAdminPort, KafkaConsumerPort, KafkaProducerPort
 from archipy.configs.base_config import BaseConfig
@@ -63,8 +63,6 @@ class KafkaExceptionHandlerMixin:
         # Service availability errors
         if "unavailable" in error_msg or "connection" in error_msg:
             raise ServiceUnavailableError(service="Kafka") from exception
-
-        # Default: general internal error
         raise InternalError(additional_data={"operation": operation}) from exception
 
     @classmethod
@@ -110,14 +108,16 @@ class KafkaAdminAdapter(KafkaAdminPort, KafkaExceptionHandlerMixin):
         try:
             broker_list_csv = ",".join(configs.BROKERS_LIST)
             config = {"bootstrap.servers": broker_list_csv}
-            if configs.USER_NAME and configs.PASSWORD and configs.CERT_PEM:
+            if configs.USERNAME and configs.PASSWORD and configs.SSL_CA_FILE:
                 config |= {
-                    "sasl.username": configs.USER_NAME,
-                    "sasl.password": configs.PASSWORD,
+                    "sasl.username": configs.USERNAME,
+                    "sasl.password": configs.PASSWORD.get_secret_value(),
                     "security.protocol": configs.SECURITY_PROTOCOL,
-                    "sasl.mechanisms": configs.SASL_MECHANISMS,
+                    "sasl.mechanism": configs.SASL_MECHANISM,
+                    "ssl.ca.location": configs.SSL_CA_FILE,
+                    "ssl.certificate.location": configs.SSL_CERT_FILE,
+                    "ssl.key.location": configs.SSL_KEY_FILE,
                     "ssl.endpoint.identification.algorithm": "none",
-                    "ssl.ca.pem": configs.CERT_PEM,
                 }
             self.adapter: AdminClient = AdminClient(config)
         except Exception as e:
@@ -157,16 +157,12 @@ class KafkaAdminAdapter(KafkaAdminPort, KafkaExceptionHandlerMixin):
         """
         try:
             self.adapter.delete_topics(topics)
-            logger.debug("Deleted topics", topics)
+            logger.debug("Deleted topics: %s", topics)
         except Exception as e:
             self._handle_kafka_exception(e, "delete_topic")
 
     @override
-    def list_topics(
-        self,
-        topic: str | None = None,
-        timeout: int = 1,
-    ) -> ClusterMetadata:
+    def list_topics(self, topic: str | None = None, timeout: int = 1) -> ClusterMetadata:
         """Lists Kafka topics.
 
         Args:
@@ -257,19 +253,28 @@ class KafkaConsumerAdapter(KafkaConsumerPort, KafkaExceptionHandlerMixin):
                 "session.timeout.ms": configs.SESSION_TIMEOUT_MS,
                 "auto.offset.reset": configs.AUTO_OFFSET_RESET,
                 "enable.auto.commit": configs.ENABLE_AUTO_COMMIT,
+                "fetch.min.bytes": configs.FETCH_MIN_BYTES,
+                "heartbeat.interval.ms": configs.HEARTBEAT_INTERVAL_MS,
+                "isolation.level": configs.ISOLATION_LEVEL,
+                "max.poll.interval.ms": configs.MAX_POLL_INTERVAL_MS,
+                "partition.assignment.strategy": configs.PARTITION_ASSIGNMENT_STRATEGY,
+                "fetch.max.bytes": configs.FETCH_MAX_BYTES,
+                "max.partition.fetch.bytes": configs.MAX_PARTITION_FETCH_BYTES,
             }
-            if configs.USER_NAME and configs.PASSWORD and configs.CERT_PEM:
+            if configs.USERNAME and configs.PASSWORD and configs.SSL_CA_FILE:
                 config |= {
-                    "sasl.username": configs.USER_NAME,
-                    "sasl.password": configs.PASSWORD,
+                    "sasl.username": configs.USERNAME,
+                    "sasl.password": configs.PASSWORD.get_secret_value(),
                     "security.protocol": configs.SECURITY_PROTOCOL,
-                    "sasl.mechanisms": configs.SASL_MECHANISMS,
+                    "sasl.mechanism": configs.SASL_MECHANISM,
+                    "ssl.ca.location": configs.SSL_CA_FILE,
+                    "ssl.certificate.location": configs.SSL_CERT_FILE,
+                    "ssl.key.location": configs.SSL_KEY_FILE,
                     "ssl.endpoint.identification.algorithm": "none",
-                    "ssl.ca.pem": configs.CERT_PEM,
                 }
             consumer = Consumer(config)
         except Exception as e:
-            cls._handle_kafka_exception(cls, e, "KafkaConsumer_init")
+            cls._handle_kafka_exception(e, "KafkaConsumer_init")
         else:
             return consumer
 
@@ -295,9 +300,9 @@ class KafkaConsumerAdapter(KafkaConsumerPort, KafkaExceptionHandlerMixin):
             messages: list[Message] = self._adapter.consume(num_messages=messages_number, timeout=timeout)
             for message in messages:
                 if message.error():
-                    logger.error("Consumer error", message.error())
+                    logger.error("Consumer error: %s", message.error())
                     continue
-                logger.debug("Message consumed", message)
+                logger.debug("Message consumed: %s", message)
                 message.set_value(message.value())
                 result_list.append(message)
         except Exception as e:
@@ -326,9 +331,9 @@ class KafkaConsumerAdapter(KafkaConsumerPort, KafkaExceptionHandlerMixin):
                 logger.debug("No message received")
                 return None
             if message.error():
-                logger.error("Consumer error", message.error())
+                logger.error("Consumer error: %s", message.error())
                 return None
-            logger.debug("Message consumed", message)
+            logger.debug("Message consumed: %s", message)
             message.set_value(message.value())
         except Exception as e:
             self._handle_kafka_exception(e, "poll")
@@ -438,24 +443,34 @@ class KafkaProducerAdapter(KafkaProducerPort, KafkaExceptionHandlerMixin):
             broker_list_csv = ",".join(configs.BROKERS_LIST)
             config = {
                 "bootstrap.servers": broker_list_csv,
-                "queue.buffering.max.ms": configs.MAX_BUFFER_MS,
-                "queue.buffering.max.messages": configs.MAX_BUFFER_SIZE,
-                "acks": configs.ACKNOWLEDGE_COUNT,
-                "request.timeout.ms": configs.REQUEST_ACK_TIMEOUT_MS,
-                "delivery.timeout.ms": configs.DELIVERY_MESSAGE_TIMEOUT_MS,
+                "linger.ms": configs.LINGER_MS,
+                "batch.size": configs.BATCH_SIZE,
+                "acks": configs.ACKS,
+                "request.timeout.ms": configs.REQUEST_TIMEOUT_MS,
+                "delivery.timeout.ms": configs.DELIVERY_TIMEOUT_MS,
+                "compression.type": configs.COMPRESSION_TYPE or "none",
+                "max.in.flight.requests.per.connection": configs.MAX_IN_FLIGHT_REQUESTS,
+                "retries": configs.RETRIES,
+                "enable.idempotence": configs.ENABLE_IDEMPOTENCE,
+                "queue.buffering.max.messages": configs.QUEUE_BUFFERING_MAX_MESSAGES,
+                "statistics.interval.ms": configs.STATISTICS_INTERVAL_MS,
             }
-            if configs.USER_NAME and configs.PASSWORD and configs.CERT_PEM:
+            if configs.TRANSACTIONAL_ID:
+                config["transactional.id"] = configs.TRANSACTIONAL_ID
+            if configs.USERNAME and configs.PASSWORD and configs.SSL_CA_FILE:
                 config |= {
-                    "sasl.username": configs.USER_NAME,
-                    "sasl.password": configs.PASSWORD,
+                    "sasl.username": configs.USERNAME,
+                    "sasl.password": configs.PASSWORD.get_secret_value(),
                     "security.protocol": configs.SECURITY_PROTOCOL,
-                    "sasl.mechanisms": configs.SASL_MECHANISMS,
+                    "sasl.mechanism": configs.SASL_MECHANISM,
+                    "ssl.ca.location": configs.SSL_CA_FILE,
+                    "ssl.certificate.location": configs.SSL_CERT_FILE,
+                    "ssl.key.location": configs.SSL_KEY_FILE,
                     "ssl.endpoint.identification.algorithm": "none",
-                    "ssl.ca.pem": configs.CERT_PEM,
                 }
             producer = Producer(config)
         except Exception as e:
-            cls._handle_kafka_exception(cls, e, "KafkaProducer_init")
+            cls._handle_kafka_exception(e, "KafkaProducer_init")
         else:
             return producer
 
@@ -482,11 +497,7 @@ class KafkaProducerAdapter(KafkaProducerPort, KafkaExceptionHandlerMixin):
             message (Message): The delivered message.
         """
         if error:
-            logger.error(
-                "Message delivery failed: %s: %s",
-                error,
-                message.value(),
-            )
+            logger.error("Message delivery failed: %s: %s", error, message.value())
         else:
             logger.debug(
                 "Message delivered to %s [%d] at offset %d",
@@ -532,7 +543,7 @@ class KafkaProducerAdapter(KafkaProducerPort, KafkaExceptionHandlerMixin):
         try:
             remaining_messages = self._adapter.flush(timeout=timeout)
             if remaining_messages > 0:
-                logger.warning(f"{remaining_messages} messages left in the queue after flush")
+                logger.warning("%d messages left in the queue after flush", remaining_messages)
         except Exception as e:
             self._handle_kafka_exception(e, "flush")
 
@@ -549,11 +560,7 @@ class KafkaProducerAdapter(KafkaProducerPort, KafkaExceptionHandlerMixin):
             raise UnavailableError(service="Kafka") from e
 
     @override
-    def list_topics(
-        self,
-        topic: str | None = None,
-        timeout: int = 1,
-    ) -> ClusterMetadata:
+    def list_topics(self, topic: str | None = None, timeout: int = 1) -> ClusterMetadata:
         """Lists Kafka topics.
 
         Args:

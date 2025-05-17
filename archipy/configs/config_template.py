@@ -19,39 +19,11 @@ class ElasticSearchConfig(BaseModel):
 
     Contains settings related to Elasticsearch server connectivity, authentication,
     TLS/SSL, request handling, node status management, and batch operation parameters.
-
-    Attributes:
-        HOSTS (list[str]): List of Elasticsearch server hosts (e.g., ['https://localhost:9200']).
-        HTTP_USER_NAME (str | None): Username for HTTP authentication.
-        HTTP_PASSWORD (SecretStr | None): Password for HTTP authentication.
-        CA_CERTS (str | None): Path to CA bundle for SSL verification.
-        SSL_ASSERT_FINGERPRINT (str | None): SSL certificate fingerprint for verification.
-        VERIFY_CERTS (bool): Whether to verify SSL certificates.
-        SSL_VERSION (str | None): Minimum TLS version (e.g., 'TLSv1.2').
-        CLIENT_CERT (str | None): Path to client certificate for TLS authentication.
-        CLIENT_KEY (str | None): Path to client key for TLS authentication.
-        HTTP_COMPRESS (bool): Whether to enable HTTP compression (gzip).
-        REQUEST_TIMEOUT (float | None): Timeout for HTTP requests in seconds.
-        MAX_RETRIES (int): Maximum number of retries per request.
-        RETRY_ON_TIMEOUT (bool): Whether to retry on connection timeouts.
-        RETRY_ON_STATUS (tuple[int, ...]): HTTP status codes to retry on.
-        IGNORE_STATUS (tuple[int, ...]): HTTP status codes to ignore as errors.
-        SNIFF_ON_START (bool): Whether to sniff nodes on client instantiation.
-        SNIFF_BEFORE_REQUESTS (bool): Whether to sniff nodes before requests.
-        SNIFF_ON_NODE_FAILURE (bool): Whether to sniff nodes on node failure.
-        MIN_DELAY_BETWEEN_SNIFFING (float): Minimum delay between sniffing attempts in seconds.
-        NODE_SELECTOR_CLASS (str): Node selector strategy ('round_robin' or 'random').
-        CONNECTIONS_PER_NODE (int): Number of HTTP connections per node.
-        DEAD_NODE_BACKOFF_FACTOR (float): Factor for calculating node timeout duration after failures.
-        MAX_DEAD_NODE_BACKOFF (float): Maximum timeout duration for a dead node in seconds.
-        KWARG (dict[str, Any]): Additional keyword arguments for Elasticsearch client.
-        BATCH_INTERVAL_THRESHOLD_IN_SECONDS (int): Time threshold for batch operations.
-        BATCH_DOC_COUNT_THRESHOLD (int): Document count threshold for batch operations.
     """
 
     HOSTS: list[str] = Field(default=["https://localhost:9200"], description="List of Elasticsearch server hosts")
-    HTTP_USER_NAME: str | None = None
-    HTTP_PASSWORD: SecretStr | None = None
+    HTTP_USER_NAME: str | None = Field(default=None, description="Username for HTTP authentication")
+    HTTP_PASSWORD: SecretStr | None = Field(default=None, description="Password for HTTP authentication")
     CA_CERTS: str | None = Field(default=None, description="Path to CA bundle for SSL verification")
     SSL_ASSERT_FINGERPRINT: str | None = Field(default=None, description="SSL certificate fingerprint for verification")
     VERIFY_CERTS: bool = Field(default=True, description="Whether to verify SSL certificates")
@@ -121,46 +93,26 @@ class ElasticSearchAPMConfig(BaseModel):
 
     Controls behavior of the Elastic APM agent for application monitoring, tracing,
     and error reporting.
-
-    Attributes:
-        API_REQUEST_SIZE (str): Maximum size of API requests.
-        API_REQUEST_TIME (str): Maximum time for API requests.
-        AUTO_LOG_STACKS (bool): Whether to automatically log stack traces.
-        CAPTURE_BODY (str): Level of request body capture.
-        CAPTURE_HEADERS (bool): Whether to capture HTTP headers.
-        COLLECT_LOCAL_VARIABLES (str): Level of local variable collection.
-        IS_ENABLED (bool): Whether APM is enabled.
-        ENVIRONMENT (str | None): APM environment name.
-        LOG_FILE (str): Path to APM log file.
-        LOG_FILE_SIZE (str): Maximum size of APM log file.
-        RECORDING (bool): Whether to record transactions.
-        SECRET_TOKEN (str | None): APM secret token.
-        SERVER_TIMEOUT (str): Server timeout duration.
-        SERVER_URL (str | None): APM server URL.
-        SERVICE_NAME (str): Name of the service being monitored.
-        SERVICE_VERSION (str | None): Version of the service.
-        TRANSACTION_SAMPLE_RATE (str): Rate at which to sample transactions.
-        API_KEY (str | None): API key for authentication.
     """
 
-    API_REQUEST_SIZE: str = "768kb"
-    API_REQUEST_TIME: str = "10s"
-    AUTO_LOG_STACKS: bool = True
-    CAPTURE_BODY: str = "off"
-    CAPTURE_HEADERS: bool = False
-    COLLECT_LOCAL_VARIABLES: str = "errors"
-    IS_ENABLED: bool = False
-    ENVIRONMENT: str | None = None
-    LOG_FILE: str = ""
-    LOG_FILE_SIZE: str = "1mb"
-    RECORDING: bool = True
-    SECRET_TOKEN: str | None = None
-    SERVER_TIMEOUT: str = "5s"
-    SERVER_URL: str | None = None
-    SERVICE_NAME: str = "unknown-python-service"
-    SERVICE_VERSION: str | None = None
-    TRANSACTION_SAMPLE_RATE: str = "0.001"
-    API_KEY: str | None = None
+    API_REQUEST_SIZE: str = Field(default="768kb", description="Maximum size of API requests")
+    API_REQUEST_TIME: str = Field(default="10s", description="Maximum time for API requests")
+    AUTO_LOG_STACKS: bool = Field(default=True, description="Whether to automatically log stack traces")
+    CAPTURE_BODY: str = Field(default="off", description="Level of request body capture")
+    CAPTURE_HEADERS: bool = Field(default=False, description="Whether to capture HTTP headers")
+    COLLECT_LOCAL_VARIABLES: str = Field(default="errors", description="Level of local variable collection")
+    IS_ENABLED: bool = Field(default=False, description="Whether APM is enabled")
+    ENVIRONMENT: str | None = Field(default=None, description="APM environment name")
+    LOG_FILE: str = Field(default="", description="Path to APM log file")
+    LOG_FILE_SIZE: str = Field(default="1mb", description="Maximum size of APM log file")
+    RECORDING: bool = Field(default=True, description="Whether to record transactions")
+    SECRET_TOKEN: str | None = Field(default=None, description="APM secret token")
+    SERVER_TIMEOUT: str = Field(default="5s", description="Server timeout duration")
+    SERVER_URL: str | None = Field(default=None, description="APM server URL")
+    SERVICE_NAME: str = Field(default="unknown-python-service", description="Name of the service being monitored")
+    SERVICE_VERSION: str | None = Field(default=None, description="Version of the service")
+    TRANSACTION_SAMPLE_RATE: str = Field(default="0.001", description="Rate at which to sample transactions")
+    API_KEY: str | None = Field(default=None, description="API key for authentication")
 
 
 class FastAPIConfig(BaseModel):
@@ -168,67 +120,43 @@ class FastAPIConfig(BaseModel):
 
     Controls FastAPI application behavior, including server settings, middleware,
     documentation, and performance parameters.
-
-    Attributes:
-        PROJECT_NAME (str): Name of the FastAPI project.
-        API_PREFIX (str): URL prefix for API endpoints.
-        ACCESS_LOG (bool): Whether to enable access logging.
-        BACKLOG (int): Maximum number of queued connections.
-        DATE_HEADER (bool): Whether to include date header in responses.
-        FORWARDED_ALLOW_IPS (list[str] | None): List of allowed forwarded IPs.
-        LIMIT_CONCURRENCY (int | None): Maximum concurrent requests.
-        LIMIT_MAX_REQUESTS (int | None): Maximum number of requests.
-        CORS_MIDDLEWARE_ALLOW_CREDENTIALS (bool): Whether to allow credentials in CORS.
-        CORS_MIDDLEWARE_ALLOW_HEADERS (list[str]): Allowed CORS headers.
-        CORS_MIDDLEWARE_ALLOW_METHODS (list[str]): Allowed CORS methods.
-        CORS_MIDDLEWARE_ALLOW_ORIGINS (list[str]): Allowed CORS origins.
-        PROXY_HEADERS (bool): Whether to trust proxy headers.
-        RELOAD (bool): Whether to enable auto-reload.
-        SERVER_HEADER (bool): Whether to include server header.
-        SERVE_HOST (str): Host to serve the application on.
-        SERVE_PORT (int): Port to serve the application on.
-        TIMEOUT_GRACEFUL_SHUTDOWN (int | None): Graceful shutdown timeout.
-        TIMEOUT_KEEP_ALIVE (int): Keep-alive timeout.
-        WORKERS_COUNT (int): Number of worker processes.
-        WS_MAX_SIZE (int): Maximum WebSocket message size.
-        WS_PER_MESSAGE_DEFLATE (bool): Whether to enable WebSocket compression.
-        WS_PING_INTERVAL (float): WebSocket ping interval.
-        WS_PING_TIMEOUT (float): WebSocket ping timeout.
-        OPENAPI_URL (str | None): URL for OpenAPI schema.
-        DOCS_URL (str | None): URL for API documentation.
-        RE_DOCS_URL (str | None): URL for ReDoc documentation.
-        SWAGGER_UI_PARAMS (dict[str, str] | None): Swagger UI parameters.
     """
 
-    PROJECT_NAME: str = "project_name"
-    API_PREFIX: str = "/api"
+    PROJECT_NAME: str = Field(default="project_name", description="Name of the FastAPI project")
+    API_PREFIX: str = Field(default="/api", description="URL prefix for API endpoints")
 
-    ACCESS_LOG: bool = True
-    BACKLOG: int = 2048
-    DATE_HEADER: bool = True
-    FORWARDED_ALLOW_IPS: list[str] | None = None
-    LIMIT_CONCURRENCY: int | None = None
-    LIMIT_MAX_REQUESTS: int | None = None
-    CORS_MIDDLEWARE_ALLOW_CREDENTIALS: bool = True
-    CORS_MIDDLEWARE_ALLOW_HEADERS: list[str] = ["*"]
-    CORS_MIDDLEWARE_ALLOW_METHODS: list[str] = ["*"]
-    CORS_MIDDLEWARE_ALLOW_ORIGINS: list[str] = ["*"]
-    PROXY_HEADERS: bool = True
-    RELOAD: bool = False
-    SERVER_HEADER: bool = True
-    SERVE_HOST: str = "0.0.0.0"  # noqa: S104 # Deliberate binding to all interfaces for containerized deployments
-    SERVE_PORT: int = 8100
-    TIMEOUT_GRACEFUL_SHUTDOWN: int | None = None
-    TIMEOUT_KEEP_ALIVE: int = 5
-    WORKERS_COUNT: int = 4
-    WS_MAX_SIZE: int = 16777216
-    WS_PER_MESSAGE_DEFLATE: bool = True
-    WS_PING_INTERVAL: float = 20.0
-    WS_PING_TIMEOUT: float = 20.0
-    OPENAPI_URL: str | None = "/openapi.json"
-    DOCS_URL: str | None = None
-    RE_DOCS_URL: str | None = None
-    SWAGGER_UI_PARAMS: dict[str, str] | None = {"docExpansion": "none"}
+    ACCESS_LOG: bool = Field(default=True, description="Whether to enable access logging")
+    BACKLOG: int = Field(default=2048, description="Maximum number of queued connections")
+    DATE_HEADER: bool = Field(default=True, description="Whether to include date header in responses")
+    FORWARDED_ALLOW_IPS: list[str] | None = Field(default=None, description="List of allowed forwarded IPs")
+    LIMIT_CONCURRENCY: int | None = Field(default=None, description="Maximum concurrent requests")
+    LIMIT_MAX_REQUESTS: int | None = Field(default=None, description="Maximum number of requests")
+    CORS_MIDDLEWARE_ALLOW_CREDENTIALS: bool = Field(default=True, description="Whether to allow credentials in CORS")
+    CORS_MIDDLEWARE_ALLOW_HEADERS: list[str] = Field(default=["*"], description="Allowed CORS headers")
+    CORS_MIDDLEWARE_ALLOW_METHODS: list[str] = Field(default=["*"], description="Allowed CORS methods")
+    CORS_MIDDLEWARE_ALLOW_ORIGINS: list[str] = Field(default=["*"], description="Allowed CORS origins")
+    PROXY_HEADERS: bool = Field(default=True, description="Whether to trust proxy headers")
+    RELOAD: bool = Field(default=False, description="Whether to enable auto-reload")
+    SERVER_HEADER: bool = Field(default=True, description="Whether to include server header")
+    SERVE_HOST: str = Field(
+        default="0.0.0.0",
+        description="Host to serve the application on",
+    )  # Deliberate binding to all interfaces for containerized deployments
+    SERVE_PORT: int = Field(default=8100, description="Port to serve the application on")
+    TIMEOUT_GRACEFUL_SHUTDOWN: int | None = Field(default=None, description="Graceful shutdown timeout")
+    TIMEOUT_KEEP_ALIVE: int = Field(default=5, description="Keep-alive timeout")
+    WORKERS_COUNT: int = Field(default=4, description="Number of worker processes")
+    WS_MAX_SIZE: int = Field(default=16777216, description="Maximum WebSocket message size")
+    WS_PER_MESSAGE_DEFLATE: bool = Field(default=True, description="Whether to enable WebSocket compression")
+    WS_PING_INTERVAL: float = Field(default=20.0, description="WebSocket ping interval")
+    WS_PING_TIMEOUT: float = Field(default=20.0, description="WebSocket ping timeout")
+    OPENAPI_URL: str | None = Field(default="/openapi.json", description="URL for OpenAPI schema")
+    DOCS_URL: str | None = Field(default=None, description="URL for API documentation")
+    RE_DOCS_URL: str | None = Field(default=None, description="URL for ReDoc documentation")
+    SWAGGER_UI_PARAMS: dict[str, str] | None = Field(
+        default={"docExpansion": "none"},
+        description="Swagger UI parameters",
+    )
 
 
 class GrpcConfig(BaseModel):
@@ -236,58 +164,59 @@ class GrpcConfig(BaseModel):
 
     Controls gRPC server behavior, including connection parameters,
     performance tuning, and timeout settings.
-
-    Attributes:
-        SERVE_PORT (int): Port to serve gRPC on.
-        SERVE_HOST (str): Host to serve gRPC on.
-        THREAD_WORKER_COUNT (int | None): Number of worker threads.
-        THREAD_PER_CPU_CORE (int): Threads per CPU core.
-        SERVER_OPTIONS_CONFIG_LIST (list[tuple[str, int]]): Server configuration options.
-        STUB_OPTIONS_CONFIG_LIST (list[tuple[str, int | str]]): Client stub configuration options.
     """
 
-    SERVE_PORT: int = 8100
-    SERVE_HOST: str = "[::]"  # IPv6 equivalent of 0.0.0.0
-    THREAD_WORKER_COUNT: int | None = None
-    THREAD_PER_CPU_CORE: int = 40  # Adjust based on thread block to cpu time ratio
-    SERVER_OPTIONS_CONFIG_LIST: list[tuple[str, int]] = [
-        ("grpc.max_metadata_size", 1 * 1024 * 1024),
-        ("grpc.max_message_length", 128 * 1024 * 1024),
-        ("grpc.max_receive_message_length", 128 * 1024 * 1024),
-        ("grpc.max_send_message_length", 128 * 1024 * 1024),
-        ("grpc.keepalive_time_ms", 5000),
-        ("grpc.keepalive_timeout_ms", 1000),
-        ("grpc.http2.min_ping_interval_without_data_ms", 5000),
-        ("grpc.max_connection_idle_ms", 10000),
-        ("grpc.max_connection_age_ms", 30000),
-        ("grpc.max_connection_age_grace_ms", 5000),
-        ("grpc.http2.max_pings_without_data", 0),
-        ("grpc.keepalive_permit_without_calls", 1),
-        ("grpc.http2.max_ping_strikes", 0),
-        ("grpc.http2.min_recv_ping_interval_without_data_ms", 4000),
-    ]
+    SERVE_PORT: int = Field(default=8100, description="Port to serve gRPC on")
+    SERVE_HOST: str = Field(default="[::]", description="Host to serve gRPC on")  # IPv6 equivalent of 0.0.0.0
+    THREAD_WORKER_COUNT: int | None = Field(default=None, description="Number of worker threads")
+    THREAD_PER_CPU_CORE: int = Field(
+        default=40,
+        description="Threads per CPU core",
+    )  # Adjust based on thread block to cpu time ratio
+    SERVER_OPTIONS_CONFIG_LIST: list[tuple[str, int]] = Field(
+        default=[
+            ("grpc.max_metadata_size", 1 * 1024 * 1024),
+            ("grpc.max_message_length", 128 * 1024 * 1024),
+            ("grpc.max_receive_message_length", 128 * 1024 * 1024),
+            ("grpc.max_send_message_length", 128 * 1024 * 1024),
+            ("grpc.keepalive_time_ms", 5000),
+            ("grpc.keepalive_timeout_ms", 1000),
+            ("grpc.http2.min_ping_interval_without_data_ms", 5000),
+            ("grpc.max_connection_idle_ms", 10000),
+            ("grpc.max_connection_age_ms", 30000),
+            ("grpc.max_connection_age_grace_ms", 5000),
+            ("grpc.http2.max_pings_without_data", 0),
+            ("grpc.keepalive_permit_without_calls", 1),
+            ("grpc.http2.max_ping_strikes", 0),
+            ("grpc.http2.min_recv_ping_interval_without_data_ms", 4000),
+        ],
+        description="Server configuration options",
+    )
 
-    STUB_OPTIONS_CONFIG_LIST: list[tuple[str, int | str]] = [
-        ("grpc.max_metadata_size", 1 * 1024 * 1024),
-        ("grpc.max_message_length", 128 * 1024 * 1024),
-        ("grpc.max_receive_message_length", 128 * 1024 * 1024),
-        ("grpc.max_send_message_length", 128 * 1024 * 1024),
-        ("grpc.keepalive_time_ms", 5000),
-        ("grpc.keepalive_timeout_ms", 1000),
-        ("grpc.http2.max_pings_without_data", 0),
-        ("grpc.keepalive_permit_without_calls", 1),
-        (
-            "grpc.service_config",
-            '{"methodConfig": [{"name": [],'
-            ' "timeout": "1s", "waitForReady": true,'
-            ' "retryPolicy": {"maxAttempts": 5,'
-            ' "initialBackoff": "0.1s",'
-            ' "maxBackoff": "1s",'
-            ' "backoffMultiplier": 2,'
-            ' "retryableStatusCodes": ["UNAVAILABLE", "ABORTED",'
-            ' "RESOURCE_EXHAUSTED"]}}]}',
-        ),
-    ]
+    STUB_OPTIONS_CONFIG_LIST: list[tuple[str, int | str]] = Field(
+        default=[
+            ("grpc.max_metadata_size", 1 * 1024 * 1024),
+            ("grpc.max_message_length", 128 * 1024 * 1024),
+            ("grpc.max_receive_message_length", 128 * 1024 * 1024),
+            ("grpc.max_send_message_length", 128 * 1024 * 1024),
+            ("grpc.keepalive_time_ms", 5000),
+            ("grpc.keepalive_timeout_ms", 1000),
+            ("grpc.http2.max_pings_without_data", 0),
+            ("grpc.keepalive_permit_without_calls", 1),
+            (
+                "grpc.service_config",
+                '{"methodConfig": [{"name": [],'
+                ' "timeout": "1s", "waitForReady": true,'
+                ' "retryPolicy": {"maxAttempts": 5,'
+                ' "initialBackoff": "0.1s",'
+                ' "maxBackoff": "1s",'
+                ' "backoffMultiplier": 2,'
+                ' "retryableStatusCodes": ["UNAVAILABLE", "ABORTED",'
+                ' "RESOURCE_EXHAUSTED"]}}]}',
+            ),
+        ],
+        description="Client stub configuration options",
+    )
 
 
 class KafkaConfig(BaseModel):
@@ -295,40 +224,98 @@ class KafkaConfig(BaseModel):
 
     Controls Kafka producer and consumer behavior, including broker connections,
     message delivery guarantees, and performance settings.
-
-    Attributes:
-        ACKNOWLEDGE_COUNT (int): Number of acknowledgments required.
-        AUTO_OFFSET_RESET (str): Action to take when there is no initial offset.
-        BROKERS_LIST (list[str] | None): List of Kafka broker addresses.
-        CERT_PEM (str | None): Path to SSL certificate.
-        ENABLE_AUTO_COMMIT (bool): Whether to enable auto-commit.
-        MAX_BUFFER_MS (int): Maximum time to buffer messages.
-        MAX_BUFFER_SIZE (int): Maximum number of messages to buffer.
-        PASSWORD (str | None): Password for authentication.
-        SASL_MECHANISMS (str): SASL mechanism for authentication.
-        SECURITY_PROTOCOL (str): Security protocol to use.
-        SESSION_TIMEOUT_MS (int): Session timeout in milliseconds.
-        REQUEST_ACK_TIMEOUT_MS (int): Request acknowledgment timeout.
-        DELIVERY_MESSAGE_TIMEOUT_MS (int): Message delivery timeout.
-        USER_NAME (str | None): Username for authentication.
-        LIST_TOPICS_TIMEOUT (int): Timeout for listing topics.
     """
 
-    ACKNOWLEDGE_COUNT: int = 1
-    AUTO_OFFSET_RESET: str = "earliest"
-    BROKERS_LIST: list[str] | None = None
-    CERT_PEM: str | None = None
-    ENABLE_AUTO_COMMIT: bool = False
-    MAX_BUFFER_MS: int = 1
-    MAX_BUFFER_SIZE: int = 1000
-    PASSWORD: str | None = None
-    SASL_MECHANISMS: str = "SCRAM-SHA-512"
-    SECURITY_PROTOCOL: str = "SASL_SSL"
-    SESSION_TIMEOUT_MS: int = 6000
-    REQUEST_ACK_TIMEOUT_MS: int = 2000
-    DELIVERY_MESSAGE_TIMEOUT_MS: int = 2300
-    USER_NAME: str | None = None
-    LIST_TOPICS_TIMEOUT: int = 1
+    BROKERS_LIST: list[str] = Field(default=["localhost:9092"], description="List of Kafka broker addresses")
+    SECURITY_PROTOCOL: str = Field(default="PLAINTEXT", description="Security protocol for Kafka connections")
+    SASL_MECHANISM: str | None = Field(default=None, description="SASL mechanism for authentication")
+    USERNAME: str | None = Field(default=None, description="Username for SASL authentication")
+    PASSWORD: SecretStr | None = Field(default=None, description="Password for SASL authentication")
+    SSL_CA_FILE: str | None = Field(default=None, description="Path to SSL CA certificate file")
+    SSL_CERT_FILE: str | None = Field(default=None, description="Path to SSL certificate file")
+    SSL_KEY_FILE: str | None = Field(default=None, description="Path to SSL key file")
+    ACKS: Literal["0", "1", "all"] = Field(default="all", description="Acknowledgment mode for producers")
+    AUTO_OFFSET_RESET: Literal["earliest", "latest", "none"] = Field(
+        default="earliest",
+        description="Offset reset policy for consumers",
+    )
+    ENABLE_AUTO_COMMIT: bool = Field(default=False, description="Enable auto-commit for consumer offsets")
+    FETCH_MIN_BYTES: int = Field(default=1, ge=1, description="Minimum bytes to fetch per poll")
+    SESSION_TIMEOUT_MS: int = Field(default=10000, ge=1000, description="Consumer session timeout (ms)")
+    HEARTBEAT_INTERVAL_MS: int = Field(default=3000, ge=100, description="Consumer heartbeat interval (ms)")
+    REQUEST_TIMEOUT_MS: int = Field(default=30000, ge=1000, description="Request timeout (ms)")
+    DELIVERY_TIMEOUT_MS: int = Field(default=120000, ge=1000, description="Message delivery timeout (ms)")
+    COMPRESSION_TYPE: Literal["none", "gzip", "snappy", "lz4", "zstd"] | None = Field(
+        default=None,
+        description="Compression type for messages",
+    )
+    LINGER_MS: int = Field(default=0, ge=0, description="Time to buffer messages before sending (ms)")
+    BATCH_SIZE: int = Field(default=16384, ge=0, description="Maximum batch size in bytes")
+    MAX_IN_FLIGHT_REQUESTS: int = Field(default=5, ge=1, description="Maximum unacknowledged requests per connection")
+    RETRIES: int = Field(default=5, ge=0, description="Number of retries for failed producer requests")
+    LIST_TOPICS_TIMEOUT_MS: int = Field(default=5000, ge=1000, description="Timeout for listing topics (ms)")
+    CLIENT_ID: str = Field(default="kafka-client", description="Client identifier")
+    CONNECTIONS_MAX_IDLE_MS: int = Field(
+        default=540000,
+        description="Close idle connections after this number of milliseconds",
+    )
+    ENABLE_IDEMPOTENCE: bool = Field(default=False, description="Enable idempotent producer for exactly-once delivery")
+    TRANSACTIONAL_ID: str | None = Field(default=None, description="Transactional ID for the producer")
+    ISOLATION_LEVEL: Literal["read_uncommitted", "read_committed"] = Field(
+        default="read_uncommitted",
+        description="Isolation level for consumer",
+    )
+    MAX_POLL_INTERVAL_MS: int = Field(default=300000, ge=1000, description="Maximum time between poll invocations")
+    PARTITION_ASSIGNMENT_STRATEGY: str = Field(
+        default="range",
+        description="Partition assignment strategy for consumer",
+    )
+    FETCH_MAX_BYTES: int = Field(
+        default=52428800,
+        ge=0,
+        description="Maximum amount of data the server returns for a fetch request",
+    )
+    MAX_PARTITION_FETCH_BYTES: int = Field(
+        default=1048576,
+        ge=0,
+        description="Maximum amount of data per partition the server returns",
+    )
+    QUEUE_BUFFERING_MAX_MESSAGES: int = Field(
+        default=100000,
+        ge=0,
+        description="Maximum number of messages allowed on the producer queue",
+    )
+    STATISTICS_INTERVAL_MS: int = Field(
+        default=0,
+        ge=0,
+        description="Frequency in milliseconds to send statistics data",
+    )
+
+    @model_validator(mode="after")
+    def validate_security_settings(self) -> "KafkaConfig":
+        if self.SECURITY_PROTOCOL in ["SASL_PLAINTEXT", "SASL_SSL"]:
+            if not (self.SASL_MECHANISM and self.USERNAME and self.PASSWORD):
+                raise ValueError("SASL authentication requires SASL_MECHANISM, USERNAME, and PASSWORD to be set.")
+        if self.SECURITY_PROTOCOL == "SSL":
+            if not (self.SSL_CA_FILE or self.SSL_CERT_FILE or self.SSL_KEY_FILE):
+                logging.warning("SSL enabled but no SSL certificates provided; this may cause connection issues.")
+        return self
+
+    @model_validator(mode="after")
+    def validate_consumer_settings(self) -> "KafkaConfig":
+        if self.ENABLE_AUTO_COMMIT and self.AUTO_OFFSET_RESET == "none":
+            raise ValueError("ENABLE_AUTO_COMMIT cannot be True when AUTO_OFFSET_RESET is 'none'.")
+        if self.HEARTBEAT_INTERVAL_MS >= self.SESSION_TIMEOUT_MS:
+            raise ValueError("HEARTBEAT_INTERVAL_MS must be less than SESSION_TIMEOUT_MS.")
+        return self
+
+    @model_validator(mode="after")
+    def validate_idempotence_and_transactions(self) -> "KafkaConfig":
+        if self.ENABLE_IDEMPOTENCE and self.ACKS != "all":
+            raise ValueError("ENABLE_IDEMPOTENCE requires ACKS to be 'all'.")
+        if self.TRANSACTIONAL_ID is not None and not self.ENABLE_IDEMPOTENCE:
+            raise ValueError("TRANSACTIONAL_ID requires ENABLE_IDEMPOTENCE to be True.")
+        return self
 
 
 class KeycloakConfig(BaseModel):
@@ -336,22 +323,14 @@ class KeycloakConfig(BaseModel):
 
     Controls connection parameters and authentication settings for the Keycloak
     identity and access management service.
-
-    Attributes:
-        SERVER_URL (str | None): URL of the Keycloak server.
-        CLIENT_ID (str | None): Client ID for authentication.
-        REALM_NAME (str): Name of the Keycloak realm.
-        CLIENT_SECRET_KEY (str | None): Client secret key.
-        VERIFY_SSL (bool): Whether to verify SSL certificates.
-        TIMEOUT (int): Request timeout in seconds.
     """
 
-    SERVER_URL: str | None = None
-    CLIENT_ID: str | None = None
-    REALM_NAME: str = "master"
-    CLIENT_SECRET_KEY: str | None = None
-    VERIFY_SSL: bool = True
-    TIMEOUT: int = 10
+    SERVER_URL: str | None = Field(default=None, description="URL of the Keycloak server")
+    CLIENT_ID: str | None = Field(default=None, description="Client ID for authentication")
+    REALM_NAME: str = Field(default="master", description="Name of the Keycloak realm")
+    CLIENT_SECRET_KEY: str | None = Field(default=None, description="Client secret key")
+    VERIFY_SSL: bool = Field(default=True, description="Whether to verify SSL certificates")
+    TIMEOUT: int = Field(default=10, description="Request timeout in seconds")
 
 
 class MinioConfig(BaseModel):
@@ -359,100 +338,65 @@ class MinioConfig(BaseModel):
 
     Controls connection parameters and authentication for the MinIO S3-compatible
     object storage service.
-
-    Attributes:
-        ENDPOINT (str | None): MinIO server endpoint.
-        ACCESS_KEY (str | None): Access key for authentication.
-        SECRET_KEY (str | None): Secret key for authentication.
-        SECURE (bool): Whether to use secure (HTTPS) connection.
-        SESSION_TOKEN (str | None): Session token for temporary credentials.
-        REGION (str | None): AWS region for S3 compatibility.
     """
 
-    ENDPOINT: str | None = None
-    ACCESS_KEY: str | None = None
-    SECRET_KEY: str | None = None
-    SECURE: bool = False
-    SESSION_TOKEN: str | None = None
-    REGION: str | None = None
+    ENDPOINT: str | None = Field(default=None, description="MinIO server endpoint")
+    ACCESS_KEY: str | None = Field(default=None, description="Access key for authentication")
+    SECRET_KEY: str | None = Field(default=None, description="Secret key for authentication")
+    SECURE: bool = Field(default=False, description="Whether to use secure (HTTPS) connection")
+    SESSION_TOKEN: str | None = Field(default=None, description="Session token for temporary credentials")
+    REGION: str | None = Field(default=None, description="AWS region for S3 compatibility")
 
 
 class SQLAlchemyConfig(BaseModel):
     """Configuration settings for SQLAlchemy ORM.
 
     Controls database connection parameters, pooling behavior, and query execution settings.
-
-    Attributes:
-        DATABASE (str | None): Database name.
-        DRIVER_NAME (str): Database driver name.
-        ECHO (bool): Whether to log SQL statements.
-        ECHO_POOL (bool): Whether to log connection pool events.
-        ENABLE_FROM_LINTING (bool): Whether to enable SQL linting.
-        HIDE_PARAMETERS (bool): Whether to hide SQL parameters in logs.
-        HOST (str | None): Database host.
-        ISOLATION_LEVEL (str | None): Transaction isolation level.
-        PASSWORD (str | None): Database password.
-        POOL_MAX_OVERFLOW (int): Maximum number of connections to allow in pool overflow.
-        POOL_PRE_PING (bool): Whether to ping connections before use.
-        POOL_RECYCLE_SECONDS (int): Number of seconds between connection recycling.
-        POOL_RESET_ON_RETURN (str): Action to take when returning connections to pool.
-        POOL_SIZE (int): Number of connections to keep open in the pool.
-        POOL_TIMEOUT (int): Seconds to wait before giving up on getting a connection.
-        POOL_USE_LIFO (bool): Whether to use LIFO for connection pool.
-        PORT (int | None): Database port.
-        QUERY_CACHE_SIZE (int): Size of the query cache.
-        USERNAME (str | None): Database username.
     """
 
-    DATABASE: str | None = None
-    DRIVER_NAME: str = "postgresql+psycopg"
-    ECHO: bool = False
-    ECHO_POOL: bool = False
-    ENABLE_FROM_LINTING: bool = True
-    HIDE_PARAMETERS: bool = False
-    HOST: str | None = None
-    ISOLATION_LEVEL: str | None = "REPEATABLE READ"
-    PASSWORD: str | None = None
-    POOL_MAX_OVERFLOW: int = 1
-    POOL_PRE_PING: bool = True
-    POOL_RECYCLE_SECONDS: int = 10 * 60
-    POOL_RESET_ON_RETURN: str = "rollback"
-    POOL_SIZE: int = 20
-    POOL_TIMEOUT: int = 30
-    POOL_USE_LIFO: bool = True
-    PORT: int | None = 5432
-    QUERY_CACHE_SIZE: int = 500
-    USERNAME: str | None = None
+    DATABASE: str | None = Field(default=None, description="Database name")
+    DRIVER_NAME: str = Field(default="postgresql+psycopg", description="Database driver name")
+    ECHO: bool = Field(default=False, description="Whether to log SQL statements")
+    ECHO_POOL: bool = Field(default=False, description="Whether to log connection pool events")
+    ENABLE_FROM_LINTING: bool = Field(default=True, description="Whether to enable SQL linting")
+    HIDE_PARAMETERS: bool = Field(default=False, description="Whether to hide SQL parameters in logs")
+    HOST: str | None = Field(default=None, description="Database host")
+    ISOLATION_LEVEL: str | None = Field(default="REPEATABLE READ", description="Transaction isolation level")
+    PASSWORD: str | None = Field(default=None, description="Database password")
+    POOL_MAX_OVERFLOW: int = Field(default=1, description="Maximum number of connections to allow in pool overflow")
+    POOL_PRE_PING: bool = Field(default=True, description="Whether to ping connections before use")
+    POOL_RECYCLE_SECONDS: int = Field(default=10 * 60, description="Number of seconds between connection recycling")
+    POOL_RESET_ON_RETURN: str = Field(
+        default="rollback",
+        description="Action to take when returning connections to pool",
+    )
+    POOL_SIZE: int = Field(default=20, description="Number of connections to keep open in the pool")
+    POOL_TIMEOUT: int = Field(default=30, description="Seconds to wait before giving up on getting a connection")
+    POOL_USE_LIFO: bool = Field(default=True, description="Whether to use LIFO for connection pool")
+    PORT: int | None = Field(default=5432, description="Database port")
+    QUERY_CACHE_SIZE: int = Field(default=500, description="Size of the query cache")
+    USERNAME: str | None = Field(default=None, description="Database username")
 
 
 class SQLiteSQLAlchemyConfig(SQLAlchemyConfig):
     """Configuration settings for SQLite SQLAlchemy ORM.
 
     Extends SQLAlchemyConfig with SQLite-specific settings.
-
-    Attributes:
-        DRIVER_NAME (str): SQLite driver name.
-        DATABASE (str): SQLite database path.
-        ISOLATION_LEVEL (str | None): SQLite isolation level.
-        PORT (str | None): Not used for SQLite.
     """
 
-    DRIVER_NAME: str = "sqlite+aiosqlite"
-    DATABASE: str = ":memory:"
-    ISOLATION_LEVEL: str | None = None
-    PORT: str | None = None
+    DRIVER_NAME: str = Field(default="sqlite+aiosqlite", description="SQLite driver name")
+    DATABASE: str = Field(default=":memory:", description="SQLite database path")
+    ISOLATION_LEVEL: str | None = Field(default=None, description="SQLite isolation level")
+    PORT: str | None = Field(default=None, description="Not used for SQLite")
 
 
 class PostgresSQLAlchemyConfig(SQLAlchemyConfig):
     """Configuration settings for PostgreSQL SQLAlchemy ORM.
 
     Extends SQLAlchemyConfig with PostgreSQL-specific settings and URL building.
-
-    Attributes:
-        POSTGRES_DSN (PostgresDsn | None): PostgreSQL connection URL.
     """
 
-    POSTGRES_DSN: PostgresDsn | None = None
+    POSTGRES_DSN: PostgresDsn | None = Field(default=None, description="PostgreSQL connection URL")
 
     @model_validator(mode="after")
     def build_connection_url(self) -> Self:
@@ -533,12 +477,9 @@ class StarRocksSQLAlchemyConfig(SQLAlchemyConfig):
     """Configuration settings for Starrocks SQLAlchemy ORM.
 
     Extends SQLAlchemyConfig with Starrocks-specific settings.
-
-    Attributes:
-        CATALOG (str | None): Starrocks catalog name.
     """
 
-    CATALOG: str | None = None
+    CATALOG: str | None = Field(default=None, description="Starrocks catalog name")
 
 
 class PrometheusConfig(BaseModel):
@@ -546,62 +487,40 @@ class PrometheusConfig(BaseModel):
 
     Controls whether Prometheus metrics collection is enabled and the port
     for the metrics endpoint.
-
-    Attributes:
-        IS_ENABLED (bool): Whether Prometheus metrics are enabled.
-        SERVER_PORT (int): Port for the Prometheus metrics endpoint.
     """
 
-    IS_ENABLED: bool = False
-    SERVER_PORT: int = 8200
+    IS_ENABLED: bool = Field(default=False, description="Whether Prometheus metrics are enabled")
+    SERVER_PORT: int = Field(default=8200, description="Port for the Prometheus metrics endpoint")
 
 
 class RedisConfig(BaseModel):
     """Configuration settings for Redis cache integration.
 
     Controls Redis server connection parameters and client behavior settings.
-
-    Attributes:
-        MASTER_HOST (str | None): Redis master host.
-        SLAVE_HOST (str | None): Redis slave host.
-        PORT (int): Redis server port.
-        DATABASE (int): Redis database number.
-        PASSWORD (str | None): Redis password.
-        DECODE_RESPONSES (Literal[True]): Whether to decode responses.
-        VERSION (int): Redis protocol version.
-        HEALTH_CHECK_INTERVAL (int): Health check interval in seconds.
     """
 
-    MASTER_HOST: str | None = None
-    SLAVE_HOST: str | None = None
-    PORT: int = 6379
-    DATABASE: int = 0
-    PASSWORD: str | None = None
-    DECODE_RESPONSES: Literal[True] = True
-    VERSION: int = 7
-    HEALTH_CHECK_INTERVAL: int = 10
+    MASTER_HOST: str | None = Field(default=None, description="Redis master host")
+    SLAVE_HOST: str | None = Field(default=None, description="Redis slave host")
+    PORT: int = Field(default=6379, description="Redis server port")
+    DATABASE: int = Field(default=0, description="Redis database number")
+    PASSWORD: str | None = Field(default=None, description="Redis password")
+    DECODE_RESPONSES: Literal[True] = Field(default=True, description="Whether to decode responses")
+    VERSION: int = Field(default=7, description="Redis protocol version")
+    HEALTH_CHECK_INTERVAL: int = Field(default=10, description="Health check interval in seconds")
 
 
 class SentryConfig(BaseModel):
     """Configuration settings for Sentry error tracking integration.
 
     Controls Sentry client behavior, including DSN, sampling rates, and debug settings.
-
-    Attributes:
-        IS_ENABLED (bool): Whether Sentry is enabled.
-        DSN (str | None): Sentry DSN for error reporting.
-        DEBUG (bool): Whether to enable debug mode.
-        RELEASE (str): Application release version.
-        SAMPLE_RATE (float): Error sampling rate (0.0 to 1.0).
-        TRACES_SAMPLE_RATE (float): Performance monitoring sampling rate (0.0 to 1.0).
     """
 
-    IS_ENABLED: bool = False
-    DSN: str | None = None
-    DEBUG: bool = False
-    RELEASE: str = ""
-    SAMPLE_RATE: float = 1.0  # between zero and one
-    TRACES_SAMPLE_RATE: float = 0.0  # between zero and one
+    IS_ENABLED: bool = Field(default=False, description="Whether Sentry is enabled")
+    DSN: str | None = Field(default=None, description="Sentry DSN for error reporting")
+    DEBUG: bool = Field(default=False, description="Whether to enable debug mode")
+    RELEASE: str = Field(default="", description="Application release version")
+    SAMPLE_RATE: float = Field(default=1.0, description="Error sampling rate (0.0 to 1.0)")
+    TRACES_SAMPLE_RATE: float = Field(default=0.0, description="Performance monitoring sampling rate (0.0 to 1.0)")
 
 
 class KavenegarConfig(BaseModel):
@@ -609,16 +528,11 @@ class KavenegarConfig(BaseModel):
 
     Controls connection parameters and authentication for sending SMS messages
     through the Kavenegar service.
-
-    Attributes:
-        SERVER_URL (str | None): Kavenegar API server URL.
-        API_KEY (str | None): Kavenegar API key.
-        PHONE_NUMBER (str | None): Default sender phone number.
     """
 
-    SERVER_URL: str | None = None
-    API_KEY: str | None = None
-    PHONE_NUMBER: str | None = None
+    SERVER_URL: str | None = Field(default=None, description="Kavenegar API server URL")
+    API_KEY: str | None = Field(default=None, description="Kavenegar API key")
+    PHONE_NUMBER: str | None = Field(default=None, description="Default sender phone number")
 
 
 class AuthConfig(BaseModel):
@@ -626,56 +540,30 @@ class AuthConfig(BaseModel):
 
     Controls JWT token settings, TOTP configuration, rate limiting,
     password policies, and token security features.
-
-    Attributes:
-        SECRET_KEY (SecretStr | None): JWT signing key.
-        ACCESS_TOKEN_EXPIRES_IN (int): Access token expiration in seconds.
-        REFRESH_TOKEN_EXPIRES_IN (int): Refresh token expiration in seconds.
-        HASH_ALGORITHM (str): JWT signing algorithm.
-        JWT_ISSUER (str): JWT issuer claim.
-        JWT_AUDIENCE (str): JWT audience claim.
-        TOKEN_VERSION (int): JWT token version.
-        TOTP_SECRET_KEY (SecretStr | None): TOTP master key.
-        TOTP_HASH_ALGORITHM (str): TOTP hash algorithm.
-        TOTP_LENGTH (int): TOTP code length.
-        TOTP_EXPIRES_IN (int): TOTP expiration in seconds.
-        TOTP_TIME_STEP (int): TOTP time step in seconds.
-        TOTP_VERIFICATION_WINDOW (int): TOTP verification window size.
-        TOTP_MAX_ATTEMPTS (int): Maximum TOTP verification attempts.
-        TOTP_LOCKOUT_TIME (int): TOTP lockout duration in seconds.
-        LOGIN_RATE_LIMIT (int): Login attempts per minute.
-        TOTP_RATE_LIMIT (int): TOTP requests per minute.
-        PASSWORD_RESET_RATE_LIMIT (int): Password reset requests per hour.
-        HASH_ITERATIONS (int): Password hash iterations.
-        MIN_LENGTH (int): Minimum password length.
-        REQUIRE_DIGIT (bool): Whether password requires digits.
-        REQUIRE_LOWERCASE (bool): Whether password requires lowercase.
-        REQUIRE_SPECIAL (bool): Whether password requires special chars.
-        REQUIRE_UPPERCASE (bool): Whether password requires uppercase.
-        SALT_LENGTH (int): Password salt length.
-        SPECIAL_CHARACTERS (set[str]): Allowed special characters.
-        PASSWORD_HISTORY_SIZE (int): Number of previous passwords to remember.
-        ENABLE_JTI_CLAIM (bool): Whether to enable JWT ID claim.
-        ENABLE_TOKEN_ROTATION (bool): Whether to enable refresh token rotation.
-        REFRESH_TOKEN_REUSE_INTERVAL (int): Refresh token reuse grace period.
     """
 
     # JWT Settings
-    SECRET_KEY: SecretStr | None = None
-    ACCESS_TOKEN_EXPIRES_IN: int = 1 * 60 * 60  # 1 hour in seconds
-    REFRESH_TOKEN_EXPIRES_IN: int = 24 * 60 * 60  # 24 hours in seconds
-    HASH_ALGORITHM: str = "HS256"
-    JWT_ISSUER: str = "your-app-name"
-    JWT_AUDIENCE: str = "your-app-audience"
-    TOKEN_VERSION: int = 1
+    SECRET_KEY: SecretStr | None = Field(default=None, description="JWT signing key")
+    ACCESS_TOKEN_EXPIRES_IN: int = Field(
+        default=1 * 60 * 60,
+        description="Access token expiration in seconds",
+    )  # 1 hour
+    REFRESH_TOKEN_EXPIRES_IN: int = Field(
+        default=24 * 60 * 60,
+        description="Refresh token expiration in seconds",
+    )  # 24 hours
+    HASH_ALGORITHM: str = Field(default="HS256", description="JWT signing algorithm")
+    JWT_ISSUER: str = Field(default="your-app-name", description="JWT issuer claim")
+    JWT_AUDIENCE: str = Field(default="your-app-audience", description="JWT audience claim")
+    TOKEN_VERSION: int = Field(default=1, description="JWT token version")
 
     # TOTP Settings
-    TOTP_SECRET_KEY: SecretStr | None = None
+    TOTP_SECRET_KEY: SecretStr | None = Field(default=None, description="TOTP master key")
     TOTP_HASH_ALGORITHM: str = Field(
         default="SHA1",
         description="Hash algorithm for TOTP generation (SHA1, SHA256, SHA512)",
     )
-    TOTP_LENGTH: int = Field(default=6, ge=6, le=8)
+    TOTP_LENGTH: int = Field(default=6, ge=6, le=8, description="TOTP code length")
     TOTP_EXPIRES_IN: int = Field(default=300, description="TOTP expiration time in seconds (5 minutes)")
     TOTP_TIME_STEP: int = Field(default=30, description="TOTP time step in seconds")
     TOTP_VERIFICATION_WINDOW: int = Field(default=1, description="Number of time steps to check before/after")
@@ -688,13 +576,13 @@ class AuthConfig(BaseModel):
     PASSWORD_RESET_RATE_LIMIT: int = Field(default=3, description="Maximum password reset requests per hour")
 
     # Password Policy
-    HASH_ITERATIONS: int = 100000
-    MIN_LENGTH: int = Field(default=12, ge=8)
-    REQUIRE_DIGIT: bool = True
-    REQUIRE_LOWERCASE: bool = True
-    REQUIRE_SPECIAL: bool = True
-    REQUIRE_UPPERCASE: bool = True
-    SALT_LENGTH: int = 16
+    HASH_ITERATIONS: int = Field(default=100000, description="Password hash iterations")
+    MIN_LENGTH: int = Field(default=12, ge=8, description="Minimum password length")
+    REQUIRE_DIGIT: bool = Field(default=True, description="Whether password requires digits")
+    REQUIRE_LOWERCASE: bool = Field(default=True, description="Whether password requires lowercase")
+    REQUIRE_SPECIAL: bool = Field(default=True, description="Whether password requires special chars")
+    REQUIRE_UPPERCASE: bool = Field(default=True, description="Whether password requires uppercase")
+    SALT_LENGTH: int = Field(default=16, description="Password salt length")
     SPECIAL_CHARACTERS: set[str] = Field(default=set("!@#$%^&*()-_+="), description="Set of allowed special characters")
     PASSWORD_HISTORY_SIZE: int = Field(default=3, description="Number of previous passwords to remember")
 
@@ -709,37 +597,22 @@ class EmailConfig(BaseModel):
 
     Controls SMTP server connection parameters, authentication,
     and email sending behavior.
-
-    Attributes:
-        SMTP_SERVER (str | None): SMTP server host.
-        SMTP_PORT (int): SMTP server port.
-        USERNAME (str | None): SMTP username.
-        PASSWORD (str | None): SMTP password.
-        POOL_SIZE (int): Connection pool size.
-        CONNECTION_TIMEOUT (int): Connection timeout in seconds.
-        MAX_RETRIES (int): Maximum retry attempts.
-        ATTACHMENT_MAX_SIZE (int): Maximum attachment size in bytes.
     """
 
-    SMTP_SERVER: str | None = None
-    SMTP_PORT: int = 587
-    USERNAME: str | None = None
-    PASSWORD: str | None = None
-    POOL_SIZE: int = 5
-    CONNECTION_TIMEOUT: int = 30
-    MAX_RETRIES: int = 3
-    ATTACHMENT_MAX_SIZE: int = 5 * 1024 * 1024
+    SMTP_SERVER: str | None = Field(default=None, description="SMTP server host")
+    SMTP_PORT: int = Field(default=587, description="SMTP server port")
+    USERNAME: str | None = Field(default=None, description="SMTP username")
+    PASSWORD: str | None = Field(default=None, description="SMTP password")
+    POOL_SIZE: int = Field(default=5, description="Connection pool size")
+    CONNECTION_TIMEOUT: int = Field(default=30, description="Connection timeout in seconds")
+    MAX_RETRIES: int = Field(default=3, description="Maximum retry attempts")
+    ATTACHMENT_MAX_SIZE: int = Field(default=5 * 1024 * 1024, description="Maximum attachment size in bytes")
 
 
 class FileConfig(BaseModel):
     """Configuration settings for file handling capabilities.
 
     Controls file link security, expiration policies, and file type restrictions.
-
-    Attributes:
-        SECRET_KEY (str | None): Secret key for generating secure file links.
-        DEFAULT_EXPIRY_MINUTES (int): Default link expiration time in minutes.
-        ALLOWED_EXTENSIONS (list[str]): List of allowed file extensions.
     """
 
     SECRET_KEY: str | None = Field(default=None, description="Secret key used for generating secure file links")
@@ -756,20 +629,19 @@ class DatetimeConfig(BaseModel):
 
     Controls API connections for specialized date/time services
     and date caching behavior.
-
-    Attributes:
-        TIME_IR_API_KEY (str | None): API key for time.ir service.
-        TIME_IR_API_ENDPOINT (str | None): Endpoint for time.ir service.
-        REQUEST_TIMEOUT (int): Request timeout in seconds.
-        MAX_RETRIES (int): Maximum retry attempts.
-        CACHE_TTL (int): Cache time-to-live in seconds.
     """
 
-    TIME_IR_API_KEY: str | None = "ZAVdqwuySASubByCed5KYuYMzb9uB2f7"
-    TIME_IR_API_ENDPOINT: str | None = "https://api.time.ir/v1/event/fa/events/calendar"
-    REQUEST_TIMEOUT: int = 5
-    MAX_RETRIES: int = 3
-    CACHE_TTL: int = 86400  # TTL for cache in seconds (24 hours)
+    TIME_IR_API_KEY: str | None = Field(
+        default="ZAVdqwuySASubByCed5KYuYMzb9uB2f7",
+        description="API key for time.ir service",
+    )
+    TIME_IR_API_ENDPOINT: str | None = Field(
+        default="https://api.time.ir/v1/event/fa/events/calendar",
+        description="Endpoint for time.ir service",
+    )
+    REQUEST_TIMEOUT: int = Field(default=5, description="Request timeout in seconds")
+    MAX_RETRIES: int = Field(default=3, description="Maximum retry attempts")
+    CACHE_TTL: int = Field(default=86400, description="Cache time-to-live in seconds (24 hours)")
 
 
 class ParsianShaparakConfig(BaseModel):
@@ -777,13 +649,6 @@ class ParsianShaparakConfig(BaseModel):
 
     Controls connection parameters and authentication for the Parsian Shaparak
     payment gateway services.
-
-    Attributes:
-        LOGIN_ACCOUNT (str): Merchant login account for authentication.
-        PAYMENT_WSDL_URL (HttpUrl): WSDL URL for the payment service.
-        CONFIRM_WSDL_URL (HttpUrl): WSDL URL for the confirm service.
-        REVERSAL_WSDL_URL (HttpUrl): WSDL URL for the reversal service.
-        PROXIES (dict[str, str] | None): Optional HTTP/HTTPS proxy configuration (e.g. {"http": "http://proxy:port", "https": "https://proxy:port"}).
     """
 
     LOGIN_ACCOUNT: str | None = Field(default=None, description="Merchant login account for authentication")
