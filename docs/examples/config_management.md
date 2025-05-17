@@ -30,7 +30,7 @@ class AppConfig(BaseConfig):
     REDIS_PORT: int = 6379
 
     # Environment
-    ENVIRONMENT: EnvironmentType = EnvironmentType.DEVELOPMENT
+    ENVIRONMENT: EnvironmentType = EnvironmentType.DEV
 
     # API settings
     API_PREFIX: str = "/api/v1"
@@ -59,10 +59,10 @@ ArchiPy configurations automatically load values from environment variables with
 
 ```python
 # .env file
-APP_NAME=ProductionService
-DB_HOST=db.example.com
-DB_PASSWORD=secure-password
-ENVIRONMENT=PRODUCTION
+APP_NAME = ProductionService
+DB_HOST = db.example.com
+DB_PASSWORD = secure - password
+ENVIRONMENT = PRODUCTION
 ```
 
 The environment variables override the default values in your configuration class:
@@ -88,7 +88,7 @@ class BaseAppConfig(BaseConfig):
 
 class DevelopmentConfig(BaseAppConfig):
     DEBUG: bool = True
-    ENVIRONMENT: EnvironmentType = EnvironmentType.DEVELOPMENT
+    ENVIRONMENT: EnvironmentType = EnvironmentType.DEV
     LOG_LEVEL: str = "DEBUG"
 
 class ProductionConfig(BaseAppConfig):
@@ -144,20 +144,21 @@ print(config.DATABASE.connection_string())
 
 ## Configuration Template
 
-ArchiPy provides a template for common configurations:
+ArchiPy provides pre-configured templates for common configuration objects:
 
 ```python
-from archipy.configs.config_template import ConfigTemplate
+from archipy.configs.base_config import BaseConfig
 from archipy.configs.environment_type import EnvironmentType
 
-class AppConfig(ConfigTemplate):
+class AppConfig(BaseConfig):
     # Override only what you need
     APP_NAME: str = "MyCustomApp"
 
-    # Use all the defaults from ConfigTemplate for the rest
+    # The BaseConfig provides default templates for common configurations like:
+    # AUTH, DATETIME, ELASTIC, EMAIL, FASTAPI, KAFKA, REDIS, etc.
 
 config = AppConfig()
-print(config.ENVIRONMENT)  # Default value from ConfigTemplate
+print(config.ENVIRONMENT)  # Default value from BaseConfig (EnvironmentType.LOCAL)
 ```
 
 ## Configuration in Different Components
@@ -169,17 +170,24 @@ from fastapi import FastAPI, Depends
 from archipy.helpers.utils.app_utils import AppUtils
 from archipy.configs.base_config import BaseConfig
 
+# Initialize your configuration
+config = BaseConfig()
+BaseConfig.set_global(config)
+
 # Create a FastAPI app with configuration
-app = AppUtils.create_fastapi_app(BaseConfig.global_config())
+app = AppUtils.create_fastapi_app()  # Uses global config by default
+
+# Or provide a specific configuration
+# app = AppUtils.create_fastapi_app(config)
 
 # Access config in endpoint
 @app.get("/config")
 def get_config_info():
     config = BaseConfig.global_config()
     return {
-        "app_name": config.APP_NAME,
+        "app_name": config.FASTAPI.PROJECT_NAME,
         "environment": config.ENVIRONMENT.value,
-        "debug": config.DEBUG
+        "debug": config.FASTAPI.RELOAD
     }
 ```
 
@@ -193,8 +201,8 @@ config = BaseConfig.global_config()
 
 # Create session manager with config
 session_manager = SQlAlchemySessionManager(
-    connection_string=config.DATABASE.connection_string(),
-    echo=config.DEBUG
+    connection_string=config.POSTGRES_SQLALCHEMY.POSTGRES_DSN,
+    echo=config.POSTGRES_SQLALCHEMY.ECHO
 )
 ```
 
@@ -208,9 +216,9 @@ config = BaseConfig.global_config()
 
 # Create Redis adapter with config
 redis_adapter = RedisAdapter(
-    host=config.REDIS.HOST,
+    host=config.REDIS.MASTER_HOST,
     port=config.REDIS.PORT,
-    db=config.REDIS.DB
+    db=config.REDIS.DATABASE
 )
 ```
 

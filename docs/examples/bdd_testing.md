@@ -30,27 +30,41 @@ Implement the steps in Python files under `features/steps`:
 
 ```python
 # features/steps/user_steps.py
+from typing import Any
 from behave import given, when, then
 from app.models import User
 from app.services import UserService
+from archipy.models.errors import NotFoundError, DatabaseQueryError
 
 @given('I have admin privileges')
-def step_impl(context):
+def step_impl(context: Any) -> None:
     context.is_admin = True
 
 @when('I create a user with username "{username}" and email "{email}"')
-def step_impl(context, username, email):
+def step_impl(context: Any, username: str, email: str) -> None:
     service = UserService()
-    context.user = service.create_user(username, email)
+    try:
+        context.user = service.create_user(username, email)
+    except Exception as e:
+        # Proper exception chaining
+        raise DatabaseQueryError(
+            additional_data={"username": username, "email": email}
+        ) from e
 
 @then('the user should be saved in the database')
-def step_impl(context):
+def step_impl(context: Any) -> None:
     # Check user exists in DB
-    db_user = User.query.filter_by(username=context.user.username).first()
-    assert db_user is not None
+    try:
+        db_user = User.query.filter_by(username=context.user.username).first()
+        assert db_user is not None
+    except Exception as e:
+        raise NotFoundError(
+            resource_type="user",
+            additional_data={"username": context.user.username}
+        ) from e
 
 @then('the user should have default permissions')
-def step_impl(context):
+def step_impl(context: Any) -> None:
     assert len(context.user.permissions) > 0
     assert 'user:read' in context.user.permissions
 ```
@@ -75,5 +89,38 @@ To run a specific scenario by line number:
 poetry run behave features/user_management.feature:7
 ```
 
-This documentation is being migrated from Sphinx to MkDocs format.
-Please check back soon for complete content.
+## Advanced BDD Testing
+
+### Using Context Tables
+
+Behave supports data tables for testing multiple scenarios:
+
+```gherkin
+Scenario: Create multiple users
+Given I have admin privileges
+When I create the following users:
+| username | email              | role    |
+| john     | john@example.com   | user    |
+| alice    | alice@example.com  | admin   |
+| bob      | bob@example.com    | support |
+Then all users should be saved in the database
+```
+
+```python
+@when('I create the following users')
+def step_impl(context: Any) -> None:
+    service = UserService()
+    context.users = []
+    for row in context.table:
+        try:
+            user = service.create_user(
+                username=row['username'],
+                email=row['email'],
+                role=row['role']
+            )
+            context.users.append(user)
+        except Exception as e:
+            raise DatabaseQueryError(
+                additional_data={"username": row['username'], "email": row['email']}
+            ) from e
+```

@@ -139,8 +139,10 @@ def process_batch(items: list[dict]):
 
 ```python
 from fastapi import HTTPException
+from fastapi.responses import JSONResponse
 from archipy.models.errors import BaseError
 from archipy.models.types.language_type import LanguageType
+from datetime import datetime
 
 def handle_error(error: BaseError) -> dict:
     """Convert error to API response format."""
@@ -155,7 +157,7 @@ def handle_error(error: BaseError) -> dict:
 @app.exception_handler(BaseError)
 async def error_handler(request: Request, exc: BaseError):
     return JSONResponse(
-        status_code=exc.error.http_status or 500,
+        status_code=exc.http_status_code or 500,
         content=handle_error(exc)
     )
 
@@ -166,7 +168,8 @@ async def get_user(user_id: str):
         user = user_service.get_user(user_id)
         return {"status": "success", "data": user}
     except NotFoundError as e:
-        return handle_error(e)
+        # Let the exception handler handle it
+        raise
 ```
 
 ## Error Logging and Monitoring
@@ -189,7 +192,7 @@ def log_error(error: BaseError, context: dict | None = None):
 
     # Log to application logger
     logger.error(
-        f"Error occurred: {error_dict['code']}",
+        f"Error occurred: {error_dict['error']}",
         extra={"error": error_dict}
     )
 
@@ -206,6 +209,38 @@ def process_request(request_data: dict):
     except BaseError as e:
         log_error(e, context={"request_data": request_data})
         raise
+```
+
+## Exception Chaining
+
+```python
+from archipy.models.errors import (
+    DatabaseQueryError,
+    InvalidEntityTypeError,
+    BaseEntity
+)
+
+# Good - Preserving original error context
+def fetch_entity(entity_type: type, entity_uuid: str) -> BaseEntity:
+    try:
+        result = session.get(entity_type, entity_uuid)
+        if not result:
+            raise NotFoundError(
+                resource_type=entity_type.__name__,
+                error_details=f"Entity with UUID {entity_uuid} not found"
+            )
+        return result
+    except Exception as e:
+        raise DatabaseQueryError() from e
+
+# Good - Type validation with specific error
+def validate_entity(entity: object) -> None:
+    if not isinstance(entity, BaseEntity):
+        raise InvalidEntityTypeError(
+            message=f"Expected BaseEntity subclass, got {type(entity).__name__}",
+            expected_type="BaseEntity",
+            actual_type=type(entity).__name__
+        )
 ```
 
 ## Error Recovery Strategies
@@ -228,15 +263,22 @@ class ErrorRecovery:
             cache.set(error.key, data)
             return data
         except Exception as e:
-            logger.error(f"Failed to recover from cache miss: {e}")
-            raise
+            logger.error(f"Failed to recover from cache miss: {str(e)}")
+            raise  # Re-raise after logging
 
     @staticmethod
     def handle_service_unavailable(error: ServiceUnavailableError):
         """Handle service unavailability with fallback."""
         if error.service == "primary":
+            try:
             # Try fallback service
             return fallback_service.get_data()
+            except Exception as e:
+                # Preserve error chain
+                raise ServiceUnavailableError(
+                    service="fallback",
+                    error_details="Both primary and fallback services unavailable"
+                ) from e
         raise
 
     @staticmethod
@@ -245,8 +287,15 @@ class ErrorRecovery:
         if error.resource_type == "memory":
             # Perform cleanup
             gc.collect()
+            try:
             # Retry operation
             return retry_operation()
+            except Exception as e:
+                # Preserve error chain
+                raise ResourceExhaustedError(
+                    resource_type="memory",
+                    error_details="Resource exhaustion persisted after cleanup"
+                ) from e
         raise
 
 # Example usage
