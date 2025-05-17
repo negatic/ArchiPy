@@ -3,6 +3,25 @@
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
 
+
+## [3.1.1] - 2025-05-17
+
+### Documentation
+- Enhanced project documentation
+- Improved usage examples
+
+### Changed
+
+#### Configuration
+- Updated configuration templates
+- Enhanced Kafka configuration template with improved settings
+- Optimized template structure for better usability
+
+### Fixed
+- Resolved merge conflicts
+- Streamlined codebase integration
+
+
 ## [3.1.0] - 2025-05-15
 
 ### Added
