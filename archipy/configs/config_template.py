@@ -297,10 +297,9 @@ class KafkaConfig(BaseModel):
     message delivery guarantees, and performance settings.
 
     Attributes:
-        ACKNOWLEDGE_COUNT (int): Number of acknowledgments required.
+        ACKS (int): Number of acknowledgments required.
         AUTO_OFFSET_RESET (str): Action to take when there is no initial offset.
         BROKERS_LIST (list[str] | None): List of Kafka broker addresses.
-        CERT_PEM (str | None): Path to SSL certificate.
         ENABLE_AUTO_COMMIT (bool): Whether to enable auto-commit.
         MAX_BUFFER_MS (int): Maximum time to buffer messages.
         MAX_BUFFER_SIZE (int): Maximum number of messages to buffer.
@@ -328,9 +327,7 @@ class KafkaConfig(BaseModel):
         description="Offset reset policy for consumers",
     )
     ENABLE_AUTO_COMMIT: bool = Field(default=False, description="Enable auto-commit for consumer offsets")
-    MAX_POLL_RECORDS: int = Field(default=500, ge=1, description="Maximum records per consumer poll")
     FETCH_MIN_BYTES: int = Field(default=1, ge=1, description="Minimum bytes to fetch per poll")
-    FETCH_MAX_WAIT_MS: int = Field(default=500, ge=0, description="Maximum wait time for fetching data (ms)")
     SESSION_TIMEOUT_MS: int = Field(default=10000, ge=1000, description="Consumer session timeout (ms)")
     HEARTBEAT_INTERVAL_MS: int = Field(default=3000, ge=100, description="Consumer heartbeat interval (ms)")
     REQUEST_TIMEOUT_MS: int = Field(default=30000, ge=1000, description="Request timeout (ms)")
