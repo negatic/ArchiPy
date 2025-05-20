@@ -2,10 +2,19 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [3.2.1] - 2025-05-20
+
+### Changed
+
+#### Elastic APM Configuration
+- Enhanced Elastic APM configuration and integration:
+    - Refactored configuration logic for improved maintainability
+    - Updated configuration templates for greater flexibility
+    - Improved gRPC tracing interceptor for better observability
+    - Refined application utility functions related to APM
 
 
-
-## [3.1.2] - 2025-05-20
+## [3.2.0] - 2025-05-20
 
 ### Added
 
