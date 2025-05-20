@@ -11,6 +11,7 @@ your business logic and external dependencies.
 | [Keycloak](keycloak.md)   | Authentication & authorization | User management and access control with Keycloak     | [API](../../api_reference/adapters.md#keycloak)   |
 | [Kafka](kafka.md)         | Message streaming              | Event-driven architectures with Apache Kafka         | [API](../../api_reference/adapters.md#kafka)      |
 | [Minio](minio.md)         | Object storage                 | S3-compatible object storage for files and documents | [API](../../api_reference/adapters.md#minio)      |
+| [Parsian Payment](parsian_payment.md) | Payment gateway    | Process online payments with Parsian Shaparak        | [API](../../api_reference/adapters.md#payment-gateways) |
 | [PostgreSQL](postgres.md) | Database access                | SQLAlchemy integration for PostgreSQL                | [API](../../api_reference/adapters.md#postgresql) |
 | [SQLite](sqlite.md)       | Database access                | SQLAlchemy integration for SQLite                    | [API](../../api_reference/adapters.md#sqlite)     |
 | [StarRocks](starrocks.md) | Database access                | SQLAlchemy integration for StarRocks                 | [API](../../api_reference/adapters.md#starrocks)  |

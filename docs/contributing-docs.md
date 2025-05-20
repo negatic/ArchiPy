@@ -1,6 +1,6 @@
-# ArchiPy Documentation
+# ArchiPy Documentation Guidelines
 
-This directory contains the MkDocs-based documentation for ArchiPy.
+This document outlines the standards and practices for ArchiPy documentation.
 
 ## Documentation Structure
 
@@ -11,52 +11,67 @@ This directory contains the MkDocs-based documentation for ArchiPy.
     - `examples/` - Usage examples
     - `assets/` - Images and other static assets
 
-## Converting from Sphinx to MkDocs
+## Writing Documentation
 
-The documentation is being migrated from Sphinx (RST) to MkDocs (Markdown). To help with this process:
-
-1. Run the conversion script:
-   ```bash
-   python scripts/convert_docs.py
-   ```
-   This script uses `pandoc` to convert RST files to Markdown.
-
-2. Manually review and improve the converted files.
-
-3. Preview the documentation:
-   ```bash
-   make docs-serve
-   ```
-
-4. Build the documentation:
-   ```bash
-   make docs-build
-   ```
-
-5. Deploy to GitHub Pages:
-   ```bash
-   make docs-deploy
-   ```
-
-## Writing Documentation Guidelines
+### Format and Style
 
 - Use Markdown syntax for all documentation files
 - Follow the Google Python style for code examples
-- Include type hints in code samples
+- Include type hints in code samples (using Python 3.13 syntax)
+- Include proper exception handling with `raise ... from e` pattern
 - Group related documentation in directories
 - Link between documentation pages using relative links
-- Add admonitions (notes, warnings, tips) using the Material for MkDocs syntax:
-  ```markdown
-  !!! note
-      This is a note.
-  ```
 
-## Improving Documentation
+### Code Examples
 
-When improving the documentation:
+When including code examples:
 
-1. Focus on clarity and conciseness
+1. Include proper type hints using Python 3.13 syntax (`x: list[str]` not `List[str]`)
+2. Demonstrate proper error handling with exception chaining
+3. Include docstrings with Args, Returns, and Raises sections
+4. Show realistic use cases that align with ArchiPy's patterns
+5. Keep examples concise but complete enough to understand usage
+
+### Admonitions
+
+Use Material for MkDocs admonitions to highlight important information:
+
+```markdown
+!!! note
+    This is a note.
+
+!!! warning
+    This is a warning.
+
+!!! tip
+    This is a tip.
+```
+
+## Building and Previewing Documentation
+
+Preview the documentation locally:
+```bash
+make docs-serve
+```
+
+Build the documentation:
+```bash
+make docs-build
+```
+
+Deploy to GitHub Pages:
+```bash
+make docs-deploy
+```
+
+## Documentation Improvement Guidelines
+
+When improving documentation:
+
+1. Ensure clarity and conciseness
 2. Include practical, runnable examples
 3. Explain "why" not just "how"
-4. Keep navigation logical and intuitive
+4. Maintain logical navigation
 5. Use diagrams for complex concepts
+6. Validate that examples match the current API
+7. Test code examples to ensure they work correctly
