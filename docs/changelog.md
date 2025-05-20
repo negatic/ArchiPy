@@ -4,6 +4,29 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 
 
 
+
+## [3.1.2] - 2025-05-20
+
+### Added
+
+#### Keycloak Integration
+- Added and refactored methods for creating realms, clients, and client roles in Keycloak adapters (sync and async)
+- Improved admin credential support and configuration for Keycloak
+- Enhanced type hints and readability in Keycloak step definitions
+
+#### Utilities
+- Introduced string utility functions for case conversion (snake_case ↔ camelCase)
+
+#### Configuration
+- Expanded .env.example with more detailed configuration options for services
+- Improved KeycloakConfig with admin fields for easier testing and setup
+
+#### Documentation & Code Quality
+- Improved and clarified usage examples and step definitions
+- Reformatted Python files to comply with Ruff checks
+- Minor refactoring for better code clarity and maintainability
+
+
 ## [3.1.1] - 2025-05-17
 
 ### Documentation
