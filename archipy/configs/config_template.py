@@ -325,12 +325,16 @@ class KeycloakConfig(BaseModel):
     identity and access management service.
     """
 
-    SERVER_URL: str | None = Field(default=None, description="URL of the Keycloak server")
-    CLIENT_ID: str | None = Field(default=None, description="Client ID for authentication")
-    REALM_NAME: str = Field(default="master", description="Name of the Keycloak realm")
-    CLIENT_SECRET_KEY: str | None = Field(default=None, description="Client secret key")
-    VERIFY_SSL: bool = Field(default=True, description="Whether to verify SSL certificates")
-    TIMEOUT: int = Field(default=10, description="Request timeout in seconds")
+    SERVER_URL: str | None = None
+    CLIENT_ID: str | None = None
+    REALM_NAME: str = "master"
+    CLIENT_SECRET_KEY: str | None = None
+    VERIFY_SSL: bool = True
+    TIMEOUT: int = 10
+    ADMIN_USERNAME: str | None = None
+    ADMIN_PASSWORD: str | None = None
+    ADMIN_REALM_NAME: str = "master"
+
 
 
 class MinioConfig(BaseModel):
