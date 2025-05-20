@@ -95,7 +95,7 @@ class ElasticSearchAPMConfig(BaseModel):
     and error reporting.
     """
 
-    API_REQUEST_SIZE: str = Field(default="768kb", description="Maximum size of API requests")
+    API_REQUEST_SIZE: int = Field(default=768 * 1024, description="Maximum size of API requests")
     API_REQUEST_TIME: str = Field(default="10s", description="Maximum time for API requests")
     AUTO_LOG_STACKS: bool = Field(default=True, description="Whether to automatically log stack traces")
     CAPTURE_BODY: str = Field(default="off", description="Level of request body capture")
@@ -104,14 +104,14 @@ class ElasticSearchAPMConfig(BaseModel):
     IS_ENABLED: bool = Field(default=False, description="Whether APM is enabled")
     ENVIRONMENT: str | None = Field(default=None, description="APM environment name")
     LOG_FILE: str = Field(default="", description="Path to APM log file")
-    LOG_FILE_SIZE: str = Field(default="1mb", description="Maximum size of APM log file")
+    LOG_FILE_SIZE: int = Field(default=50 * 1024 * 1024, description="Maximum size of APM log file")
     RECORDING: bool = Field(default=True, description="Whether to record transactions")
     SECRET_TOKEN: str | None = Field(default=None, description="APM secret token")
     SERVER_TIMEOUT: str = Field(default="5s", description="Server timeout duration")
     SERVER_URL: str | None = Field(default=None, description="APM server URL")
     SERVICE_NAME: str = Field(default="unknown-python-service", description="Name of the service being monitored")
     SERVICE_VERSION: str | None = Field(default=None, description="Version of the service")
-    TRANSACTION_SAMPLE_RATE: str = Field(default="0.001", description="Rate at which to sample transactions")
+    TRANSACTION_SAMPLE_RATE: float = Field(default=0.001, description="Rate at which to sample transactions")
     API_KEY: str | None = Field(default=None, description="API key for authentication")
 
 
@@ -334,7 +334,6 @@ class KeycloakConfig(BaseModel):
     ADMIN_USERNAME: str | None = None
     ADMIN_PASSWORD: str | None = None
     ADMIN_REALM_NAME: str = "master"
-
 
 
 class MinioConfig(BaseModel):

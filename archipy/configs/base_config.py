@@ -178,6 +178,7 @@ class BaseConfig(BaseSettings, Generic[R]):
         This method can be overridden in subclasses to perform
         custom configuration modifications after loading settings.
         """
+        self.ELASTIC_APM.ENVIRONMENT = self.ENVIRONMENT
 
     @classmethod
     def global_config(cls) -> Self:

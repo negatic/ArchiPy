@@ -171,27 +171,7 @@ class FastAPIUtils:
         try:
             from elasticapm.contrib.starlette import ElasticAPM, make_apm_client
 
-            apm_client = make_apm_client(
-                {
-                    "API_REQUEST_SIZE": config.ELASTIC_APM.API_REQUEST_SIZE,
-                    "API_REQUEST_TIME": config.ELASTIC_APM.API_REQUEST_TIME,
-                    "AUTO_LOG_STACKS": config.ELASTIC_APM.AUTO_LOG_STACKS,
-                    "CAPTURE_BODY": config.ELASTIC_APM.CAPTURE_BODY,
-                    "CAPTURE_HEADERS": config.ELASTIC_APM.CAPTURE_HEADERS,
-                    "COLLECT_LOCAL_VARIABLES": config.ELASTIC_APM.COLLECT_LOCAL_VARIABLES,
-                    "ENVIRONMENT": config.ENVIRONMENT,
-                    "LOG_FILE": config.ELASTIC_APM.LOG_FILE,
-                    "LOG_FILE_SIZE": config.ELASTIC_APM.LOG_FILE_SIZE,
-                    "RECORDING": config.ELASTIC_APM.RECORDING,
-                    "SECRET_TOKEN": config.ELASTIC_APM.SECRET_TOKEN,
-                    "SERVER_TIMEOUT": config.ELASTIC_APM.SERVER_TIMEOUT,
-                    "SERVER_URL": config.ELASTIC_APM.SERVER_URL,
-                    "SERVICE_NAME": config.ELASTIC_APM.SERVICE_NAME,
-                    "SERVICE_VERSION": config.ELASTIC_APM.SERVICE_VERSION,
-                    "TRANSACTION_SAMPLE_RATE": config.ELASTIC_APM.TRANSACTION_SAMPLE_RATE,
-                    "API_KEY": config.ELASTIC_APM.API_KEY,
-                },
-            )
+            apm_client = make_apm_client(config.ELASTIC_APM.model_dump())
             app.add_middleware(ElasticAPM, client=apm_client)
         except Exception:
             logging.exception("Failed to initialize Elastic APM")

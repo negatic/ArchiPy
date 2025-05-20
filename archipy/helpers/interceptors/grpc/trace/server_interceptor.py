@@ -38,14 +38,15 @@ class GrpcServerTraceInterceptor(BaseGrpcServerInterceptor):
         """
         try:
             # Skip tracing if Elastic APM is disabled
-            if not BaseConfig.global_config().ELASTIC_APM.ENABLED:
+            config = BaseConfig.global_config()
+            if not config.ELASTIC_APM.IS_ENABLED:
                 return method(request, context)
+
+            # Get the Elastic APM client
+            client = elasticapm.Client(config.ELASTIC_APM.model_dump())
 
             # Extract method name details from the context
             method_name_model = context.method_name_model
-
-            # Get the Elastic APM client
-            client = elasticapm.get_client()
 
             # Convert metadata to a dictionary for easier access
             metadata_dict = dict(context.invocation_metadata())
