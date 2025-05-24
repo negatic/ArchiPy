@@ -119,11 +119,17 @@ class UpdatableMixin:
     """
 
     __abstract__ = True
+
+    @staticmethod
+    def _make_naive(dt: datetime) -> datetime:
+        """Convert a timezone-aware datetime to naive by removing timezone info."""
+        return dt.replace(tzinfo=None) if dt.tzinfo else dt
+
     updated_at = Column(
         DateTime(),
-        default=BaseUtils.get_datetime_now,
+        server_default=text("CURRENT_TIMESTAMP"),
         nullable=False,
-        onupdate=BaseUtils.get_datetime_now,
+        onupdate=lambda: UpdatableMixin._make_naive(BaseUtils.get_datetime_now()),
     )
 
 

@@ -1,7 +1,7 @@
 from behave import given, then, when
 
 from archipy.helpers.utils.password_utils import PasswordUtils
-from archipy.models.errors.custom_errors import InvalidPasswordError
+from archipy.models.errors import InvalidPasswordError
 from features.test_helpers import get_current_scenario_context
 
 

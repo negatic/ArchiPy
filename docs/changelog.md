@@ -2,6 +2,139 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [3.2.2] - 2025-05-24
+
+### Changed
+
+#### Database Entities
+- Enhanced timestamp handling in SQLAlchemy base entities:
+- Improved timezone-aware datetime handling in UpdatableMixin
+- Updated `updated_at` field to use server-side default timestamp
+- Added helper method `_make_naive()` for timezone conversion
+- Optimized update timestamp behavior for better database compatibility
+
+## [3.2.1] - 2025-05-20
+
+### Changed
+
+#### Elastic APM Configuration
+- Enhanced Elastic APM configuration and integration:
+- Refactored configuration logic for improved maintainability
+- Updated configuration templates for greater flexibility
+- Improved gRPC tracing interceptor for better observability
+- Refined application utility functions related to APM
+
+
+## [3.2.0] - 2025-05-20
+
+### Added
+
+#### Keycloak Integration
+- Added and refactored methods for creating realms, clients, and client roles in Keycloak adapters (sync and async)
+- Improved admin credential support and configuration for Keycloak
+- Enhanced type hints and readability in Keycloak step definitions
+
+#### Utilities
+- Introduced string utility functions for case conversion (snake_case ↔ camelCase)
+
+#### Configuration
+- Expanded .env.example with more detailed configuration options for services
+- Improved KeycloakConfig with admin fields for easier testing and setup
+
+#### Documentation & Code Quality
+- Improved and clarified usage examples and step definitions
+- Reformatted Python files to comply with Ruff checks
+- Minor refactoring for better code clarity and maintainability
+
+
+## [3.1.1] - 2025-05-17
+
+### Documentation
+- Enhanced project documentation
+- Improved usage examples
+
+### Changed
+
+#### Configuration
+- Updated configuration templates
+- Enhanced Kafka configuration template with improved settings
+- Optimized template structure for better usability
+
+### Fixed
+- Resolved merge conflicts
+- Streamlined codebase integration
+
+
+## [3.1.0] - 2025-05-15
+
+### Added
+
+#### Payment Gateway
+- Implemented Parsian Internet Payment Gateway adapter
+- Added comprehensive IPG integration support
+- Enhanced payment processing capabilities
+
+### Changed
+
+#### Documentation
+- Updated adapter documentation
+- Improved IPG integration examples
+- Refactored Parsian adapter code structure
+
+### Removed
+- Eliminated redundant error messages
+- Streamlined error handling
+
+
+## [3.0.1] - 2025-04-27
+
+### Fixed
+
+#### Code Quality
+
+- Fixed import error in module dependencies
+
+## [3.0.0] - 2025-04-27
+
+### Changed
+
+#### Database Adapters
+
+- Refactor StarRocks driver integration
+- Refactor SQLite driver integration
+- Enhanced database adapter support
+- Updated dependencies for StarRocks compatibility
+
+#### Configuration
+
+- Updated ElasticSearch Config Template
+- Enhanced configuration management
+- Improved dependency handling
+
+### Code Quality
+
+- Improved type safety across adapters
+- Enhanced error handling
+- Optimized connection management
+
+## [2.0.1] - 2025-04-27
+
+### Added
+
+#### StarRocks
+
+- Added StarRocks driver integration
+- Enhanced database adapter support
+- Updated dependencies for StarRocks compatibility
+
+### Changed
+
+#### Dependencies
+
+- Updated poetry.lock with new dependencies
+- Enhanced package compatibility
+- Updated ElasticSearch Config Template
+
 ## [2.0.0] - 2025-04-27
 
 ### Changed
