@@ -38,7 +38,7 @@ class GrpcServerTraceInterceptor(BaseGrpcServerInterceptor):
         """
         try:
             # Skip tracing if Elastic APM is disabled
-            if not BaseConfig.global_config().ELASTIC_APM.ENABLED:
+            if not BaseConfig.global_config().ELASTIC_APM.IS_ENABLED:
                 return method(request, context)
 
             # Extract method name details from the context
