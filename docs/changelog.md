@@ -2,16 +2,27 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [3.2.2] - 2025-05-24
+
+### Changed
+
+#### Database Entities
+- Enhanced timestamp handling in SQLAlchemy base entities:
+- Improved timezone-aware datetime handling in UpdatableMixin
+- Updated `updated_at` field to use server-side default timestamp
+- Added helper method `_make_naive()` for timezone conversion
+- Optimized update timestamp behavior for better database compatibility
+
 ## [3.2.1] - 2025-05-20
 
 ### Changed
 
 #### Elastic APM Configuration
 - Enhanced Elastic APM configuration and integration:
-    - Refactored configuration logic for improved maintainability
-    - Updated configuration templates for greater flexibility
-    - Improved gRPC tracing interceptor for better observability
-    - Refined application utility functions related to APM
+- Refactored configuration logic for improved maintainability
+- Updated configuration templates for greater flexibility
+- Improved gRPC tracing interceptor for better observability
+- Refined application utility functions related to APM
 
 
 ## [3.2.0] - 2025-05-20
