@@ -804,16 +804,16 @@ def step_then_appropriate_error_raised(context):
     logger = getattr(context, "logger", logging.getLogger("behave.steps"))
     scenario_context = get_current_scenario_context(context)
 
-    from archipy.models.errors import DatabaseDeadlockError, DatabaseError
+    from archipy.models.errors import DatabaseDeadlockError, InternalError
 
-    # Check normal exception was wrapped as DatabaseError
+    # Check normal exception was wrapped as InternalError
     logger.info("Verifying normal exception handling")
     normal_exception = scenario_context.get("normal_exception")
     assert normal_exception is not None, "Normal exception was not captured"
     assert isinstance(
         normal_exception,
-        DatabaseError,
-    ), f"Normal exception not wrapped as DatabaseError: {type(normal_exception)}"
+        InternalError,
+    ), f"Normal exception not wrapped as InternalError: {type(normal_exception)}"
 
     # Check deadlock exception
     logger.info("Verifying deadlock exception handling")

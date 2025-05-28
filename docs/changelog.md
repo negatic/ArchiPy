@@ -2,11 +2,30 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [3.2.4] - 2025-01-27
+
+### Fixed
+
+#### Testing
+
+- Fixed atomic transactions feature test error handling expectations:
+- Corrected test to expect `InternalError` instead of `DatabaseError` for normal exceptions
+- Aligned test expectations with the correct exception wrapping behavior in atomic decorators
+- Normal exceptions (like `ValueError`) are now correctly expected to be wrapped as `InternalError`
+- Database-specific exceptions continue to be wrapped as appropriate `DatabaseError` subclasses
+
+## [3.2.3] - 2025-01-24
+
+### Fixed
+
+- Fix using "IS_ENABLED" instead wrong variable "ENABLED" in elastic ap… by @majasemzadeh in #45
+
 ## [3.2.2] - 2025-05-24
 
 ### Changed
 
 #### Database Entities
+
 - Enhanced timestamp handling in SQLAlchemy base entities:
 - Improved timezone-aware datetime handling in UpdatableMixin
 - Updated `updated_at` field to use server-side default timestamp
@@ -18,58 +37,64 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 ### Changed
 
 #### Elastic APM Configuration
+
 - Enhanced Elastic APM configuration and integration:
 - Refactored configuration logic for improved maintainability
 - Updated configuration templates for greater flexibility
 - Improved gRPC tracing interceptor for better observability
 - Refined application utility functions related to APM
 
-
 ## [3.2.0] - 2025-05-20
 
 ### Added
 
 #### Keycloak Integration
+
 - Added and refactored methods for creating realms, clients, and client roles in Keycloak adapters (sync and async)
 - Improved admin credential support and configuration for Keycloak
 - Enhanced type hints and readability in Keycloak step definitions
 
 #### Utilities
+
 - Introduced string utility functions for case conversion (snake_case ↔ camelCase)
 
 #### Configuration
+
 - Expanded .env.example with more detailed configuration options for services
 - Improved KeycloakConfig with admin fields for easier testing and setup
 
 #### Documentation & Code Quality
+
 - Improved and clarified usage examples and step definitions
 - Reformatted Python files to comply with Ruff checks
 - Minor refactoring for better code clarity and maintainability
 
-
 ## [3.1.1] - 2025-05-17
 
 ### Documentation
+
 - Enhanced project documentation
 - Improved usage examples
 
 ### Changed
 
 #### Configuration
+
 - Updated configuration templates
 - Enhanced Kafka configuration template with improved settings
 - Optimized template structure for better usability
 
 ### Fixed
+
 - Resolved merge conflicts
 - Streamlined codebase integration
-
 
 ## [3.1.0] - 2025-05-15
 
 ### Added
 
 #### Payment Gateway
+
 - Implemented Parsian Internet Payment Gateway adapter
 - Added comprehensive IPG integration support
 - Enhanced payment processing capabilities
@@ -77,14 +102,15 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 ### Changed
 
 #### Documentation
+
 - Updated adapter documentation
 - Improved IPG integration examples
 - Refactored Parsian adapter code structure
 
 ### Removed
+
 - Eliminated redundant error messages
 - Streamlined error handling
-
 
 ## [3.0.1] - 2025-04-27
 

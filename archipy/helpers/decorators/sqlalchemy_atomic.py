@@ -19,16 +19,17 @@ from sqlalchemy.exc import (
 from archipy.adapters.base.sqlalchemy.session_manager_ports import AsyncSessionManagerPort, SessionManagerPort
 from archipy.adapters.base.sqlalchemy.session_manager_registry import SessionManagerRegistry
 from archipy.models.errors import (
+    BaseError,
     DatabaseConfigurationError,
     DatabaseConnectionError,
     DatabaseConstraintError,
     DatabaseDeadlockError,
-    DatabaseError,
     DatabaseIntegrityError,
     DatabaseQueryError,
     DatabaseSerializationError,
     DatabaseTimeoutError,
     DatabaseTransactionError,
+    InternalError,
 )
 
 # Constants for tracking atomic blocks and their corresponding registries
@@ -109,22 +110,9 @@ def _handle_db_exception(exception: Exception, db_type: str, func_name: str) -> 
 
     # Wrap normal exceptions with DatabaseError
     # Check if the exception is one of our database-specific errors
-    if isinstance(
-        exception,
-        (
-            DatabaseConnectionError,
-            DatabaseConstraintError,
-            DatabaseDeadlockError,
-            DatabaseError,
-            DatabaseIntegrityError,
-            DatabaseQueryError,
-            DatabaseSerializationError,
-            DatabaseTimeoutError,
-            DatabaseTransactionError,
-        ),
-    ):
+    if isinstance(exception, BaseError):
         raise exception
-    raise DatabaseError(database=db_type) from exception
+    raise InternalError() from exception
 
 
 def sqlalchemy_atomic_decorator(
