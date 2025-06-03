@@ -2,6 +2,20 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+
+## [v3.2.5] - 2025-01-06
+
+### Improvements
+
+#### Developer Experience
+- **Enhanced changelog generation script** - Significantly improved the changelog generation process with comprehensive type hints, better error handling, and enhanced Conventional Commits support for more accurate categorization of changes
+- **Updated development guidelines** - Added new coding standards and architectural rules to improve code quality and maintainability
+
+### Technical Enhancements
+- **Type Safety** - Added Python 3.13 type hints throughout the changelog generation script for better IDE support and code reliability
+- **Error Handling** - Implemented proper exception chaining and more robust error reporting
+- **Code Organization** - Refactored script structure for better modularity and maintainability
+
 ## [3.2.4] - 2025-01-27
 
 ### Fixed
