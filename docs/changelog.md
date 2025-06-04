@@ -2,34 +2,42 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [v3.2.7] - 2025-01-06
 
+### Improvements
+
+#### Database Query Flexibility
+
+- **Enhanced query result handling** - Added `has_multiple_entities` parameter to search query methods in both
+  synchronous and asynchronous SQLAlchemy adapters and ports. This new parameter provides flexible control over query
+  result processing, allowing developers to choose between `fetchall()` for multiple entities or `scalars().all()` for
+  single entity queries, optimizing performance based on query requirements.
 
 ## [v3.2.7] - 2025-01-06
 
 ### Improvements
 
 #### Database Performance
-- **Optimized search query execution** - Refactored SQLAlchemy query execution method to use `fetchall()` instead of `scalars().all()` for improved performance and memory efficiency in both synchronous and asynchronous adapters
 
-#### Documentation
-- **Enhanced license documentation** - Significantly expanded license documentation with comprehensive details and improved formatting
-
-#### Database Query Flexibility
-- **Enhanced query result handling** - Added `has_multiple_entities` parameter to search query methods in both synchronous and asynchronous SQLAlchemy adapters and ports. This new parameter provides flexible control over query result processing, allowing developers to choose between `fetchall()` for multiple entities or `scalars().all()` for single entity queries, optimizing performance based on query requirements.
-
-#### API Enhancement
-- **Improved method signatures** - Updated `execute_search_query` method signatures in both `BaseSQLAlchemyAdapter`, `AsyncBaseSQLAlchemyAdapter`, `SQLAlchemyPort`, and `AsyncSQLAlchemyPort` to include the new optional parameter with comprehensive documentation.
+- **Optimized search query execution** - Refactored SQLAlchemy query execution method to use `fetchall()` instead of
+  `scalars().all()` for improved performance and memory efficiency in both synchronous and asynchronous adapters
 
 ## [v3.2.5] - 2025-01-06
 
 ### Improvements
 
 #### Developer Experience
-- **Enhanced changelog generation script** - Significantly improved the changelog generation process with comprehensive type hints, better error handling, and enhanced Conventional Commits support for more accurate categorization of changes
-- **Updated development guidelines** - Added new coding standards and architectural rules to improve code quality and maintainability
+
+- **Enhanced changelog generation script** - Significantly improved the changelog generation process with comprehensive
+  type hints, better error handling, and enhanced Conventional Commits support for more accurate categorization of
+  changes
+- **Updated development guidelines** - Added new coding standards and architectural rules to improve code quality and
+  maintainability
 
 ### Technical Enhancements
-- **Type Safety** - Added Python 3.13 type hints throughout the changelog generation script for better IDE support and code reliability
+
+- **Type Safety** - Added Python 3.13 type hints throughout the changelog generation script for better IDE support and
+  code reliability
 - **Error Handling** - Implemented proper exception chaining and more robust error reporting
 - **Code Organization** - Refactored script structure for better modularity and maintainability
 
