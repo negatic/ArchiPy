@@ -3,6 +3,17 @@
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
 
+
+## [v3.2.6] - 2025-01-06
+
+### Improvements
+
+#### Database Performance
+- **Optimized search query execution** - Refactored SQLAlchemy query execution method to use `fetchall()` instead of `scalars().all()` for improved performance and memory efficiency in both synchronous and asynchronous adapters
+
+#### Documentation
+- **Enhanced license documentation** - Significantly expanded license documentation with comprehensive details and improved formatting
+
 ## [v3.2.5] - 2025-01-06
 
 ### Improvements
