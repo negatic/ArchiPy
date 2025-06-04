@@ -43,6 +43,7 @@ class SQLAlchemyPort:
         query: Select,
         pagination: PaginationDTO | None = None,
         sort_info: SortDTO | None = None,
+        has_multiple_entities: bool = False,
     ) -> tuple[list[BaseEntity], int]:
         """Executes a search query with pagination and sorting.
 
@@ -51,6 +52,7 @@ class SQLAlchemyPort:
             query: The SQLAlchemy SELECT query
             pagination: Optional pagination settings
             sort_info: Optional sorting information
+            has_multiple_entities: Optional bool.
 
         Returns:
             A tuple containing the list of entities and the total count
@@ -166,6 +168,7 @@ class AsyncSQLAlchemyPort:
         query: Select,
         pagination: PaginationDTO | None,
         sort_info: SortDTO | None = None,
+        has_multiple_entities: bool = False,
     ) -> tuple[list[BaseEntity], int]:
         """Executes a search query with pagination and sorting asynchronously.
 
@@ -174,6 +177,7 @@ class AsyncSQLAlchemyPort:
             query: The SQLAlchemy SELECT query
             pagination: Optional pagination settings
             sort_info: Optional sorting information
+            has_multiple_entities: Optional bool
 
         Returns:
             A tuple containing the list of entities and the total count

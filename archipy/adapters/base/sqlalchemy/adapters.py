@@ -233,6 +233,7 @@ class BaseSQLAlchemyAdapter(
         query: Select,
         pagination: PaginationDTO | None = None,
         sort_info: SortDTO | None = None,
+        has_multiple_entities: bool = False,
     ) -> tuple[list[BaseEntity], int]:
         """Execute a search query with pagination and sorting.
 
@@ -241,6 +242,7 @@ class BaseSQLAlchemyAdapter(
             query: The SQLAlchemy SELECT query.
             pagination: Optional pagination settings.
             sort_info: Optional sorting information.
+            has_multiple_entities: Optional bool.
 
         Returns:
             Tuple of the list of entities and the total count.
@@ -257,8 +259,10 @@ class BaseSQLAlchemyAdapter(
             sorted_query = self._apply_sorting(entity, query, sort_info)
             paginated_query = self._apply_pagination(sorted_query, pagination)
             result_set = session.execute(paginated_query)
-            results = result_set.fetchall()
-
+            if has_multiple_entities:
+                results = result_set.fetchall()
+            else:
+                results = result_set.scalars().all()
             count_query = select(func.count()).select_from(query.subquery())
             total_count = session.execute(count_query).scalar_one()
         except Exception as e:
@@ -537,6 +541,7 @@ class AsyncBaseSQLAlchemyAdapter(
         query: Select,
         pagination: PaginationDTO | None,
         sort_info: SortDTO | None = None,
+        has_multiple_entities: bool = False,
     ) -> tuple[list[BaseEntity], int]:
         """Execute a search query with pagination and sorting.
 
@@ -545,6 +550,7 @@ class AsyncBaseSQLAlchemyAdapter(
             query: The SQLAlchemy SELECT query.
             pagination: Optional pagination settings.
             sort_info: Optional sorting information.
+            has_multiple_entities: Optional bool
 
         Returns:
             Tuple of the list of entities and the total count.
@@ -561,8 +567,10 @@ class AsyncBaseSQLAlchemyAdapter(
             sorted_query = self._apply_sorting(entity, query, sort_info)
             paginated_query = self._apply_pagination(sorted_query, pagination)
             result_set = await session.execute(paginated_query)
-            results = result_set.fetchall()
-
+            if has_multiple_entities:
+                results = result_set.fetchall()
+            else:
+                results = result_set.scalars().all()
             count_query = select(func.count()).select_from(query.subquery())
             total_count = await session.execute(count_query)
             total_count = total_count.scalar_one()

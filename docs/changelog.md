@@ -4,7 +4,7 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 
 
 
-## [v3.2.6] - 2025-01-06
+## [v3.2.7] - 2025-01-06
 
 ### Improvements
 
@@ -13,6 +13,12 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 
 #### Documentation
 - **Enhanced license documentation** - Significantly expanded license documentation with comprehensive details and improved formatting
+
+#### Database Query Flexibility
+- **Enhanced query result handling** - Added `has_multiple_entities` parameter to search query methods in both synchronous and asynchronous SQLAlchemy adapters and ports. This new parameter provides flexible control over query result processing, allowing developers to choose between `fetchall()` for multiple entities or `scalars().all()` for single entity queries, optimizing performance based on query requirements.
+
+#### API Enhancement
+- **Improved method signatures** - Updated `execute_search_query` method signatures in both `BaseSQLAlchemyAdapter`, `AsyncBaseSQLAlchemyAdapter`, `SQLAlchemyPort`, and `AsyncSQLAlchemyPort` to include the new optional parameter with comprehensive documentation.
 
 ## [v3.2.5] - 2025-01-06
 
