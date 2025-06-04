@@ -257,7 +257,7 @@ class BaseSQLAlchemyAdapter(
             sorted_query = self._apply_sorting(entity, query, sort_info)
             paginated_query = self._apply_pagination(sorted_query, pagination)
             result_set = session.execute(paginated_query)
-            results = list(result_set.scalars().all())
+            results = result_set.fetchall()
 
             count_query = select(func.count()).select_from(query.subquery())
             total_count = session.execute(count_query).scalar_one()
@@ -561,7 +561,7 @@ class AsyncBaseSQLAlchemyAdapter(
             sorted_query = self._apply_sorting(entity, query, sort_info)
             paginated_query = self._apply_pagination(sorted_query, pagination)
             result_set = await session.execute(paginated_query)
-            results = list(result_set.scalars().all())
+            results = result_set.fetchall()
 
             count_query = select(func.count()).select_from(query.subquery())
             total_count = await session.execute(count_query)
