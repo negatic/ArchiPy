@@ -1095,15 +1095,15 @@ develop = ["aiohttp", "furo", "httpx", "opentelemetry-api", "opentelemetry-sdk",
 
 [[package]]
 name = "elasticsearch"
-version = "9.0.1"
+version = "9.0.2"
 description = "Python client for Elasticsearch"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
 markers = "extra == \"elasticsearch\" or extra == \"elasticsearch-async\""
 files = [
-    {file = "elasticsearch-9.0.1-py3-none-any.whl", hash = "sha256:9fd110f9bb77310343709d9cccbd523a431a6e528d8441b01a26b97eef3238a3"},
-    {file = "elasticsearch-9.0.1.tar.gz", hash = "sha256:76f9b519cfd15a860f615a94ba90dcb9543b721306bc5144ecc15f0b4d5d2781"},
+    {file = "elasticsearch-9.0.2-py3-none-any.whl", hash = "sha256:47cac1f0e5e7be8d8c6751a5d7818d416adfc11eac72f1b59e145930a87de880"},
+    {file = "elasticsearch-9.0.2.tar.gz", hash = "sha256:290e790153500d9f3cb66d74918ac70e9f96b5cd88147213859edca6ab5013f5"},
 ]
 
 [package.dependencies]
@@ -4500,4 +4500,4 @@ starrocks-async = ["aiomysql", "starrocks"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<4"
-content-hash = "2facd6f0346eece276c25d19174b58b2c9ca9f994c54ea5e467143ced4e60073"
+content-hash = "768c14da7584275416977b690b92bfd6a54d1e0b318883414697d668f2f56ef5"

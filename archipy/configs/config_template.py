@@ -100,7 +100,7 @@ class ElasticSearchConfig(BaseModel):
     @model_validator(mode="after")
     def validate_auth_settings(self) -> Self:
         """Validate Auth settings to ensure Accessibility."""
-        if not (self.HTTP_USER_NAME and self.HTTP_PASSWORD) or (self.API_KEY and self.API_SECRET):
+        if not (self.HTTP_USER_NAME and self.HTTP_PASSWORD) or not (self.API_KEY and self.API_SECRET):
             raise InvalidArgumentError()
         return self
 
