@@ -6,7 +6,7 @@ and more.
 """
 
 import logging
-from typing import Any, Literal, Self
+from typing import Literal, Self
 from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field, PostgresDsn, SecretStr, model_validator
@@ -27,7 +27,6 @@ class ElasticSearchConfig(BaseModel):
         CA_CERTS (str | None): Path to CA bundle for SSL verification.
         SSL_ASSERT_FINGERPRINT (str | None): SSL certificate fingerprint for verification.
         VERIFY_CERTS (bool): Whether to verify SSL certificates.
-        SSL_VERSION (str | None): Minimum TLS version (e.g., 'TLSv1.2').
         CLIENT_CERT (str | None): Path to client certificate for TLS authentication.
         CLIENT_KEY (str | None): Path to client key for TLS authentication.
         HTTP_COMPRESS (bool): Whether to enable HTTP compression (gzip).
@@ -52,10 +51,11 @@ class ElasticSearchConfig(BaseModel):
     HOSTS: list[str] = Field(default=["https://localhost:9200"], description="List of Elasticsearch server hosts")
     HTTP_USER_NAME: str | None = None
     HTTP_PASSWORD: SecretStr | None = None
+    API_KEY: str | None = None
+    API_SECRET: SecretStr | None = None
     CA_CERTS: str | None = Field(default=None, description="Path to CA bundle for SSL verification")
     SSL_ASSERT_FINGERPRINT: str | None = Field(default=None, description="SSL certificate fingerprint for verification")
     VERIFY_CERTS: bool = Field(default=True, description="Whether to verify SSL certificates")
-    SSL_VERSION: str | None = Field(default="TLSv1.2", description="Minimum TLS version (e.g., 'TLSv1.2')")
     CLIENT_CERT: str | None = Field(default=None, description="Path to client certificate for TLS authentication")
     CLIENT_KEY: str | None = Field(default=None, description="Path to client key for TLS authentication")
     HTTP_COMPRESS: bool = Field(default=True, description="Enable HTTP compression (gzip)")
@@ -87,16 +87,6 @@ class ElasticSearchConfig(BaseModel):
         ge=0.0,
         description="Maximum timeout duration for a dead node in seconds",
     )
-    KWARG: dict[str, Any] = Field(
-        default_factory=dict,
-        description="Additional keyword arguments for Elasticsearch client",
-    )
-    BATCH_INTERVAL_THRESHOLD_IN_SECONDS: int = Field(default=1, ge=1, description="Time threshold for batch operations")
-    BATCH_DOC_COUNT_THRESHOLD: int = Field(
-        default=500,
-        ge=1,
-        description="Document count threshold for batch operations",
-    )
 
     @model_validator(mode="after")
     def validate_tls_settings(self) -> Self:
@@ -105,6 +95,13 @@ class ElasticSearchConfig(BaseModel):
             raise InvalidArgumentError()
         if self.CLIENT_CERT and not self.CLIENT_KEY:
             raise FailedPreconditionError()
+        return self
+
+    @model_validator(mode="after")
+    def validate_auth_settings(self) -> Self:
+        """Validate Auth settings to ensure Accessibility."""
+        if not (self.HTTP_USER_NAME and self.HTTP_PASSWORD) or (self.API_KEY and self.API_SECRET):
+            raise InvalidArgumentError()
         return self
 
     @model_validator(mode="after")
@@ -770,43 +767,3 @@ class DatetimeConfig(BaseModel):
     REQUEST_TIMEOUT: int = 5
     MAX_RETRIES: int = 3
     CACHE_TTL: int = 86400  # TTL for cache in seconds (24 hours)
-
-
-class ElasticsearchConfig(BaseModel):
-    """Configuration settings for Elasticsearch integration.
-
-    Controls Elasticsearch server connection parameters, authentication, and client behavior settings.
-    This configuration supports both basic authentication and API key authentication methods.
-
-    Attributes:
-        HOSTS (list[str]): List of Elasticsearch host URLs (e.g., ['http://localhost:9200']).
-        API_KEY (str | None): API key for authentication. If provided, takes precedence over username/password.
-        USERNAME (str | None): Username for basic authentication.
-        PASSWORD (str | None): Password for basic authentication.
-        CLIENT_CERT (str | None): Path to client certificate file for SSL/TLS authentication.
-        CLIENT_KEY (str | None): Path to client private key file for SSL/TLS authentication.
-        CA_CERTS (str | None): Path to CA certificates file for SSL/TLS verification.
-        REQUEST_TIMEOUT (float | None): Timeout in seconds for requests. Defaults to 10.0.
-        MAX_RETRIES (int): Maximum number of retries for failed requests. Defaults to 0 (no retries).
-        RETRY_ON_STATUS (tuple[int, ...]): HTTP status codes that should trigger a retry.
-            Defaults to (429, 502, 503, 504) for rate limiting and server errors.
-        RETRY_ON_TIMEOUT (bool): Whether to retry on timeout. Defaults to False.
-        HTTP_COMPRESS (bool): Whether to enable HTTP compression. Defaults to False.
-        CONNECTIONS_PER_NODE (int): Maximum number of connections per node. Defaults to 10.
-        VERIFY_CERTS (bool): Whether to verify SSL certificates. Defaults to True.
-    """
-
-    HOSTS: list[str] = []
-    API_KEY: str | None = None
-    USERNAME: str | None = None
-    PASSWORD: str | None = None
-    CLIENT_CERT: str | None = None
-    CLIENT_KEY: str | None = None
-    CA_CERTS: str | None = None
-    REQUEST_TIMEOUT: float | None = 10.0
-    MAX_RETRIES: int = 0
-    RETRY_ON_STATUS: tuple[int, ...] = (429, 502, 503, 504)
-    RETRY_ON_TIMEOUT: bool = False
-    HTTP_COMPRESS: bool = False
-    CONNECTIONS_PER_NODE: int = 10
-    VERIFY_CERTS: bool = True

@@ -157,7 +157,6 @@ class BaseConfig(BaseSettings, Generic[R]):
     STARROCKS_SQLALCHEMY: StarrocksSQLAlchemyConfig = StarrocksSQLAlchemyConfig()
     POSTGRES_SQLALCHEMY: PostgresSQLAlchemyConfig = PostgresSQLAlchemyConfig()
     SQLITE_SQLALCHEMY: SqliteSQLAlchemyConfig = SqliteSQLAlchemyConfig()
-    ELASTICSEARCH: ElasticsearchConfig = ElasticsearchConfig()
 
     def customize(self) -> None:
         """Customize configuration after loading.

@@ -13,7 +13,7 @@ from archipy.adapters.elasticsearch.ports import (
     ElasticsearchResponseType,
 )
 from archipy.configs.base_config import BaseConfig
-from archipy.configs.config_template import ElasticsearchConfig
+from archipy.configs.config_template import ElasticSearchConfig
 
 logger = logging.getLogger(__name__)
 
@@ -25,20 +25,20 @@ class ElasticsearchAdapter(ElasticsearchPort):
     abstracting the underlying client implementation details.
     """
 
-    def __init__(self, elasticsearch_config: ElasticsearchConfig | None = None) -> None:
+    def __init__(self, elasticsearch_config: ElasticSearchConfig | None = None) -> None:
         """Initialize the ElasticsearchAdapter with configuration settings.
 
         Args:
             elasticsearch_config (ElasticsearchConfig, optional): Configuration settings for Elasticsearch.
                 If None, retrieves from global config. Defaults to None.
         """
-        configs: ElasticsearchConfig = (
+        configs: ElasticSearchConfig = (
             BaseConfig.global_config().ELASTICSEARCH if elasticsearch_config is None else elasticsearch_config
         )
         self.client = self._get_client(configs)
 
     @staticmethod
-    def _get_client(configs: ElasticsearchConfig) -> Elasticsearch:
+    def _get_client(configs: ElasticSearchConfig) -> Elasticsearch:
         """Create an Elasticsearch client with the specified configuration.
 
         Args:
@@ -47,12 +47,21 @@ class ElasticsearchAdapter(ElasticsearchPort):
         Returns:
             Elasticsearch: Configured Elasticsearch client instance.
         """
+        api_key: tuple | None = None
+        basic_auth: tuple | None = None
+        if configs.API_KEY and configs.API_SECRET:
+            api_key = ((configs.API_KEY, configs.API_SECRET),)
+        elif configs.HTTP_USER_NAME and configs.HTTP_PASSWORD:
+            basic_auth = ((configs.HTTP_USER_NAME, configs.HTTP_PASSWORD),)
+
         return Elasticsearch(
             hosts=configs.HOSTS,
-            api_key=configs.API_KEY,
+            api_key=api_key,
+            basic_auth=basic_auth,
             ca_certs=configs.CA_CERTS,
             client_key=configs.CLIENT_KEY,
             client_cert=configs.CLIENT_CERT,
+            ssl_assert_fingerprint=configs.SSL_ASSERT_FINGERPRINT,
             request_timeout=configs.REQUEST_TIMEOUT,
             retry_on_status=configs.RETRY_ON_STATUS,
             retry_on_timeout=configs.RETRY_ON_TIMEOUT,
@@ -60,6 +69,10 @@ class ElasticsearchAdapter(ElasticsearchPort):
             http_compress=configs.HTTP_COMPRESS,
             connections_per_node=configs.CONNECTIONS_PER_NODE,
             verify_certs=configs.VERIFY_CERTS,
+            sniff_on_start=configs.SNIFF_ON_START,
+            sniff_before_requests=configs.SNIFF_BEFORE_REQUESTS,
+            sniff_on_node_failure=configs.SNIFF_ON_NODE_FAILURE,
+            max_dead_node_backoff=configs.MAX_DEAD_NODE_BACKOFF,
         )
 
     @override
@@ -253,20 +266,20 @@ class AsyncElasticsearchAdapter(AsyncElasticsearchPort):
     abstracting the underlying client implementation details.
     """
 
-    def __init__(self, elasticsearch_config: ElasticsearchConfig | None = None) -> None:
+    def __init__(self, elasticsearch_config: ElasticSearchConfig | None = None) -> None:
         """Initialize the AsyncElasticsearchAdapter with configuration settings.
 
         Args:
             elasticsearch_config (ElasticsearchConfig, optional): Configuration settings for Elasticsearch.
                 If None, retrieves from global config. Defaults to None.
         """
-        configs: ElasticsearchConfig = (
+        configs: ElasticSearchConfig = (
             BaseConfig.global_config().ELASTICSEARCH if elasticsearch_config is None else elasticsearch_config
         )
         self.client = self._get_client(configs)
 
     @staticmethod
-    def _get_client(configs: ElasticsearchConfig) -> AsyncElasticsearch:
+    def _get_client(configs: ElasticSearchConfig) -> AsyncElasticsearch:
         """Create an async Elasticsearch client with the specified configuration.
 
         Args:
@@ -275,12 +288,21 @@ class AsyncElasticsearchAdapter(AsyncElasticsearchPort):
         Returns:
             AsyncElasticsearch: Configured async Elasticsearch client instance.
         """
+        api_key: tuple | None = None
+        basic_auth: tuple | None = None
+        if configs.API_KEY and configs.API_SECRET:
+            api_key = (configs.API_KEY, configs.API_SECRET)
+        elif configs.HTTP_USER_NAME and configs.HTTP_PASSWORD:
+            basic_auth = (configs.HTTP_USER_NAME, configs.HTTP_PASSWORD)
+
         return AsyncElasticsearch(
             hosts=configs.HOSTS,
-            api_key=configs.API_KEY,
+            api_key=api_key,
+            basic_auth=basic_auth,
             ca_certs=configs.CA_CERTS,
             client_key=configs.CLIENT_KEY,
             client_cert=configs.CLIENT_CERT,
+            ssl_assert_fingerprint=configs.SSL_ASSERT_FINGERPRINT,
             request_timeout=configs.REQUEST_TIMEOUT,
             retry_on_status=configs.RETRY_ON_STATUS,
             retry_on_timeout=configs.RETRY_ON_TIMEOUT,
@@ -288,6 +310,10 @@ class AsyncElasticsearchAdapter(AsyncElasticsearchPort):
             http_compress=configs.HTTP_COMPRESS,
             connections_per_node=configs.CONNECTIONS_PER_NODE,
             verify_certs=configs.VERIFY_CERTS,
+            sniff_on_start=configs.SNIFF_ON_START,
+            sniff_before_requests=configs.SNIFF_BEFORE_REQUESTS,
+            sniff_on_node_failure=configs.SNIFF_ON_NODE_FAILURE,
+            max_dead_node_backoff=configs.MAX_DEAD_NODE_BACKOFF,
         )
 
     @override

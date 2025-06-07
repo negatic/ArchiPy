@@ -157,7 +157,9 @@ def analyze_tag_changes(start_tag: str | None, end_tag: str) -> dict:
         message = commit
         # Remove common prefixes
         message = re.sub(
-            r"^(fix|feat|chore|docs|style|refactor|perf|test|build|ci|revert)(\([^)]+\))?:", "", message
+            r"^(fix|feat|chore|docs|style|refactor|perf|test|build|ci|revert)(\([^)]+\))?:",
+            "",
+            message,
         ).strip()
         # Capitalize first letter
         if message:
