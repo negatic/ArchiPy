@@ -33,7 +33,7 @@ class ElasticsearchAdapter(ElasticsearchPort):
                 If None, retrieves from global config. Defaults to None.
         """
         configs: ElasticSearchConfig = (
-            BaseConfig.global_config().ELASTICSEARCH if elasticsearch_config is None else elasticsearch_config
+            BaseConfig.global_config().ELASTIC if elasticsearch_config is None else elasticsearch_config
         )
         self.client = self._get_client(configs)
 
@@ -274,7 +274,7 @@ class AsyncElasticsearchAdapter(AsyncElasticsearchPort):
                 If None, retrieves from global config. Defaults to None.
         """
         configs: ElasticSearchConfig = (
-            BaseConfig.global_config().ELASTICSEARCH if elasticsearch_config is None else elasticsearch_config
+            BaseConfig.global_config().ELASTIC if elasticsearch_config is None else elasticsearch_config
         )
         self.client = self._get_client(configs)
 

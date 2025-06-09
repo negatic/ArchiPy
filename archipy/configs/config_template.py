@@ -98,13 +98,6 @@ class ElasticSearchConfig(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def validate_auth_settings(self) -> Self:
-        """Validate Auth settings to ensure Accessibility."""
-        if not (self.HTTP_USER_NAME and self.HTTP_PASSWORD) or not (self.API_KEY and self.API_SECRET):
-            raise InvalidArgumentError()
-        return self
-
-    @model_validator(mode="after")
     def validate_sniffing_settings(self) -> Self:
         """Warn if sniffing is enabled with a load balancer."""
         if any([self.SNIFF_ON_START, self.SNIFF_BEFORE_REQUESTS, self.SNIFF_ON_NODE_FAILURE]):
