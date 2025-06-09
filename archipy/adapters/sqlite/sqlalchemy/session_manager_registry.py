@@ -1,13 +1,14 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar, Optional
 
 from archipy.adapters.base.sqlalchemy.session_manager_registry import SessionManagerRegistry
 from archipy.helpers.metaclasses.singleton import Singleton
+from archipy.models.errors import DatabaseConnectionError
 
 if TYPE_CHECKING:
     from archipy.adapters.base.sqlalchemy.session_manager_ports import AsyncSessionManagerPort, SessionManagerPort
 
 
-class SqliteSessionManagerRegistry(SessionManagerRegistry, metaclass=Singleton):
+class SQLiteSessionManagerRegistry(SessionManagerRegistry, metaclass=Singleton):
     """Registry for SQLite SQLAlchemy session managers.
 
     This registry provides a centralized access point for both synchronous and
@@ -15,34 +16,42 @@ class SqliteSessionManagerRegistry(SessionManagerRegistry, metaclass=Singleton):
     It lazily initializes the appropriate session manager when first requested.
 
     The registry maintains singleton instances of:
-    - A synchronous session manager (SqliteSQlAlchemySessionManager)
-    - An asynchronous session manager (AsyncSqliteSQlAlchemySessionManager)
+    - A synchronous session manager (SQLiteSQLAlchemySessionManager)
+    - An asynchronous session manager (AsyncSQLiteSQLAlchemySessionManager)
     """
 
-    _sync_instance: "SessionManagerPort | None" = None
-    _async_instance: "AsyncSessionManagerPort | None" = None
+    _sync_instance: ClassVar[Optional["SessionManagerPort"]] = None
+    _async_instance: ClassVar[Optional["AsyncSessionManagerPort"]] = None
 
     @classmethod
     def get_sync_manager(cls) -> "SessionManagerPort":
         """Get the synchronous SQLite session manager instance.
 
-        Lazily initializes a default SqliteSQlAlchemySessionManager if none has been set.
+        Lazily initializes a default SQLiteSQLAlchemySessionManager if none has been set.
 
         Returns:
             SessionManagerPort: The registered synchronous session manager
+
+        Raises:
+            DatabaseConnectionError: If there's an error initializing the session manager
         """
         if cls._sync_instance is None:
-            from archipy.adapters.sqlite.sqlalchemy.session_managers import SqliteSQlAlchemySessionManager
+            try:
+                from archipy.adapters.sqlite.sqlalchemy.session_managers import SQLiteSQLAlchemySessionManager
 
-            cls._sync_instance = SqliteSQlAlchemySessionManager()
+                cls._sync_instance = SQLiteSQLAlchemySessionManager()
+            except Exception as e:
+                raise DatabaseConnectionError(
+                    database="sqlite",
+                ) from e
         return cls._sync_instance
 
     @classmethod
     def set_sync_manager(cls, manager: "SessionManagerPort") -> None:
-        """Set a custom synchronous session manager.
+        """Register a synchronous session manager.
 
         Args:
-            manager: An instance implementing SessionManagerPort
+            manager: The session manager to register
         """
         cls._sync_instance = manager
 
@@ -50,23 +59,31 @@ class SqliteSessionManagerRegistry(SessionManagerRegistry, metaclass=Singleton):
     def get_async_manager(cls) -> "AsyncSessionManagerPort":
         """Get the asynchronous SQLite session manager instance.
 
-        Lazily initializes a default AsyncSqliteSQlAlchemySessionManager if none has been set.
+        Lazily initializes a default AsyncSQLiteSQLAlchemySessionManager if none has been set.
 
         Returns:
             AsyncSessionManagerPort: The registered asynchronous session manager
+
+        Raises:
+            DatabaseConnectionError: If there's an error initializing the session manager
         """
         if cls._async_instance is None:
-            from archipy.adapters.sqlite.sqlalchemy.session_managers import AsyncSqliteSQlAlchemySessionManager
+            try:
+                from archipy.adapters.sqlite.sqlalchemy.session_managers import AsyncSQLiteSQLAlchemySessionManager
 
-            cls._async_instance = AsyncSqliteSQlAlchemySessionManager()
+                cls._async_instance = AsyncSQLiteSQLAlchemySessionManager()
+            except Exception as e:
+                raise DatabaseConnectionError(
+                    database="sqlite",
+                ) from e
         return cls._async_instance
 
     @classmethod
     def set_async_manager(cls, manager: "AsyncSessionManagerPort") -> None:
-        """Set a custom asynchronous session manager.
+        """Register an asynchronous session manager.
 
         Args:
-            manager: An instance implementing AsyncSessionManagerPort
+            manager: The async session manager to register
         """
         cls._async_instance = manager
 

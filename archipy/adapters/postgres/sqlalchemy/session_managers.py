@@ -1,6 +1,7 @@
 from typing import override
 
 from sqlalchemy import URL
+from sqlalchemy.exc import SQLAlchemyError
 
 from archipy.adapters.base.sqlalchemy.session_managers import (
     AsyncBaseSQLAlchemySessionManager,
@@ -9,6 +10,7 @@ from archipy.adapters.base.sqlalchemy.session_managers import (
 from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import PostgresSQLAlchemyConfig
 from archipy.helpers.metaclasses.singleton import Singleton
+from archipy.models.errors import DatabaseConnectionError
 
 
 class PostgresSQlAlchemySessionManager(BaseSQLAlchemySessionManager, metaclass=Singleton):
@@ -40,6 +42,15 @@ class PostgresSQlAlchemySessionManager(BaseSQLAlchemySessionManager, metaclass=S
         return PostgresSQLAlchemyConfig
 
     @override
+    def _get_database_name(self) -> str:
+        """Return the name of the database being used.
+
+        Returns:
+            str: The name of the database ('postgresql').
+        """
+        return "postgresql"
+
+    @override
     def _create_url(self, configs: PostgresSQLAlchemyConfig) -> URL:
         """Create a PostgreSQL connection URL.
 
@@ -48,15 +59,23 @@ class PostgresSQlAlchemySessionManager(BaseSQLAlchemySessionManager, metaclass=S
 
         Returns:
             A SQLAlchemy URL object for PostgreSQL.
+
+        Raises:
+            DatabaseConnectionError: If there's an error creating the URL.
         """
-        return URL.create(
-            drivername=configs.DRIVER_NAME,
-            username=configs.USERNAME,
-            password=configs.PASSWORD,
-            host=configs.HOST,
-            port=configs.PORT,
-            database=configs.DATABASE,
-        )
+        try:
+            return URL.create(
+                drivername=configs.DRIVER_NAME,
+                username=configs.USERNAME,
+                password=configs.PASSWORD,
+                host=configs.HOST,
+                port=configs.PORT,
+                database=configs.DATABASE,
+            )
+        except SQLAlchemyError as e:
+            raise DatabaseConnectionError(
+                database=self._get_database_name(),
+            ) from e
 
 
 class AsyncPostgresSQlAlchemySessionManager(AsyncBaseSQLAlchemySessionManager, metaclass=Singleton):
@@ -88,6 +107,15 @@ class AsyncPostgresSQlAlchemySessionManager(AsyncBaseSQLAlchemySessionManager, m
         return PostgresSQLAlchemyConfig
 
     @override
+    def _get_database_name(self) -> str:
+        """Return the name of the database being used.
+
+        Returns:
+            str: The name of the database ('postgresql').
+        """
+        return "postgresql"
+
+    @override
     def _create_url(self, configs: PostgresSQLAlchemyConfig) -> URL:
         """Create an async PostgreSQL connection URL.
 
@@ -96,12 +124,20 @@ class AsyncPostgresSQlAlchemySessionManager(AsyncBaseSQLAlchemySessionManager, m
 
         Returns:
             A SQLAlchemy URL object for PostgreSQL.
+
+        Raises:
+            DatabaseConnectionError: If there's an error creating the URL.
         """
-        return URL.create(
-            drivername=configs.DRIVER_NAME,
-            username=configs.USERNAME,
-            password=configs.PASSWORD,
-            host=configs.HOST,
-            port=configs.PORT,
-            database=configs.DATABASE,
-        )
+        try:
+            return URL.create(
+                drivername=configs.DRIVER_NAME,
+                username=configs.USERNAME,
+                password=configs.PASSWORD,
+                host=configs.HOST,
+                port=configs.PORT,
+                database=configs.DATABASE,
+            )
+        except SQLAlchemyError as e:
+            raise DatabaseConnectionError(
+                database=self._get_database_name(),
+            ) from e

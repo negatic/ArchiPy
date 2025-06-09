@@ -4,7 +4,7 @@ from confluent_kafka import TopicPartition
 from features.test_helpers import get_current_scenario_context
 
 from archipy.adapters.kafka.adapters import KafkaAdminAdapter, KafkaConsumerAdapter, KafkaProducerAdapter
-from archipy.models.errors.custom_errors import UnavailableError
+from archipy.models.errors import UnavailableError
 
 
 def get_kafka_admin_adapter(context):

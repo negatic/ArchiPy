@@ -38,8 +38,8 @@ class ErrorDetailDTO(BaseDTO):
         code: str,
         message_en: str,
         message_fa: str,
-        http_status: int | HTTPStatus | None = None,
-        grpc_status: int | StatusCode | None = None,
+        http_status: HTTPStatus | int | None = None,
+        grpc_status: StatusCode | int | None = None,
     ) -> Self:
         """Creates an `ErrorDetailDTO` with appropriate status codes.
 
@@ -47,8 +47,8 @@ class ErrorDetailDTO(BaseDTO):
             code (str): A unique error code.
             message_en (str): The error message in English.
             message_fa (str): The error message in Persian.
-            http_status (int | HTTPStatus | None): The HTTP status code associated with the error.
-            grpc_status (int | StatusCode | None): The gRPC status code associated with the error.
+            http_status (HTTPStatus | int | None): The HTTP status code associated with the error.
+            grpc_status (StatusCode | int  | None): The gRPC status code associated with the error.
 
         Returns:
             ErrorDetailDTO: The created exception detail object.

@@ -75,10 +75,10 @@ show_source: true
 SQLite database adapter with SQLAlchemy integration.
 
 ```python
-from archipy.adapters.sqlite.sqlalchemy.adapters import SqliteSQLAlchemyAdapter, AsyncSqliteSQLAlchemyAdapter
+from archipy.adapters.sqlite.sqlalchemy.adapters import SQLiteSQLAlchemyAdapter, AsyncSQLiteSQLAlchemyAdapter
 
 # Create an ORM adapter (uses global config)
-orm_adapter = SqliteSQLAlchemyAdapter()
+orm_adapter = SQLiteSQLAlchemyAdapter()
 ```
 
 ::: archipy.adapters.sqlite.sqlalchemy.adapters
@@ -282,6 +282,46 @@ show_root_heading: true
 show_source: true
 
 ::: archipy.adapters.kafka.ports
+options:
+show_root_heading: true
+show_source: true
+
+### Payment Gateways
+
+Integrations with various payment processing services for online transactions.
+
+#### Parsian Shaparak
+
+Parsian Shaparak payment gateway adapter for processing online payments in Iran.
+
+```python
+from archipy.adapters.internet_payment_gateways.ir.parsian.adapters import (
+    ParsianShaparakPaymentAdapter,
+    PaymentRequestDTO,
+    ConfirmRequestDTO
+)
+
+# Create a Parsian Shaparak payment adapter
+payment_adapter = ParsianShaparakPaymentAdapter()  # Uses global config by default
+
+# Create payment request
+payment_request = PaymentRequestDTO(
+    amount=10000,  # Amount in IRR
+    order_id=12345,  # Your unique order ID
+    callback_url="https://your-app.com/payment/callback",
+)
+
+# Send payment request
+payment_response = payment_adapter.initiate_payment(payment_request)
+
+if payment_response.status == 0:  # 0 means success
+    # Redirect user to payment page
+    payment_url = f"https://pec.shaparak.ir/NewIPG/?Token={payment_response.token}"
+```
+
+For detailed examples and usage guidelines, see the [Parsian Payment Gateway Examples](../examples/adapters/parsian_payment.md).
+
+::: archipy.adapters.internet_payment_gateways.ir.parsian.adapters
 options:
 show_root_heading: true
 show_source: true

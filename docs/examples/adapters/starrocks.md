@@ -85,7 +85,7 @@ async def main():
 ## Error Handling
 
 ```python
-from archipy.models.errors.custom_errors import (
+from archipy.models.errors import (
     AlreadyExistsError,
     NotFoundError,
     InternalError

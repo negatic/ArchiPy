@@ -1,8 +1,0 @@
---
-description:
-globs:
-alwaysApply: true
----
-i use python 3.13 therefore
-don`t use Optional, use | None
-don`t use Dict, Tuple, Set and ... use dict, tuple, set and ...

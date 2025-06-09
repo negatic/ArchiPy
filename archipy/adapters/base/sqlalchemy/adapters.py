@@ -17,9 +17,56 @@ from archipy.configs.config_template import SQLAlchemyConfig
 from archipy.models.dtos.pagination_dto import PaginationDTO
 from archipy.models.dtos.sort_dto import SortDTO
 from archipy.models.entities import BaseEntity
-from archipy.models.errors.custom_errors import InternalError, InvalidArgumentError, InvalidEntityTypeError
+from archipy.models.errors import (
+    DatabaseConnectionError,
+    DatabaseConstraintError,
+    DatabaseIntegrityError,
+    DatabaseQueryError,
+    DatabaseTimeoutError,
+    DatabaseTransactionError,
+    InvalidArgumentError,
+    InvalidEntityTypeError,
+)
 from archipy.models.types.base_types import FilterOperationType
 from archipy.models.types.sort_order_type import SortOrderType
+
+
+class SQLAlchemyExceptionHandlerMixin:
+    """Mixin providing centralized exception handling for SQLAlchemy operations.
+
+    This mixin provides a standard method for handling database exceptions and
+    converting them to appropriate application-specific exceptions.
+    """
+
+    @classmethod
+    def _handle_db_exception(cls, exception: Exception, db_name: str | None = None) -> None:
+        """Handle database exceptions and raise appropriate errors.
+
+        Args:
+            exception: The exception to handle.
+            db_name: Optional database name for error context.
+
+        Raises:
+            DatabaseTimeoutError: If a timeout is detected.
+            DatabaseConnectionError: If a connection error is detected.
+            DatabaseTransactionError: If a transaction error is detected.
+            DatabaseIntegrityError: If an integrity violation is detected.
+            DatabaseConstraintError: If a constraint violation is detected.
+            DatabaseQueryError: For other database errors.
+        """
+        if "timeout" in str(exception).lower():
+            raise DatabaseTimeoutError(database=db_name) from exception
+        if "integrity" in str(exception).lower():
+            raise DatabaseIntegrityError(database=db_name) from exception
+        if "constraint" in str(exception).lower():
+            raise DatabaseConstraintError(database=db_name) from exception
+        if "connection" in str(exception).lower():
+            raise DatabaseConnectionError(database=db_name) from exception
+        if "transaction" in str(exception).lower():
+            raise DatabaseTransactionError(database=db_name) from exception
+
+        # Default error if no specific error is detected
+        raise DatabaseQueryError(database=db_name) from exception
 
 
 class SQLAlchemyFilterMixin:
@@ -143,7 +190,13 @@ class SQLAlchemySortMixin:
                 raise InvalidArgumentError(argument_name="sort_info.order")
 
 
-class BaseSQLAlchemyAdapter(SQLAlchemyPort, SQLAlchemyPaginationMixin, SQLAlchemySortMixin, SQLAlchemyFilterMixin):
+class BaseSQLAlchemyAdapter(
+    SQLAlchemyPort,
+    SQLAlchemyPaginationMixin,
+    SQLAlchemySortMixin,
+    SQLAlchemyFilterMixin,
+    SQLAlchemyExceptionHandlerMixin,
+):
     """Base synchronous SQLAlchemy adapter for ORM operations.
 
     Provides a standardized interface for CRUD operations, pagination, sorting, and filtering.
@@ -180,6 +233,7 @@ class BaseSQLAlchemyAdapter(SQLAlchemyPort, SQLAlchemyPaginationMixin, SQLAlchem
         query: Select,
         pagination: PaginationDTO | None = None,
         sort_info: SortDTO | None = None,
+        has_multiple_entities: bool = False,
     ) -> tuple[list[BaseEntity], int]:
         """Execute a search query with pagination and sorting.
 
@@ -188,12 +242,16 @@ class BaseSQLAlchemyAdapter(SQLAlchemyPort, SQLAlchemyPaginationMixin, SQLAlchem
             query: The SQLAlchemy SELECT query.
             pagination: Optional pagination settings.
             sort_info: Optional sorting information.
+            has_multiple_entities: Optional bool.
 
         Returns:
             Tuple of the list of entities and the total count.
 
         Raises:
-            InternalError: If the database query fails.
+            DatabaseQueryError: If the database query fails.
+            DatabaseTimeoutError: If the query times out.
+            DatabaseConnectionError: If there's a connection error.
+            DatabaseTransactionError: If there's a transaction error.
         """
         try:
             sort_info = sort_info or SortDTO.default()
@@ -201,166 +259,243 @@ class BaseSQLAlchemyAdapter(SQLAlchemyPort, SQLAlchemyPaginationMixin, SQLAlchem
             sorted_query = self._apply_sorting(entity, query, sort_info)
             paginated_query = self._apply_pagination(sorted_query, pagination)
             result_set = session.execute(paginated_query)
-            results = list(result_set.scalars().all())
-
+            if has_multiple_entities:
+                results = result_set.fetchall()
+            else:
+                results = result_set.scalars().all()
             count_query = select(func.count()).select_from(query.subquery())
             total_count = session.execute(count_query).scalar_one()
         except Exception as e:
-            raise InternalError(details=f"Database query failed: {e!s}") from e
-        return results, total_count
+            self._handle_db_exception(e, self.session_manager._get_database_name())
+        else:
+            return results, total_count
 
     @override
     def get_session(self) -> Session:
+        """Get a database session.
+
+        Returns:
+            Session: A SQLAlchemy session.
+
+        Raises:
+            DatabaseConnectionError: If there's an error getting the session.
+            DatabaseConfigurationError: If there's an error in the database configuration.
+        """
         return self.session_manager.get_session()
 
     @override
     def create(self, entity: BaseEntity) -> BaseEntity | None:
-        """Creates a new entity in the database.
+        """Create a new entity in the database.
 
         Args:
-            entity (BaseEntity): The entity to be created.
+            entity: The entity to create.
 
         Returns:
-            BaseEntity | None: The created entity with updated attributes
-                (e.g., generated ID), or None if creation failed.
+            The created entity with updated attributes.
 
         Raises:
-            InvalidEntityTypeError: If the provided entity is not a BaseEntity.
+            InvalidEntityTypeError: If the entity type is not a valid SQLAlchemy model.
+            DatabaseQueryError: If the database operation fails.
+            DatabaseIntegrityError: If there's an integrity constraint violation.
+            DatabaseConstraintError: If there's a constraint violation.
+            DatabaseConnectionError: If there's a connection error.
+            DatabaseTransactionError: If there's a transaction error.
         """
         if not isinstance(entity, BaseEntity):
-            raise InvalidEntityTypeError(entity, BaseEntity)
+            raise InvalidEntityTypeError(
+                message=f"Expected BaseEntity subclass, got {type(entity).__name__}",
+                expected_type="BaseEntity",
+                actual_type=type(entity).__name__,
+            )
+
         try:
             session = self.get_session()
             session.add(entity)
             session.flush()
         except Exception as e:
-            raise InternalError(details=f"Entity creation failed: {e!s}") from e
-        return entity
+            self._handle_db_exception(e, self.session_manager._get_database_name())
+        else:
+            return entity
 
     @override
     def bulk_create(self, entities: list[BaseEntity]) -> list[BaseEntity] | None:
         """Creates multiple entities in a single database operation.
 
         Args:
-            entities: List of entity objects to create.
+            entities: List of entities to create.
 
         Returns:
-            The list of created entities with updated attributes (e.g., generated IDs),
-            or None if creation failed.
+            List of created entities with updated attributes.
 
         Raises:
-            InvalidEntityTypeError: If any of the provided entities is not a BaseEntity.
-            InternalError: If the database operation fails.
+            InvalidEntityTypeError: If any entity is not a valid SQLAlchemy model.
+            DatabaseQueryError: If the database operation fails.
+            DatabaseIntegrityError: If there's an integrity constraint violation.
+            DatabaseConstraintError: If there's a constraint violation.
+            DatabaseConnectionError: If there's a connection error.
+            DatabaseTransactionError: If there's a transaction error.
         """
-        # Check that all entities are valid
-        for entity in entities:
-            if not isinstance(entity, BaseEntity):
-                raise InvalidEntityTypeError(entity, BaseEntity)
+        if not all(isinstance(entity, BaseEntity) for entity in entities):
+            raise InvalidEntityTypeError(
+                message="All entities must be BaseEntity subclasses",
+                expected_type="BaseEntity",
+                actual_type="mixed",
+            )
 
         try:
             session = self.get_session()
             session.add_all(entities)
             session.flush()
         except Exception as e:
-            raise InternalError(details=f"Bulk create operation failed: {e!s}") from e
-        return entities
+            self._handle_db_exception(e, self.session_manager._get_database_name())
+        else:
+            return entities
 
     @override
     def get_by_uuid(self, entity_type: type, entity_uuid: UUID) -> BaseEntity | None:
-        """Retrieves an entity by its UUID.
+        """Retrieve an entity by its UUID.
 
         Args:
-            entity_type (type): The entity class to query.
-            entity_uuid (UUID): The UUID of the entity to retrieve.
+            entity_type: The type of entity to retrieve.
+            entity_uuid: The UUID of the entity.
 
         Returns:
-            Any: The retrieved entity or None if not found.
+            The entity if found, None otherwise.
 
         Raises:
-            InvalidEntityTypeError: If entity_type is not a subclass of BaseEntity
-                or if entity_uuid is not a UUID.
+            InvalidEntityTypeError: If the entity type is not a valid SQLAlchemy model.
+            DatabaseQueryError: If the database operation fails.
+            DatabaseTimeoutError: If the query times out.
+            DatabaseConnectionError: If there's a connection error.
+            DatabaseTransactionError: If there's a transaction error.
         """
         if not issubclass(entity_type, BaseEntity):
-            raise InvalidEntityTypeError(entity_type, BaseEntity)
-        if not isinstance(entity_uuid, UUID):
-            raise InvalidEntityTypeError(entity_uuid, UUID)
+            raise InvalidEntityTypeError(
+                message=f"Expected BaseEntity subclass, got {entity_type.__name__}",
+                expected_type="BaseEntity",
+                actual_type=entity_type.__name__,
+            )
+
         try:
             session = self.get_session()
-            return session.get(entity_type, entity_uuid)
+            result = session.get(entity_type, entity_uuid)
         except Exception as e:
-            raise InternalError(details=f"Entity retrieval by UUID failed: {e!s}") from e
+            self._handle_db_exception(e, self.session_manager._get_database_name())
+        else:
+            return result
 
     @override
     def delete(self, entity: BaseEntity) -> None:
+        """Delete an entity from the database.
+
+        Args:
+            entity: The entity to delete.
+
+        Raises:
+            InvalidEntityTypeError: If the entity is not a valid SQLAlchemy model.
+            DatabaseQueryError: If the database operation fails.
+            DatabaseIntegrityError: If there's an integrity constraint violation.
+            DatabaseConstraintError: If there's a constraint violation.
+            DatabaseConnectionError: If there's a connection error.
+            DatabaseTransactionError: If there's a transaction error.
+        """
         if not isinstance(entity, BaseEntity):
-            raise InvalidEntityTypeError(entity, BaseEntity)
+            raise InvalidEntityTypeError(
+                message=f"Expected BaseEntity subclass, got {type(entity).__name__}",
+                expected_type="BaseEntity",
+                actual_type=type(entity).__name__,
+            )
+
         try:
             session = self.get_session()
             session.delete(entity)
+            session.flush()
         except Exception as e:
-            raise InternalError(details=f"Entity deletion failed: {e!s}") from e
+            self._handle_db_exception(e, self.session_manager._get_database_name())
+        else:
+            return ...
 
     @override
     def bulk_delete(self, entities: list[BaseEntity]) -> None:
-        """Deletes multiple entities in a sequence of operations.
+        """Delete multiple entities from the database.
 
         Args:
-            entities: List of entity objects to delete.
+            entities: List of entities to delete.
 
         Raises:
-            InvalidEntityTypeError: If any of the provided entities is not a BaseEntity.
-            InternalError: If the database operation fails.
+            InvalidEntityTypeError: If any entity is not a valid SQLAlchemy model.
+            DatabaseQueryError: If the database operation fails.
+            DatabaseIntegrityError: If there's an integrity constraint violation.
+            DatabaseConstraintError: If there's a constraint violation.
+            DatabaseConnectionError: If there's a connection error.
+            DatabaseTransactionError: If there's a transaction error.
         """
+        if not all(isinstance(entity, BaseEntity) for entity in entities):
+            raise InvalidEntityTypeError(
+                message="All entities must be BaseEntity subclasses",
+                expected_type="BaseEntity",
+                actual_type="mixed",
+            )
+
         try:
+            session = self.get_session()
             for entity in entities:
-                if not isinstance(entity, BaseEntity):
-                    raise InvalidEntityTypeError(entity, BaseEntity)
-                self.delete(entity)
+                session.delete(entity)
+            session.flush()
         except Exception as e:
-            raise InternalError(details=f"Bulk delete operation failed: {e!s}") from e
+            self._handle_db_exception(e, self.session_manager._get_database_name())
+        else:
+            return ...
 
     @override
     def execute(self, statement: Executable, params: AnyExecuteParams | None = None) -> Result[Any]:
-        """Executes a raw SQL statement.
+        """Execute a SQLAlchemy statement.
 
         Args:
             statement: The SQLAlchemy statement to execute.
             params: Optional parameters for the statement.
 
         Returns:
-            The execution result.
+            The result of the execution.
 
         Raises:
-            InternalError: If the statement execution fails.
+            DatabaseQueryError: If the database operation fails.
+            DatabaseTimeoutError: If the query times out.
+            DatabaseConnectionError: If there's a connection error.
+            DatabaseTransactionError: If there's a transaction error.
         """
         try:
             session = self.get_session()
-            return session.execute(statement, params)
+            result = session.execute(statement, params or {})
         except Exception as e:
-            raise InternalError(details=f"Statement execution failed: {e!s}") from e
+            self._handle_db_exception(e, self.session_manager._get_database_name())
+        else:
+            return result
 
     @override
     def scalars(self, statement: Executable, params: AnyExecuteParams | None = None) -> ScalarResult[Any]:
-        """Executes a statement and returns the scalar result.
-
-        This is a convenience method that executes a statement and
-        returns the scalar result directly.
+        """Execute a SQLAlchemy statement and return scalar results.
 
         Args:
             statement: The SQLAlchemy statement to execute.
             params: Optional parameters for the statement.
 
         Returns:
-            The scalar result of executing the statement.
+            The scalar results of the execution.
 
         Raises:
-            InternalError: If the statement execution fails.
+            DatabaseQueryError: If the database operation fails.
+            DatabaseTimeoutError: If the query times out.
+            DatabaseConnectionError: If there's a connection error.
+            DatabaseTransactionError: If there's a transaction error.
         """
         try:
             session = self.get_session()
-            return session.scalars(statement, params)
+            result = session.scalars(statement, params or {})
         except Exception as e:
-            raise InternalError(details=f"Scalar query failed: {e!s}") from e
+            self._handle_db_exception(e, self.session_manager._get_database_name())
+        else:
+            return result
 
 
 class AsyncBaseSQLAlchemyAdapter(
@@ -368,10 +503,11 @@ class AsyncBaseSQLAlchemyAdapter(
     SQLAlchemyPaginationMixin,
     SQLAlchemySortMixin,
     SQLAlchemyFilterMixin,
+    SQLAlchemyExceptionHandlerMixin,
 ):
     """Base asynchronous SQLAlchemy adapter for ORM operations.
 
-    Provides an async interface for CRUD operations, pagination, sorting, and filtering.
+    Provides a standardized interface for CRUD operations, pagination, sorting, and filtering.
     Specific database adapters should inherit from this class and provide their own session manager.
 
     Args:
@@ -405,157 +541,267 @@ class AsyncBaseSQLAlchemyAdapter(
         query: Select,
         pagination: PaginationDTO | None,
         sort_info: SortDTO | None = None,
+        has_multiple_entities: bool = False,
     ) -> tuple[list[BaseEntity], int]:
         """Execute a search query with pagination and sorting.
 
-        This method executes a SELECT query with pagination and sorting applied,
-        and returns both the results and the total count of matching records.
-
         Args:
-            entity: The entity class to query
-            query: The SQLAlchemy SELECT query
-            pagination: Pagination settings (page number and page size)
-            sort_info: Sorting information (column and direction)
+            entity: The entity class to query.
+            query: The SQLAlchemy SELECT query.
+            pagination: Optional pagination settings.
+            sort_info: Optional sorting information.
+            has_multiple_entities: Optional bool
 
         Returns:
-            A tuple containing:
-                - List of entities matching the query
-                - Total count of matching records (ignoring pagination)
+            Tuple of the list of entities and the total count.
 
         Raises:
-            InvalidEntityTypeError: If the entity type is invalid
-            InternalError: If the database query fails for any other reason
+            DatabaseQueryError: If the database query fails.
+            DatabaseTimeoutError: If the query times out.
+            DatabaseConnectionError: If there's a connection error.
+            DatabaseTransactionError: If there's a transaction error.
         """
         try:
             sort_info = sort_info or SortDTO.default()
-
             session = self.get_session()
             sorted_query = self._apply_sorting(entity, query, sort_info)
             paginated_query = self._apply_pagination(sorted_query, pagination)
-
             result_set = await session.execute(paginated_query)
-            results = list(result_set.scalars().all())
-
+            if has_multiple_entities:
+                results = result_set.fetchall()
+            else:
+                results = result_set.scalars().all()
             count_query = select(func.count()).select_from(query.subquery())
-            count_result = await session.execute(count_query)
-            total_count = count_result.scalar_one()
+            total_count = await session.execute(count_query)
+            total_count = total_count.scalar_one()
         except Exception as e:
-            raise InternalError(details=f"Database query failed: {e!s}") from e
-        return results, total_count
+            self._handle_db_exception(e, self.session_manager._get_database_name())
+        else:
+            return results, total_count
 
     @override
     def get_session(self) -> AsyncSession:
+        """Get a database session.
+
+        Returns:
+            AsyncSession: A SQLAlchemy async session.
+
+        Raises:
+            DatabaseConnectionError: If there's an error getting the session.
+            DatabaseConfigurationError: If there's an error in the database configuration.
+        """
         return self.session_manager.get_session()
 
     @override
     async def create(self, entity: BaseEntity) -> BaseEntity | None:
+        """Create a new entity in the database.
+
+        Args:
+            entity: The entity to create.
+
+        Returns:
+            The created entity with updated attributes.
+
+        Raises:
+            InvalidEntityTypeError: If the entity type is not a valid SQLAlchemy model.
+            DatabaseQueryError: If the database operation fails.
+            DatabaseIntegrityError: If there's an integrity constraint violation.
+            DatabaseConstraintError: If there's a constraint violation.
+            DatabaseConnectionError: If there's a connection error.
+            DatabaseTransactionError: If there's a transaction error.
+        """
         if not isinstance(entity, BaseEntity):
-            raise InvalidEntityTypeError(entity, BaseEntity)
+            raise InvalidEntityTypeError(
+                message=f"Expected BaseEntity subclass, got {type(entity).__name__}",
+                expected_type="BaseEntity",
+                actual_type=type(entity).__name__,
+            )
+
         try:
-            session: AsyncSession = self.get_session()
+            session = self.get_session()
             session.add(entity)
             await session.flush()
         except Exception as e:
-            raise InternalError(details=f"Async entity creation failed: {e!s}") from e
-        return entity
+            self._handle_db_exception(e, self.session_manager._get_database_name())
+        else:
+            return entity
 
     @override
     async def bulk_create(self, entities: list[BaseEntity]) -> list[BaseEntity] | None:
-        """Creates multiple entities in a single asynchronous database operation.
+        """Creates multiple entities in a single database operation.
 
         Args:
-            entities: List of entity objects to create.
+            entities: List of entities to create.
 
         Returns:
-            The list of created entities with updated attributes (e.g., generated IDs),
-            or None if creation failed.
+            List of created entities with updated attributes.
 
         Raises:
-            InvalidEntityTypeError: If any of the provided entities is not a BaseEntity.
-            InternalError: If the database operation fails.
+            InvalidEntityTypeError: If any entity is not a valid SQLAlchemy model.
+            DatabaseQueryError: If the database operation fails.
+            DatabaseIntegrityError: If there's an integrity constraint violation.
+            DatabaseConstraintError: If there's a constraint violation.
+            DatabaseConnectionError: If there's a connection error.
+            DatabaseTransactionError: If there's a transaction error.
         """
-        # Check that all entities are valid
-        for entity in entities:
-            if not isinstance(entity, BaseEntity):
-                raise InvalidEntityTypeError(entity, BaseEntity)
+        if not all(isinstance(entity, BaseEntity) for entity in entities):
+            raise InvalidEntityTypeError(
+                message="All entities must be BaseEntity subclasses",
+                expected_type="BaseEntity",
+                actual_type="mixed",
+            )
 
         try:
             session = self.get_session()
             session.add_all(entities)
             await session.flush()
         except Exception as e:
-            raise InternalError(details=f"Async bulk create operation failed: {e!s}") from e
-        return entities
+            self._handle_db_exception(e, self.session_manager._get_database_name())
+        else:
+            return entities
 
     @override
     async def get_by_uuid(self, entity_type: type, entity_uuid: UUID) -> Any | None:
+        """Retrieve an entity by its UUID.
+
+        Args:
+            entity_type: The type of entity to retrieve.
+            entity_uuid: The UUID of the entity.
+
+        Returns:
+            The entity if found, None otherwise.
+
+        Raises:
+            InvalidEntityTypeError: If the entity type is not a valid SQLAlchemy model.
+            DatabaseQueryError: If the database operation fails.
+            DatabaseTimeoutError: If the query times out.
+            DatabaseConnectionError: If there's a connection error.
+            DatabaseTransactionError: If there's a transaction error.
+        """
         if not issubclass(entity_type, BaseEntity):
-            raise InvalidEntityTypeError(entity_type, BaseEntity)
-        if not isinstance(entity_uuid, UUID):
-            raise InvalidEntityTypeError(entity_uuid, UUID)
+            raise InvalidEntityTypeError(
+                message=f"Expected BaseEntity subclass, got {entity_type.__name__}",
+                expected_type="BaseEntity",
+                actual_type=entity_type.__name__,
+            )
+
         try:
             session = self.get_session()
-            return await session.get(entity_type, entity_uuid)
+            result = await session.get(entity_type, entity_uuid)
         except Exception as e:
-            raise InternalError(details=f"Async entity retrieval by UUID failed: {e!s}") from e
+            self._handle_db_exception(e, self.session_manager._get_database_name())
+        else:
+            return result
 
     @override
     async def delete(self, entity: BaseEntity) -> None:
+        """Delete an entity from the database.
+
+        Args:
+            entity: The entity to delete.
+
+        Raises:
+            InvalidEntityTypeError: If the entity is not a valid SQLAlchemy model.
+            DatabaseQueryError: If the database operation fails.
+            DatabaseIntegrityError: If there's an integrity constraint violation.
+            DatabaseConstraintError: If there's a constraint violation.
+            DatabaseConnectionError: If there's a connection error.
+            DatabaseTransactionError: If there's a transaction error.
+        """
         if not isinstance(entity, BaseEntity):
-            raise InvalidEntityTypeError(entity, BaseEntity)
+            raise InvalidEntityTypeError(
+                message=f"Expected BaseEntity subclass, got {type(entity).__name__}",
+                expected_type="BaseEntity",
+                actual_type=type(entity).__name__,
+            )
+
         try:
             session = self.get_session()
             await session.delete(entity)
+            await session.flush()
         except Exception as e:
-            raise InternalError(details=f"Async entity deletion failed: {e!s}") from e
+            self._handle_db_exception(e, self.session_manager._get_database_name())
+        else:
+            return ...
 
     @override
     async def bulk_delete(self, entities: list[BaseEntity]) -> None:
+        """Delete multiple entities from the database.
+
+        Args:
+            entities: List of entities to delete.
+
+        Raises:
+            InvalidEntityTypeError: If any entity is not a valid SQLAlchemy model.
+            DatabaseQueryError: If the database operation fails.
+            DatabaseIntegrityError: If there's an integrity constraint violation.
+            DatabaseConstraintError: If there's a constraint violation.
+            DatabaseConnectionError: If there's a connection error.
+            DatabaseTransactionError: If there's a transaction error.
+        """
+        if not all(isinstance(entity, BaseEntity) for entity in entities):
+            raise InvalidEntityTypeError(
+                message="All entities must be BaseEntity subclasses",
+                expected_type="BaseEntity",
+                actual_type="mixed",
+            )
+
         try:
+            session = self.get_session()
             for entity in entities:
-                await self.delete(entity)
+                await session.delete(entity)
+            await session.flush()
         except Exception as e:
-            raise InternalError(details=f"Async bulk delete operation failed: {e!s}") from e
+            self._handle_db_exception(e, self.session_manager._get_database_name())
+        else:
+            return ...
 
     @override
     async def execute(self, statement: Executable, params: AnyExecuteParams | None = None) -> Result[Any]:
-        """Executes a raw SQL statement asynchronously.
+        """Execute a SQLAlchemy statement.
 
         Args:
             statement: The SQLAlchemy statement to execute.
             params: Optional parameters for the statement.
 
         Returns:
-            The asynchronous execution result.
+            The result of the execution.
 
         Raises:
-            InternalError: If the statement execution fails.
+            DatabaseQueryError: If the database operation fails.
+            DatabaseTimeoutError: If the query times out.
+            DatabaseConnectionError: If there's a connection error.
+            DatabaseTransactionError: If there's a transaction error.
         """
         try:
             session = self.get_session()
-            return await session.execute(statement, params)
+            result = await session.execute(statement, params or {})
         except Exception as e:
-            raise InternalError(details=f"Async statement execution failed: {e!s}") from e
+            self._handle_db_exception(e, self.session_manager._get_database_name())
+        else:
+            return result
 
     @override
     async def scalars(self, statement: Executable, params: AnyExecuteParams | None = None) -> ScalarResult[Any]:
-        """Executes a statement and returns the scalar result asynchronously.
-
-        This is a convenience method that executes a statement and
-        returns the scalar result directly using async operations.
+        """Execute a SQLAlchemy statement and return scalar results.
 
         Args:
             statement: The SQLAlchemy statement to execute.
             params: Optional parameters for the statement.
 
         Returns:
-            The scalar result of executing the statement asynchronously.
+            The scalar results of the execution.
 
         Raises:
-            InternalError: If the statement execution fails.
+            DatabaseQueryError: If the database operation fails.
+            DatabaseTimeoutError: If the query times out.
+            DatabaseConnectionError: If there's a connection error.
+            DatabaseTransactionError: If there's a transaction error.
         """
         try:
             session = self.get_session()
-            return await session.scalars(statement, params)
+            result = await session.scalars(statement, params or {})
         except Exception as e:
-            raise InternalError(details=f"Async scalar query failed: {e!s}") from e
+            self._handle_db_exception(e, self.session_manager._get_database_name())
+        else:
+            return result
