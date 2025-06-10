@@ -110,10 +110,12 @@ class KeycloakExceptionHandlerMixin:
         if isinstance(exception, KeycloakConnectionError):
             if "timeout" in error_lower:
                 raise KeycloakConnectionTimeoutError(
-                    error=KeycloakErrorMessageType.CONNECTION_TIMEOUT.value, additional_data=additional_data
+                    error=KeycloakErrorMessageType.CONNECTION_TIMEOUT.value,
+                    additional_data=additional_data,
                 ) from exception
             raise KeycloakServiceUnavailableError(
-                error=KeycloakErrorMessageType.SERVICE_UNAVAILABLE.value, additional_data=additional_data
+                error=KeycloakErrorMessageType.SERVICE_UNAVAILABLE.value,
+                additional_data=additional_data,
             ) from exception
 
         # Authentication errors
@@ -122,32 +124,38 @@ class KeycloakExceptionHandlerMixin:
             for phrase in ["invalid user credentials", "invalid credentials", "authentication failed", "unauthorized"]
         ):
             raise InvalidCredentialsError(
-                error=KeycloakErrorMessageType.INVALID_CREDENTIALS.value, additional_data=additional_data
+                error=KeycloakErrorMessageType.INVALID_CREDENTIALS.value,
+                additional_data=additional_data,
             ) from exception
 
         # Resource already exists errors
         if "already exists" in error_lower:
             if "realm" in error_lower:
                 raise RealmAlreadyExistsError(
-                    error=KeycloakErrorMessageType.REALM_ALREADY_EXISTS.value, additional_data=additional_data
+                    error=KeycloakErrorMessageType.REALM_ALREADY_EXISTS.value,
+                    additional_data=additional_data,
                 ) from exception
             elif "user exists with same" in error_lower:
                 raise UserAlreadyExistsError(
-                    error=KeycloakErrorMessageType.USER_ALREADY_EXISTS.value, additional_data=additional_data
+                    error=KeycloakErrorMessageType.USER_ALREADY_EXISTS.value,
+                    additional_data=additional_data,
                 ) from exception
             elif "client" in error_lower:
                 raise ClientAlreadyExistsError(
-                    error=KeycloakErrorMessageType.CLIENT_ALREADY_EXISTS.value, additional_data=additional_data
+                    error=KeycloakErrorMessageType.CLIENT_ALREADY_EXISTS.value,
+                    additional_data=additional_data,
                 ) from exception
             elif "role" in error_lower:
                 raise RoleAlreadyExistsError(
-                    error=KeycloakErrorMessageType.ROLE_ALREADY_EXISTS.value, additional_data=additional_data
+                    error=KeycloakErrorMessageType.ROLE_ALREADY_EXISTS.value,
+                    additional_data=additional_data,
                 ) from exception
 
         # Not found errors
         if "not found" in error_lower:
             raise ResourceNotFoundError(
-                error=KeycloakErrorMessageType.RESOURCE_NOT_FOUND.value, additional_data=additional_data
+                error=KeycloakErrorMessageType.RESOURCE_NOT_FOUND.value,
+                additional_data=additional_data,
             ) from exception
 
         # Permission errors
@@ -156,7 +164,8 @@ class KeycloakExceptionHandlerMixin:
             for phrase in ["forbidden", "access denied", "insufficient permissions", "insufficient scope"]
         ):
             raise InsufficientPermissionsError(
-                error=KeycloakErrorMessageType.INSUFFICIENT_PERMISSIONS.value, additional_data=additional_data
+                error=KeycloakErrorMessageType.INSUFFICIENT_PERMISSIONS.value,
+                additional_data=additional_data,
             ) from exception
 
         # Password policy errors
@@ -165,7 +174,8 @@ class KeycloakExceptionHandlerMixin:
             for phrase in ["invalid password", "password policy", "minimum length", "password must"]
         ):
             raise PasswordPolicyError(
-                error=KeycloakErrorMessageType.PASSWORD_POLICY_VIOLATION.value, additional_data=additional_data
+                error=KeycloakErrorMessageType.PASSWORD_POLICY_VIOLATION.value,
+                additional_data=additional_data,
             ) from exception
 
         # Validation errors (400 status codes that don't match above)
@@ -173,13 +183,15 @@ class KeycloakExceptionHandlerMixin:
             phrase in error_lower for phrase in ["validation", "invalid", "required field", "bad request"]
         ):
             raise ValidationError(
-                error=KeycloakErrorMessageType.VALIDATION_ERROR.value, additional_data=additional_data
+                error=KeycloakErrorMessageType.VALIDATION_ERROR.value,
+                additional_data=additional_data,
             ) from exception
 
         # Service unavailable
         if response_code in [503, 504] or "unavailable" in error_lower:
             raise KeycloakServiceUnavailableError(
-                error=KeycloakErrorMessageType.SERVICE_UNAVAILABLE.value, additional_data=additional_data
+                error=KeycloakErrorMessageType.SERVICE_UNAVAILABLE.value,
+                additional_data=additional_data,
             ) from exception
 
         # Default to InternalError for unrecognized errors
@@ -210,7 +222,8 @@ class KeycloakExceptionHandlerMixin:
                 "response_code": getattr(exception, "response_code", None),
             }
             raise RealmAlreadyExistsError(
-                error=KeycloakErrorMessageType.REALM_ALREADY_EXISTS.value, additional_data=additional_data
+                error=KeycloakErrorMessageType.REALM_ALREADY_EXISTS.value,
+                additional_data=additional_data,
             ) from exception
 
         # Fall back to general Keycloak error handling
@@ -243,17 +256,23 @@ class KeycloakExceptionHandlerMixin:
                     {
                         "username": user_data.get("username"),
                         "email": user_data.get("email"),
-                    }
+                    },
                 )
             raise UserAlreadyExistsError(
-                error=KeycloakErrorMessageType.USER_ALREADY_EXISTS.value, additional_data=additional_data
+                error=KeycloakErrorMessageType.USER_ALREADY_EXISTS.value,
+                additional_data=additional_data,
             ) from exception
 
         # Fall back to general Keycloak error handling
         cls._handle_keycloak_exception(exception, operation)
 
     @classmethod
-    def _handle_client_exception(cls, exception: KeycloakError, operation: str, client_data: dict | None = None) -> None:
+    def _handle_client_exception(
+        cls,
+        exception: KeycloakError,
+        operation: str,
+        client_data: dict | None = None,
+    ) -> None:
         """Handle client-specific exceptions.
 
         Args:
@@ -279,10 +298,11 @@ class KeycloakExceptionHandlerMixin:
                     {
                         "client_id": client_data.get("clientId"),
                         "client_name": client_data.get("name"),
-                    }
+                    },
                 )
             raise ClientAlreadyExistsError(
-                error=KeycloakErrorMessageType.CLIENT_ALREADY_EXISTS.value, additional_data=additional_data
+                error=KeycloakErrorMessageType.CLIENT_ALREADY_EXISTS.value,
+                additional_data=additional_data,
             ) from exception
 
         # Fall back to general Keycloak error handling
@@ -382,14 +402,14 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
 
             else:
                 raise UnauthenticatedError(
-                    additional_data={"detail": "Neither admin credentials nor client secret provided"}
+                    additional_data={"detail": "Neither admin credentials nor client secret provided"},
                 )
 
         except KeycloakAuthenticationError as e:
             self._admin_adapter = None
             self._admin_token_expiry = 0
             raise UnauthenticatedError(
-                additional_data={"detail": "Failed to authenticate with Keycloak service account"}
+                additional_data={"detail": "Failed to authenticate with Keycloak service account"},
             ) from e
         except KeycloakConnectionError as e:
             self._admin_adapter = None
@@ -786,7 +806,10 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
 
     @override
     def create_realm_role(
-        self, role_name: str, description: str | None = None, skip_exists: bool = True
+        self,
+        role_name: str,
+        description: str | None = None,
+        skip_exists: bool = True,
     ) -> dict[str, Any] | None:
         """Create a new realm role.
 
@@ -819,7 +842,11 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
 
     @override
     def create_client_role(
-        self, client_id: str, role_name: str, description: str | None = None, skip_exists: bool = True
+        self,
+        client_id: str,
+        role_name: str,
+        description: str | None = None,
+        skip_exists: bool = True,
     ) -> dict[str, Any] | None:
         """Create a new client role.
 
@@ -1192,6 +1219,10 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
         """
         try:
             self.admin_adapter.delete_user(user_id=user_id)
+
+            if hasattr(self.get_user_by_username, "clear_cache"):
+                self.get_user_by_username.clear_cache()
+
             logger.info(f"Successfully deleted user with ID {user_id}")
         except KeycloakError as e:
             self._handle_keycloak_exception(e, "delete_user")
@@ -1390,7 +1421,11 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
 
     @override
     def create_client(
-        self, client_id: str, realm: str | None = None, skip_exists: bool = True, **kwargs
+        self,
+        client_id: str,
+        realm: str | None = None,
+        skip_exists: bool = True,
+        **kwargs,
     ) -> dict[str, Any] | None:
         """Create a Keycloak client with minimum required fields and optional additional config.
 
@@ -1500,8 +1535,8 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
         """Clear all cached values."""
         for attr_name in dir(self):
             attr = getattr(self, attr_name)
-            if hasattr(attr, "clear_cache"):
-                attr.clear_cache()
+            if hasattr(attr, "cache_clear"):
+                attr.cache_clear()
 
     @staticmethod
     def _get_openid_client(configs: KeycloakConfig) -> KeycloakOpenID:
@@ -1559,14 +1594,14 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
                 logger.debug("Admin client initialized with client credentials")
             else:
                 raise UnauthenticatedError(
-                    additional_data={"detail": "Neither admin credentials nor client secret provided"}
+                    additional_data={"detail": "Neither admin credentials nor client secret provided"},
                 )
 
         except KeycloakAuthenticationError as e:
             self._admin_adapter = None
             self._admin_token_expiry = 0
             raise UnauthenticatedError(
-                additional_data={"detail": "Failed to authenticate with Keycloak service account"}
+                additional_data={"detail": "Failed to authenticate with Keycloak service account"},
             ) from e
         except KeycloakConnectionError as e:
             self._admin_adapter = None
@@ -1590,7 +1625,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
         """
         if not (self.configs.CLIENT_SECRET_KEY or (self.configs.ADMIN_USERNAME and self.configs.ADMIN_PASSWORD)):
             raise UnauthenticatedError(
-                additional_data={"detail": "Neither admin credentials nor client secret provided"}
+                additional_data={"detail": "Neither admin credentials nor client secret provided"},
             )
 
         # Check if token is about to expire and refresh if needed
@@ -1903,8 +1938,8 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
             await self.admin_adapter.a_assign_realm_roles(user_id, [role])
 
             # Clear role-related caches
-            if hasattr(self.get_user_roles, "clear_cache"):
-                self.get_user_roles.clear_cache()
+            if hasattr(self.get_user_roles, "cache_clear"):
+                self.get_user_roles.cache_clear()
 
         except KeycloakError as e:
             self._handle_keycloak_exception(e, "assign_realm_role")
@@ -1928,8 +1963,8 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
             await self.admin_adapter.a_delete_realm_roles_of_user(user_id, [role])
 
             # Clear role-related caches
-            if hasattr(self.get_user_roles, "clear_cache"):
-                self.get_user_roles.clear_cache()
+            if hasattr(self.get_user_roles, "cache_clear"):
+                self.get_user_roles.cache_clear()
 
         except KeycloakError as e:
             self._handle_keycloak_exception(e, "remove_realm_role")
@@ -1956,15 +1991,18 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
             await self.admin_adapter.a_assign_client_role(user_id, client, [role])
 
             # Clear role-related caches
-            if hasattr(self.get_client_roles_for_user, "clear_cache"):
-                self.get_client_roles_for_user.clear_cache()
+            if hasattr(self.get_client_roles_for_user, "cache_clear"):
+                self.get_client_roles_for_user.cache_clear()
 
         except KeycloakError as e:
             self._handle_keycloak_exception(e, "assign_client_role")
 
     @override
     async def create_realm_role(
-        self, role_name: str, description: str | None = None, skip_exists: bool = True
+        self,
+        role_name: str,
+        description: str | None = None,
+        skip_exists: bool = True,
     ) -> dict[str, Any] | None:
         """Create a new realm role.
 
@@ -1988,8 +2026,8 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
             await self.admin_adapter.a_create_realm_role(role_data, skip_exists=skip_exists)
 
             # Clear realm roles cache
-            if hasattr(self.get_realm_roles, "clear_cache"):
-                self.get_realm_roles.clear_cache()
+            if hasattr(self.get_realm_roles, "cache_clear"):
+                self.get_realm_roles.cache_clear()
 
             return await self.admin_adapter.a_get_realm_role(role_name)
 
@@ -1998,7 +2036,11 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
 
     @override
     async def create_client_role(
-        self, client_id: str, role_name: str, description: str | None = None, skip_exists: bool = True
+        self,
+        client_id: str,
+        role_name: str,
+        description: str | None = None,
+        skip_exists: bool = True,
     ) -> dict[str, Any] | None:
         """Create a new client role.
 
@@ -2024,8 +2066,8 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
             await self.admin_adapter.a_create_client_role(client_id, role_data, skip_exists=skip_exists)
 
             # Clear related caches if they exist
-            if hasattr(self.get_client_roles_for_user, "clear_cache"):
-                self.get_client_roles_for_user.clear_cache()
+            if hasattr(self.get_client_roles_for_user, "cache_clear"):
+                self.get_client_roles_for_user.cache_clear()
 
             # Return created role
             return await self.admin_adapter.a_get_client_role(client_id, role_name)
@@ -2047,12 +2089,12 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
             await self.admin_adapter.a_delete_realm_role(role_name)
 
             # Clear realm roles cache
-            if hasattr(self.get_realm_roles, "clear_cache"):
-                self.get_realm_roles.clear_cache()
+            if hasattr(self.get_realm_roles, "cache_clear"):
+                self.get_realm_roles.cache_clear()
 
             # We also need to clear user role caches since they might contain this role
-            if hasattr(self.get_user_roles, "clear_cache"):
-                self.get_user_roles.clear_cache()
+            if hasattr(self.get_user_roles, "cache_clear"):
+                self.get_user_roles.cache_clear()
 
         except KeycloakError as e:
             self._handle_keycloak_exception(e, "delete_realm_role")
@@ -2287,8 +2329,8 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
             role = await self.admin_adapter.a_get_client_role(client, role_name)
             await self.admin_adapter.a_delete_client_roles_of_user(user_id, client, [role])
 
-            if hasattr(self.get_client_roles_for_user, "clear_cache"):
-                self.get_client_roles_for_user.clear_cache()
+            if hasattr(self.get_client_roles_for_user, "cache_clear"):
+                self.get_client_roles_for_user.cache_clear()
         except KeycloakError as e:
             self._handle_keycloak_exception(e, "remove_client_role")
 
@@ -2373,6 +2415,10 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
         """
         try:
             await self.admin_adapter.a_delete_user(user_id=user_id)
+
+            if hasattr(self.get_user_by_username, "cache_clear"):
+                self.get_user_by_username.cache_clear()
+
             logger.info(f"Successfully deleted user with ID {user_id}")
         except Exception as e:
             self._handle_keycloak_exception(e, "delete_user")
@@ -2575,7 +2621,11 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
 
     @override
     async def create_client(
-        self, client_id: str, realm: str | None = None, skip_exists: bool = True, **kwargs
+        self,
+        client_id: str,
+        realm: str | None = None,
+        skip_exists: bool = True,
+        **kwargs,
     ) -> dict[str, Any] | None:
         """Create a Keycloak client with minimum required fields and optional additional config.
 
