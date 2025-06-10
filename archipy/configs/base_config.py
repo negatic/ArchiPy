@@ -13,7 +13,6 @@ from archipy.configs.config_template import (
     DatetimeConfig,
     ElasticSearchAPMConfig,
     ElasticSearchConfig,
-    ElasticsearchConfig,
     EmailConfig,
     FastAPIConfig,
     FileConfig,
