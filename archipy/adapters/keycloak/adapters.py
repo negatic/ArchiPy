@@ -490,8 +490,6 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
         """
         try:
             return self._openid_adapter.token(grant_type="password", username=username, password=password)
-        except KeycloakAuthenticationError as e:
-            raise InvalidCredentialsError("Invalid username or password") from e
         except KeycloakError as e:
             self._handle_keycloak_exception(e, "get_token")
 
@@ -1684,8 +1682,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
         """
         try:
             return await self.openid_adapter.a_token(grant_type="password", username=username, password=password)
-        except KeycloakAuthenticationError as e:
-            raise InvalidCredentialsError("Invalid username or password") from e
         except KeycloakError as e:
             self._handle_keycloak_exception(e, "get_token")
 
