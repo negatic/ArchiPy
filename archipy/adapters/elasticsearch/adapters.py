@@ -13,7 +13,7 @@ from archipy.adapters.elasticsearch.ports import (
     ElasticsearchResponseType,
 )
 from archipy.configs.base_config import BaseConfig
-from archipy.configs.config_template import ElasticSearchConfig
+from archipy.configs.config_template import ElasticsearchConfig
 
 logger = logging.getLogger(__name__)
 
@@ -25,20 +25,20 @@ class ElasticsearchAdapter(ElasticsearchPort):
     abstracting the underlying client implementation details.
     """
 
-    def __init__(self, elasticsearch_config: ElasticSearchConfig | None = None) -> None:
+    def __init__(self, elasticsearch_config: ElasticsearchConfig | None = None) -> None:
         """Initialize the ElasticsearchAdapter with configuration settings.
 
         Args:
             elasticsearch_config (ElasticsearchConfig, optional): Configuration settings for Elasticsearch.
                 If None, retrieves from global config. Defaults to None.
         """
-        configs: ElasticSearchConfig = (
+        configs: ElasticsearchConfig = (
             BaseConfig.global_config().ELASTIC if elasticsearch_config is None else elasticsearch_config
         )
         self.client = self._get_client(configs)
 
     @staticmethod
-    def _get_client(configs: ElasticSearchConfig) -> Elasticsearch:
+    def _get_client(configs: ElasticsearchConfig) -> Elasticsearch:
         """Create an Elasticsearch client with the specified configuration.
 
         Args:
@@ -266,20 +266,20 @@ class AsyncElasticsearchAdapter(AsyncElasticsearchPort):
     abstracting the underlying client implementation details.
     """
 
-    def __init__(self, elasticsearch_config: ElasticSearchConfig | None = None) -> None:
+    def __init__(self, elasticsearch_config: ElasticsearchConfig | None = None) -> None:
         """Initialize the AsyncElasticsearchAdapter with configuration settings.
 
         Args:
             elasticsearch_config (ElasticsearchConfig, optional): Configuration settings for Elasticsearch.
                 If None, retrieves from global config. Defaults to None.
         """
-        configs: ElasticSearchConfig = (
+        configs: ElasticsearchConfig = (
             BaseConfig.global_config().ELASTIC if elasticsearch_config is None else elasticsearch_config
         )
         self.client = self._get_client(configs)
 
     @staticmethod
-    def _get_client(configs: ElasticSearchConfig) -> AsyncElasticsearch:
+    def _get_client(configs: ElasticsearchConfig) -> AsyncElasticsearch:
         """Create an async Elasticsearch client with the specified configuration.
 
         Args:

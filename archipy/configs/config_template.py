@@ -6,14 +6,15 @@ and more.
 """
 
 import logging
-from typing import Any, Literal, Self
+from typing import Literal, Self
 from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field, PostgresDsn, SecretStr, model_validator
 
 from archipy.models.errors import FailedPreconditionError, InvalidArgumentError
 
-class ElasticSearchConfig(BaseModel):
+
+class ElasticsearchConfig(BaseModel):
     """Configuration settings for Elasticsearch connections and operations.
 
     Contains settings related to Elasticsearch server connectivity, authentication,
@@ -102,7 +103,7 @@ class ElasticSearchConfig(BaseModel):
         return self
 
 
-class ElasticSearchAPMConfig(BaseModel):
+class ElasticsearchAPMConfig(BaseModel):
     """Configuration settings for Elasticsearch APM (Application Performance Monitoring).
 
     Controls behavior of the Elastic APM agent for application monitoring, tracing,
@@ -659,6 +660,9 @@ class DatetimeConfig(BaseModel):
     REQUEST_TIMEOUT: int = Field(default=5, description="Request timeout in seconds")
     MAX_RETRIES: int = Field(default=3, description="Maximum retry attempts")
     CACHE_TTL: int = Field(default=86400, description="Cache time-to-live in seconds (24 hours)")
+    HISTORICAL_CACHE_TTL: int = Field(
+        default=604800, description="Cache time-to-live for historical dates in seconds (7 days)",
+    )
 
 
 class ParsianShaparakConfig(BaseModel):

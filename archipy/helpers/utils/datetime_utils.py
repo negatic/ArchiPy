@@ -93,7 +93,7 @@ class DatetimeUtils:
 
         This method calls an external API to determine if the given Jalali date is a holiday.
         If the API call is successful, the result is cached with an expiration time to avoid
-        redundant API calls. If the API call fails, an `UnknownException` is raised.
+        redundant API calls. If the API call fails, an `UnknownError` is raised.
 
         Args:
             jalali_date (jdatetime.date): The Jalali date to check for holiday status.
@@ -111,8 +111,13 @@ class DatetimeUtils:
             response = cls._call_holiday_api(jalali_date)
             is_holiday = cls._parse_holiday_response(response, jalali_date)
 
-            # Cache the result with expiration
-            expiry_time = current_time + timedelta(seconds=config.DATETIME.CACHE_TTL)
+            # Determine cache TTL based on whether the date is historical
+            target_date = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=UTC).date()
+            is_historical = target_date <= current_time.date()
+            cache_ttl = config.DATETIME.HISTORICAL_CACHE_TTL if is_historical else config.DATETIME.CACHE_TTL
+
+            # Cache the result with appropriate expiration
+            expiry_time = current_time + timedelta(seconds=cache_ttl)
             cls._holiday_cache[date_str] = (is_holiday, expiry_time)
         except requests.RequestException as exception:
             raise UnknownError from exception

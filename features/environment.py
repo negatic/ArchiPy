@@ -59,11 +59,11 @@ def before_scenario(context: Context, scenario: Scenario):
 
     logger.info(f"Starting scenario: {scenario.name} (ID: {scenario.id})")
 
-    # Assign global config to scenario context
+    # Assign test config to scenario context
     try:
-        scenario_context.store("test_config", BaseConfig.global_config())
+        scenario_context.store("test_config", config)
     except Exception as e:
-        logger.exception(f"Error setting global config: {e}")
+        logger.exception(f"Error setting test config: {e}")
 
     # Set up async test environment if needed
     if "async" in scenario.name.lower() or any("async" in tag.lower() for tag in scenario.tags):

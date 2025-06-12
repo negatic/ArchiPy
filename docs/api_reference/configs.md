@@ -284,9 +284,9 @@ Attributes:
 - `SAMPLE_RATE`: Error sampling rate (0.0 to 1.0)
 - `TRACES_SAMPLE_RATE`: Performance monitoring sampling rate (0.0 to 1.0)
 
-### ElasticSearchConfig
+### ElasticsearchConfig
 
-Class: `archipy.configs.config_template.ElasticSearchConfig`
+Class: `archipy.configs.config_template.ElasticsearchConfig`
 
 Configures:
 
@@ -305,9 +305,9 @@ Attributes:
 - `SEARCH_BATCH_INTERVAL_THRESHOLD_IN_SECONDS`: Time threshold for batch operations
 - `SEARCH_BATCH_DOC_COUNT_THRESHOLD`: Document count threshold for batch operations
 
-### ElasticSearchAPMConfig
+### ElasticsearchAPMConfig
 
-Class: `archipy.configs.config_template.ElasticSearchAPMConfig`
+Class: `archipy.configs.config_template.ElasticsearchAPMConfig`
 
 Configures:
 
@@ -515,6 +515,7 @@ Attributes:
 - `REQUEST_TIMEOUT`: Request timeout in seconds
 - `MAX_RETRIES`: Maximum retry attempts
 - `CACHE_TTL`: Cache time-to-live in seconds
+- `HISTORICAL_CACHE_TTL`: Cache time-to-live for historical dates in seconds
 
 ### EnvironmentType
 

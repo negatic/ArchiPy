@@ -11,8 +11,7 @@ from pydantic_settings import (
 from archipy.configs.config_template import (
     AuthConfig,
     DatetimeConfig,
-    ElasticSearchAPMConfig,
-    ElasticSearchConfig,
+    ElasticsearchAPMConfig,
     ElasticsearchConfig,
     EmailConfig,
     FastAPIConfig,
@@ -63,8 +62,8 @@ class BaseConfig(BaseSettings, Generic[R]):
     Attributes:
         AUTH (AuthConfig): Authentication and security settings
         DATETIME (DatetimeConfig): Date/time handling configuration
-        ELASTIC (ElasticSearchConfig): Elasticsearch configuration
-        ELASTIC_APM (ElasticSearchAPMConfig): Elasticsearch APM configuration
+        ELASTIC (ElasticsearchConfig): Elasticsearch configuration
+        ELASTIC_APM (ElasticsearchAPMConfig): Elasticsearch APM configuration
         EMAIL (EmailConfig): Email service configuration
         ENVIRONMENT (EnvironmentType): Application environment (dev, test, prod)
         FASTAPI (FastAPIConfig): FastAPI framework settings
@@ -153,8 +152,8 @@ class BaseConfig(BaseSettings, Generic[R]):
 
     AUTH: AuthConfig = AuthConfig()
     DATETIME: DatetimeConfig = DatetimeConfig()
-    ELASTIC: ElasticSearchConfig = ElasticSearchConfig()
-    ELASTIC_APM: ElasticSearchAPMConfig = ElasticSearchAPMConfig()
+    ELASTIC: ElasticsearchConfig = ElasticsearchConfig()
+    ELASTIC_APM: ElasticsearchAPMConfig = ElasticsearchAPMConfig()
     EMAIL: EmailConfig = EmailConfig()
     ENVIRONMENT: EnvironmentType = EnvironmentType.LOCAL
     FASTAPI: FastAPIConfig = FastAPIConfig()

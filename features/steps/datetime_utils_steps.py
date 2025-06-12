@@ -221,3 +221,94 @@ def step_then_result_should_be_cached(context: Context) -> None:
 
     assert api_call_count == 1
     assert result_first == result_second
+
+
+@given('a historical Gregorian date "{date_str}"')
+def step_given_historical_gregorian_date(context: Context, date_str) -> None:
+    scenario_context = get_current_scenario_context(context)
+    scenario_context.store("date_str", date_str)
+    target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+    scenario_context.store("target_date", target_date)
+    scenario_context.store("is_historical", True)
+
+
+@given('a current Gregorian date "{date_str}"')
+def step_given_current_gregorian_date(context: Context, date_str) -> None:
+    scenario_context = get_current_scenario_context(context)
+    scenario_context.store("date_str", date_str)
+    target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+    scenario_context.store("target_date", target_date)
+    scenario_context.store("is_historical", False)
+
+
+@when("we check if the date is a holiday in Iran with cache verification")
+def step_when_check_holiday_with_cache_verification(context: Context) -> None:
+    scenario_context = get_current_scenario_context(context)
+    target_date = scenario_context.get("target_date")
+
+    def mock_call_holiday_api(jalali_date) -> dict:
+        return {
+            "data": {
+                "event_list": [
+                    {
+                        "jalali_year": jalali_date.year,
+                        "jalali_month": jalali_date.month,
+                        "jalali_day": jalali_date.day,
+                        "is_holiday": True,
+                    },
+                ],
+            },
+        }
+
+    with patch.object(DatetimeUtils, "_call_holiday_api", side_effect=mock_call_holiday_api):
+        result = DatetimeUtils.is_holiday_in_iran(target_date)
+        scenario_context.store("result", result)
+
+        # Check the cache entry to verify TTL
+        date_str = target_date.strftime("%Y-%m-%d")
+        cache_entry = DatetimeUtils._holiday_cache.get(date_str)
+        scenario_context.store("cache_entry", cache_entry)
+
+
+@then("the result should be cached with historical TTL")
+def step_then_cached_with_historical_ttl(context: Context) -> None:
+    from datetime import timedelta
+
+    scenario_context = get_current_scenario_context(context)
+    cache_entry = scenario_context.get("cache_entry")
+    test_config = scenario_context.get("test_config")
+
+    assert cache_entry is not None, "Cache entry should exist"
+    assert test_config is not None, "Test config should be available"
+
+    is_holiday, expiry_time = cache_entry
+    current_time = DatetimeUtils.get_datetime_utc_now()
+
+    # Calculate expected expiry time with historical TTL
+    expected_expiry_range_start = current_time + timedelta(seconds=test_config.DATETIME.HISTORICAL_CACHE_TTL - 5)
+    expected_expiry_range_end = current_time + timedelta(seconds=test_config.DATETIME.HISTORICAL_CACHE_TTL + 5)
+
+    assert expected_expiry_range_start <= expiry_time <= expected_expiry_range_end, \
+        f"Cache expiry time should be around {test_config.DATETIME.HISTORICAL_CACHE_TTL} seconds from now"
+
+
+@then("the result should be cached with standard TTL")
+def step_then_cached_with_standard_ttl(context: Context) -> None:
+    from datetime import timedelta
+
+    scenario_context = get_current_scenario_context(context)
+    cache_entry = scenario_context.get("cache_entry")
+    test_config = scenario_context.get("test_config")
+
+    assert cache_entry is not None, "Cache entry should exist"
+    assert test_config is not None, "Test config should be available"
+
+    is_holiday, expiry_time = cache_entry
+    current_time = DatetimeUtils.get_datetime_utc_now()
+
+    # Calculate expected expiry time with standard TTL
+    expected_expiry_range_start = current_time + timedelta(seconds=test_config.DATETIME.CACHE_TTL - 5)
+    expected_expiry_range_end = current_time + timedelta(seconds=test_config.DATETIME.CACHE_TTL + 5)
+
+    assert expected_expiry_range_start <= expiry_time <= expected_expiry_range_end, \
+        f"Cache expiry time should be around {test_config.DATETIME.CACHE_TTL} seconds from now"

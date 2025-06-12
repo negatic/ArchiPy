@@ -85,6 +85,20 @@ from archipy.models.errors.validation_errors import (
     OutOfRangeError,
 )
 
+from archipy.models.errors.keycloak_errors import (
+RealmAlreadyExistsError,
+UserAlreadyExistsError,
+ClientAlreadyExistsError,
+RoleAlreadyExistsError,
+InvalidCredentialsError,
+ResourceNotFoundError,
+InsufficientPermissionsError,
+ValidationError,
+PasswordPolicyError,
+KeycloakConnectionTimeoutError,
+KeycloakServiceUnavailableError,
+)
+
 __all__ = [
     "BaseError",
     # Auth Errors
@@ -159,4 +173,16 @@ __all__ = [
     "UnknownError",
     "AbortedError",
     "DeadlockDetectedError",
+    # Keycloak Errors
+    "RealmAlreadyExistsError",
+    "UserAlreadyExistsError",
+    "ClientAlreadyExistsError",
+    "RoleAlreadyExistsError",
+    "InvalidCredentialsError",
+    "ResourceNotFoundError",
+    "InsufficientPermissionsError",
+    "ValidationError",
+    "PasswordPolicyError",
+    "KeycloakConnectionTimeoutError",
+    "KeycloakServiceUnavailableError",
 ]

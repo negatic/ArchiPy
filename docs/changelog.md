@@ -3,6 +3,54 @@
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
 
+
+
+## [v3.3.2] - 2025-01-06
+
+### Improvements
+
+#### Datetime Utilities Enhancement
+- **Enhanced datetime handling** - Significantly improved datetime utility functions with better timezone support, date parsing capabilities, and comprehensive validation for more robust date and time operations
+- **Extended functionality** - Added new datetime manipulation methods and improved existing functions for better developer experience
+
+#### Elasticsearch Adapter Refinements
+- **Improved adapter implementation** - Enhanced Elasticsearch adapter with better error handling, improved connection management, and optimized query performance
+- **Configuration enhancements** - Refined Elasticsearch configuration options for more flexible deployment scenarios and better SSL/TLS support
+
+#### Configuration Management
+- **Enhanced configuration templates** - Updated configuration templates with improved validation, better default values, and comprehensive documentation
+- **Streamlined setup process** - Simplified configuration management for various adapters and services with clearer parameter definitions
+
+#### Development & Testing
+- **Improved test coverage** - Enhanced test suites for datetime utilities with comprehensive feature tests and better validation scenarios
+- **Development environment** - Updated development configuration and testing environment for improved local development experience
+- **Documentation updates** - Enhanced API reference documentation and configuration guides for better developer onboarding
+
+#### Code Quality & Maintenance
+- **Code organization** - Improved code structure and organization across multiple modules for better maintainability
+- **Enhanced validation** - Added better input validation and error handling throughout the codebase
+
+## [v3.3.1] - 2025-01-06
+
+### Improvements
+
+#### Keycloak Integration Enhancements
+- **Enhanced error handling** - Added comprehensive custom error classes and centralized exception handling for better Keycloak error management and debugging
+- **Improved error messaging** - Introduced `KeycloakErrorMessageType` enum for standardized error handling and clearer error messages
+- **Extended functionality** - Added `get_realm` method to both synchronous and asynchronous Keycloak ports for better realm management
+- **Optimized caching** - Updated cache clearing methods in Keycloak adapters for improved performance and reliability
+
+#### Testing & Quality Assurance
+- **Enhanced test coverage** - Significantly improved Keycloak adapter feature tests for better reliability and comprehensive testing
+- **Development environment** - Updated Keycloak configuration in test environment for improved local development experience
+
+### Bug Fixes
+- **Configuration cleanup** - Removed invalid imports and unused Elasticsearch configuration references to prevent import errors
+- **Code optimization** - Removed redundant error handling code for cleaner and more maintainable codebase
+
+### Community Contributions
+- **Collaborative improvements** - Merged contributions from @Mohammadreza-kh94 for Keycloak enhancements and @heysaeid for configuration fixes
+
 ## [v3.3.0] - 2025-01-06
 
 ### New Features
@@ -194,7 +242,7 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 
 #### Configuration
 
-- Updated ElasticSearch Config Template
+- Updated Elasticsearch Config Template
 - Enhanced configuration management
 - Improved dependency handling
 
@@ -220,7 +268,7 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 
 - Updated poetry.lock with new dependencies
 - Enhanced package compatibility
-- Updated ElasticSearch Config Template
+- Updated Elasticsearch Config Template
 
 ## [2.0.0] - 2025-04-27
 

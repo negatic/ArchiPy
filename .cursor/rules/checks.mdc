@@ -75,7 +75,7 @@ Pydantic and Pydantic Settings Integration
 
 Model Consistency: Generate Pydantic models inheriting from BaseModel or BaseSettings, aligning with BaseDTO (e.g., frozen=True) and BaseConfig (e.g., env_nested_delimiter="__").
 Settings Source Priority: Respect configuration source priority (pyproject.toml, configs.toml, .env, OS env vars, class defaults).
-Validation Logic: Use @model_validator for complex validation (e.g., in ElasticSearchConfig, KafkaConfig).
+Validation Logic: Use @model_validator for complex validation (e.g., in ElasticsearchConfig, KafkaConfig).
 Secret Handling: Use SecretStr for sensitive fields (e.g., SECRET_KEY, HTTP_PASSWORD) and avoid exposing them in logs.
 Type Safety: Use strict typing (e.g., Generic, Literal, TypeVar) as in base_config.py and base_dtos.py.
 Example:from pydantic import BaseModel, SecretStr, model_validator
