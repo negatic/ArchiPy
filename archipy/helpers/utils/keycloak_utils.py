@@ -1,5 +1,9 @@
+import functools
 from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any
 
+import grpc
 from fastapi import Depends, Request, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -12,6 +16,18 @@ security = HTTPBearer(scheme_name="OAuth2", description="OAuth2 Access Token", a
 
 # Default language for errors
 DEFAULT_LANG = LanguageType.FA
+
+
+@dataclass
+class AuthContext:
+    """Authentication context passed to business logic."""
+
+    user_id: str
+    username: str
+    email: str
+    roles: list[str]
+    token: str
+    raw_user_info: dict
 
 
 class KeycloakUtils:
@@ -233,3 +249,104 @@ class KeycloakUtils:
             return user_info
 
         return dependency
+
+    @staticmethod
+    def _extract_token_from_metadata(context: grpc.aio.ServicerContext) -> str | None:
+        """Extract Bearer token from gRPC metadata."""
+        metadata = dict(context.invocation_metadata())
+
+        auth_keys = ["authorization", "Authorization", "auth", "token"]
+
+        for key in auth_keys:
+            if key in metadata:
+                auth_value = metadata[key]
+                if auth_value.startswith("Bearer "):
+                    return auth_value[7:]
+                elif auth_value.startswith("bearer "):
+                    return auth_value[7:]
+                else:
+                    return auth_value
+
+        return None
+
+    @classmethod
+    def grpc_auth(
+        cls,
+        required_roles: frozenset[str] | None = None,
+        all_roles_required: bool = False,
+        required_permissions: tuple[tuple[str, str], ...] | None = None,
+    ) -> Callable:
+        """Simplified gRPC decorator that only handles:
+        1. Token validation
+        2. Role/permission checking
+        3. Passing auth context to business logic
+
+        Resource ownership is handled in the business logic layer.
+        """
+
+        def decorator(func: Callable) -> Callable:
+            @functools.wraps(func)
+            async def wrapper(self, request: Any, context: grpc.aio.ServicerContext) -> Any:
+                try:
+                    # 1. Extract and validate token
+                    token_str = cls._extract_token_from_metadata(context)
+                    if not token_str:
+                        await context.abort(grpc.StatusCode.UNAUTHENTICATED, "No authorization token provided")
+
+                    # 2. Get Keycloak adapter
+                    keycloak: AsyncKeycloakAdapter = cls._get_async_keycloak_adapter()
+
+                    # 3. Validate token
+                    if not await keycloak.validate_token(token_str):
+                        token_info = await keycloak.introspect_token(token_str)
+                        if not token_info.get("active", False):
+                            await context.abort(grpc.StatusCode.UNAUTHENTICATED, "Token expired or invalid")
+
+                    # 4. Get user info from token
+                    user_info = await keycloak.get_userinfo(token_str)
+
+                    # 5. Check roles if specified
+                    if required_roles:
+                        if all_roles_required:
+                            if not await keycloak.has_all_roles(token_str, required_roles):
+                                await context.abort(
+                                    grpc.StatusCode.PERMISSION_DENIED, f"Missing required roles: {required_roles}"
+                                )
+                        elif not await keycloak.has_any_of_roles(token_str, required_roles):
+                            await context.abort(
+                                grpc.StatusCode.PERMISSION_DENIED, f"Missing any of required roles: {required_roles}"
+                            )
+
+                    # 6. Check permissions if specified
+                    if required_permissions:
+                        for resource, scope in required_permissions:
+                            if not await keycloak.check_permissions(token_str, resource, scope):
+                                await context.abort(
+                                    grpc.StatusCode.PERMISSION_DENIED,
+                                    f"Missing required permission: {resource}#{scope}",
+                                )
+
+                    # 7. Create auth context for business logic
+                    auth_context = AuthContext(
+                        user_id=user_info.get("sub"),
+                        username=user_info.get("preferred_username", ""),
+                        email=user_info.get("email", ""),
+                        roles=user_info.get("realm_access", {}).get("roles", []),
+                        token=token_str,
+                        raw_user_info=user_info,
+                    )
+
+                    # 8. Add auth context to gRPC context
+                    context.auth_context = auth_context
+
+                    # 9. Call the original method - business logic handles ownership
+                    return await func(self, request, context)
+
+                except grpc.RpcError:
+                    raise
+                except Exception as e:
+                    await context.abort(grpc.StatusCode.INTERNAL, f"Authentication error: {e!s}")
+
+            return wrapper
+
+        return decorator
