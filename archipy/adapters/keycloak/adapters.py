@@ -1500,6 +1500,87 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
                 self.admin_adapter.connection.realm_name = original_realm
 
 
+    @override
+    def add_realm_roles_to_composite(self, composite_role_name: str, child_role_names: list[str]) -> None:
+        """Add realm roles to a composite role.
+
+        Args:
+            composite_role_name: Name of the composite realm role
+            child_role_names: List of child role names to add
+        """
+        try:
+            child_roles = []
+            for role_name in child_role_names:
+                try:
+                    role = self.admin_adapter.get_realm_role(role_name)
+                    child_roles.append(role)
+                except KeycloakGetError as e:
+                    if e.response_code == 404:
+                        logger.warning(f"Child role not found: {role_name}")
+                        continue
+                    raise
+
+            if child_roles:
+                self.admin_adapter.add_composite_realm_roles_to_role(
+                    role_name=composite_role_name,
+                    roles=child_roles
+                )
+                logger.info(f"Added {len(child_roles)} realm roles to composite role: {composite_role_name}")
+
+        except KeycloakError as e:
+            self._handle_keycloak_exception(e, "add_realm_roles_to_composite")
+
+    @override
+    def add_client_roles_to_composite(self, composite_role_name: str, client_id: str, child_role_names: list[str]) -> None:
+        """Add client roles to a composite role.
+
+        Args:
+            composite_role_name: Name of the composite client role
+            client_id: Client ID or client name
+            child_role_names: List of child role names to add
+        """
+        try:
+            internal_client_id = self.admin_adapter.get_client_id(client_id)
+
+            child_roles = []
+            for role_name in child_role_names:
+                try:
+                    role = self.admin_adapter.get_client_role(internal_client_id, role_name)
+                    child_roles.append(role)
+                except KeycloakGetError as e:
+                    if e.response_code == 404:
+                        logger.warning(f"Client role not found: {role_name}")
+                        continue
+                    raise
+
+            if child_roles:
+                self.admin_adapter.add_composite_client_roles_to_role(
+                    role_name=composite_role_name,
+                    client_role_id=internal_client_id,
+                    roles=child_roles
+                )
+                logger.info(f"Added {len(child_roles)} client roles to composite role: {composite_role_name}")
+
+        except KeycloakError as e:
+            self._handle_keycloak_exception(e, "add_client_roles_to_composite")
+
+    @override
+    def get_composite_realm_roles(self, role_name: str) -> list[dict[str, Any]] | None:
+        """Get composite roles for a realm role.
+
+        Args:
+            role_name: Name of the role
+
+        Returns:
+            List of composite roles
+        """
+        try:
+            return self.admin_adapter.get_composite_realm_roles_of_role(role_name)
+        except KeycloakError as e:
+            self._handle_keycloak_exception(e, "get_composite_realm_roles")
+
+
+
 class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
     """Concrete implementation of the KeycloakPort interface using python-keycloak library.
 
@@ -2699,3 +2780,83 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
             # Always restore the original realm
             if realm and realm != original_realm:
                 self.admin_adapter.connection.realm_name = original_realm
+
+
+    @override
+    async def add_realm_roles_to_composite(self, composite_role_name: str, child_role_names: list[str]) -> None:
+        """Add realm roles to a composite role.
+
+        Args:
+            composite_role_name: Name of the composite role
+            child_role_names: List of child role names to add
+        """
+        try:
+            child_roles = []
+            for role_name in child_role_names:
+                try:
+                    role = await self.admin_adapter.a_get_realm_role(role_name)
+                    child_roles.append(role)
+                except KeycloakGetError as e:
+                    if e.response_code == 404:
+                        logger.warning(f"Child role not found: {role_name}")
+                        continue
+                    raise
+
+            if child_roles:
+                await self.admin_adapter.a_add_composite_realm_roles_to_role(
+                    role_name=composite_role_name,
+                    roles=child_roles
+                )
+                logger.info(f"Added {len(child_roles)} realm roles to composite role: {composite_role_name}")
+
+        except KeycloakError as e:
+            self._handle_keycloak_exception(e, "add_realm_roles_to_composite")
+
+    @override
+    async def add_client_roles_to_composite(self, composite_role_name: str, client_id: str, child_role_names: list[str]) -> None:
+        """Add client roles to a composite role.
+
+        Args:
+            composite_role_name: Name of the composite role
+            client_id: Client ID or client name
+            child_role_names: List of child role names to add
+        """
+        try:
+            internal_client_id = await self.admin_adapter.a_get_client_id(client_id)
+
+            child_roles = []
+            for role_name in child_role_names:
+                try:
+                    role = await self.admin_adapter.a_get_client_role(internal_client_id, role_name)
+                    child_roles.append(role)
+                except KeycloakGetError as e:
+                    if e.response_code == 404:
+                        logger.warning(f"Client role not found: {role_name}")
+                        continue
+                    raise
+
+            if child_roles:
+                await self.admin_adapter.a_add_composite_client_roles_to_role(
+                    role_name=composite_role_name,
+                    client_role_id=internal_client_id,
+                    roles=child_roles
+                )
+                logger.info(f"Added {len(child_roles)} client roles to composite role: {composite_role_name}")
+
+        except KeycloakError as e:
+            self._handle_keycloak_exception(e, "add_client_roles_to_composite")
+
+    @override
+    async def get_composite_realm_roles(self, role_name: str) -> list[dict[str, Any]] | None:
+        """Get composite roles for a realm role.
+
+        Args:
+            role_name: Name of the role
+
+        Returns:
+            List of composite roles
+        """
+        try:
+            return await self.admin_adapter.a_get_composite_realm_roles_of_role(role_name)
+        except KeycloakError as e:
+            self._handle_keycloak_exception(e, "get_composite_realm_roles")
