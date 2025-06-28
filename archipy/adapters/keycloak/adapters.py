@@ -919,7 +919,7 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
         """
         try:
             client_id = self.get_client_id(self.configs.CLIENT_ID)
-            return self.admin_adapter.get_client_service_account_user(client_id).get("id")
+            return self.admin_adapter.get_client_service_account_user(str(client_id)).get("id")
         except KeycloakError as e:
             self._handle_keycloak_exception(e, "get_service_account_id")
 
@@ -1248,10 +1248,9 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
 
             # Check client roles
             resource_access = user_info.get("resource_access", {})
-            for client in resource_access.values():
-                client_roles = client.get("roles", [])
-                if role_name in client_roles:
-                    return True
+            client_roles = resource_access.get(self.configs.CLIENT_ID, {}).get("roles", [])
+            if role_name in client_roles:
+                return True
 
         except Exception as e:
             logger.debug(f"Role check failed: {e!s}")
@@ -1273,18 +1272,17 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
         try:
             user_info = self.get_userinfo(token)
 
-            # Check realm roles
+            # Check realm roles first
             realm_access = user_info.get("realm_access", {})
-            roles = set(realm_access.get("roles", []))
-            if role_names.intersection(roles):
+            realm_roles = set(realm_access.get("roles", []))
+            if role_names.intersection(realm_roles):
                 return True
 
-            # Check client roles
+            # Check roles for the configured client
             resource_access = user_info.get("resource_access", {})
-            for client in resource_access.values():
-                client_roles = set(client.get("roles", []))
-                if role_names.intersection(client_roles):
-                    return True
+            client_roles = set(resource_access.get(self.configs.CLIENT_ID, {}).get("roles", []))
+            if role_names.intersection(client_roles):
+                return True
 
         except Exception as e:
             logger.debug(f"Role check failed: {e!s}")
@@ -1315,11 +1313,12 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
 
             # Add client roles
             resource_access = user_info.get("resource_access", {})
-            for client in resource_access.values():
-                all_roles.update(client.get("roles", []))
+            client_roles = resource_access.get(self.configs.CLIENT_ID, {}).get("roles", [])
+            all_roles.update(client_roles)
 
             # Check if all required roles are present
             return role_names.issubset(all_roles)
+
         except Exception as e:
             logger.debug(f"All roles check failed: {e!s}")
             return False
@@ -1338,7 +1337,7 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
         """
         try:
             # Use UMA permissions endpoint to check specific resource and scope
-            permissions = self._openid_adapter.uma_permissions(token, permissions=[f"{resource}#{scope}"])
+            permissions = self._openid_adapter.uma_permissions(token, permissions=f"{resource}#{scope}")
 
             # Check if the response indicates permission is granted
             if not permissions or not isinstance(permissions, list):
@@ -1353,7 +1352,8 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
         except KeycloakError as e:
             logger.debug(f"Permission check failed with Keycloak error: {e!s}")
             return False
-        except Exception:
+        except Exception as e:
+            logger.debug(f"Permission check failed with unexpected error: {e!s}")
             return False
         else:
             return False
@@ -1499,7 +1499,6 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
             if realm and realm != original_realm:
                 self.admin_adapter.connection.realm_name = original_realm
 
-
     @override
     def add_realm_roles_to_composite(self, composite_role_name: str, child_role_names: list[str]) -> None:
         """Add realm roles to a composite role.
@@ -1521,17 +1520,16 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
                     raise
 
             if child_roles:
-                self.admin_adapter.add_composite_realm_roles_to_role(
-                    role_name=composite_role_name,
-                    roles=child_roles
-                )
+                self.admin_adapter.add_composite_realm_roles_to_role(role_name=composite_role_name, roles=child_roles)
                 logger.info(f"Added {len(child_roles)} realm roles to composite role: {composite_role_name}")
 
         except KeycloakError as e:
             self._handle_keycloak_exception(e, "add_realm_roles_to_composite")
 
     @override
-    def add_client_roles_to_composite(self, composite_role_name: str, client_id: str, child_role_names: list[str]) -> None:
+    def add_client_roles_to_composite(
+        self, composite_role_name: str, client_id: str, child_role_names: list[str]
+    ) -> None:
         """Add client roles to a composite role.
 
         Args:
@@ -1555,9 +1553,7 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
 
             if child_roles:
                 self.admin_adapter.add_composite_client_roles_to_role(
-                    role_name=composite_role_name,
-                    client_role_id=internal_client_id,
-                    roles=child_roles
+                    role_name=composite_role_name, client_role_id=internal_client_id, roles=child_roles
                 )
                 logger.info(f"Added {len(child_roles)} client roles to composite role: {composite_role_name}")
 
@@ -1578,7 +1574,6 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
             return self.admin_adapter.get_composite_realm_roles_of_role(role_name)
         except KeycloakError as e:
             self._handle_keycloak_exception(e, "get_composite_realm_roles")
-
 
 
 class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
@@ -2497,7 +2492,8 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
                 self.get_user_by_username.cache_clear()
 
             logger.info(f"Successfully deleted user with ID {user_id}")
-        except Exception as e:
+
+        except KeycloakError as e:
             self._handle_keycloak_exception(e, "delete_user")
 
     @override
@@ -2521,12 +2517,12 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
             if role_name in roles:
                 return True
 
-            # Check client roles
+            # Check roles for the configured client
             resource_access = user_info.get("resource_access", {})
-            for client in resource_access.values():
-                client_roles = client.get("roles", [])
-                if role_name in client_roles:
-                    return True
+            client_roles = resource_access.get(self.configs.CLIENT_ID, {}).get("roles", [])
+            if role_name in client_roles:
+                return True
+
         except Exception as e:
             logger.debug(f"Role check failed: {e!s}")
             return False
@@ -2547,18 +2543,18 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
         try:
             user_info = await self.get_userinfo(token)
 
-            # Check realm roles
+            # Check realm roles first
             realm_access = user_info.get("realm_access", {})
-            roles = set(realm_access.get("roles", []))
-            if role_names.intersection(roles):
+            realm_roles = set(realm_access.get("roles", []))
+            if role_names.intersection(realm_roles):
                 return True
 
-            # Check client roles
+            # Check roles for the configured client
             resource_access = user_info.get("resource_access", {})
-            for client in resource_access.values():
-                client_roles = set(client.get("roles", []))
-                if role_names.intersection(client_roles):
-                    return True
+            client_roles = set(resource_access.get(self.configs.CLIENT_ID, {}).get("roles", []))
+            if role_names.intersection(client_roles):
+                return True
+
         except Exception as e:
             logger.debug(f"Role check failed: {e!s}")
             return False
@@ -2586,13 +2582,14 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
             realm_access = user_info.get("realm_access", {})
             all_roles.update(realm_access.get("roles", []))
 
-            # Add client roles
+            # Add roles from the configured client
             resource_access = user_info.get("resource_access", {})
-            for client in resource_access.values():
-                all_roles.update(client.get("roles", []))
+            client_roles = resource_access.get(self.configs.CLIENT_ID, {}).get("roles", [])
+            all_roles.update(client_roles)
 
             # Check if all required roles are present
             return role_names.issubset(all_roles)
+
         except Exception as e:
             logger.debug(f"All roles check failed: {e!s}")
             return False
@@ -2611,7 +2608,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
         """
         try:
             # Use UMA permissions endpoint to check specific resource and scope
-            permissions = await self.openid_adapter.a_uma_permissions(token, permissions=[f"{resource}#{scope}"])
+            permissions = await self.openid_adapter.a_uma_permissions(token, permissions=f"{resource}#{scope}")
 
             # Check if the response indicates permission is granted
             if not permissions or not isinstance(permissions, list):
@@ -2626,7 +2623,8 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
         except KeycloakError as e:
             logger.debug(f"Permission check failed with Keycloak error: {e!s}")
             return False
-        except Exception:
+        except Exception as e:
+            logger.debug(f"Permission check failed with unexpected error: {e!s}")
             return False
         else:
             return False
@@ -2781,7 +2779,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
             if realm and realm != original_realm:
                 self.admin_adapter.connection.realm_name = original_realm
 
-
     @override
     async def add_realm_roles_to_composite(self, composite_role_name: str, child_role_names: list[str]) -> None:
         """Add realm roles to a composite role.
@@ -2804,8 +2801,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
 
             if child_roles:
                 await self.admin_adapter.a_add_composite_realm_roles_to_role(
-                    role_name=composite_role_name,
-                    roles=child_roles
+                    role_name=composite_role_name, roles=child_roles
                 )
                 logger.info(f"Added {len(child_roles)} realm roles to composite role: {composite_role_name}")
 
@@ -2813,7 +2809,9 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
             self._handle_keycloak_exception(e, "add_realm_roles_to_composite")
 
     @override
-    async def add_client_roles_to_composite(self, composite_role_name: str, client_id: str, child_role_names: list[str]) -> None:
+    async def add_client_roles_to_composite(
+        self, composite_role_name: str, client_id: str, child_role_names: list[str]
+    ) -> None:
         """Add client roles to a composite role.
 
         Args:
@@ -2837,9 +2835,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
 
             if child_roles:
                 await self.admin_adapter.a_add_composite_client_roles_to_role(
-                    role_name=composite_role_name,
-                    client_role_id=internal_client_id,
-                    roles=child_roles
+                    role_name=composite_role_name, client_role_id=internal_client_id, roles=child_roles
                 )
                 logger.info(f"Added {len(child_roles)} client roles to composite role: {composite_role_name}")
 
