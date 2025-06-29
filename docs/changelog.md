@@ -2,6 +2,35 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+
+## [v3.4.0] - 2025-01-06
+
+### New Features
+
+#### gRPC Integration Enhancements
+- **Async gRPC Server Interceptors** - Added comprehensive async gRPC server interceptors with enhanced tracing capabilities and metric collection for better observability
+- **Enhanced Authentication Context** - Implemented advanced authentication context management with gRPC decorators for seamless integration
+- **Improved Error Handling** - Enhanced gRPC error handling and context management with better type annotations and error propagation
+
+#### Keycloak gRPC Authentication
+- **gRPC Authentication Enhancement** - Added token extraction and role validation capabilities for gRPC services with Keycloak integration
+- **Composite Role Management** - Implemented composite role management methods in both KeycloakAdapter and AsyncKeycloakAdapter for advanced authorization scenarios
+- **Streamlined Role Checks** - Enhanced role checking and error handling in KeycloakAdapter for better performance and reliability
+
+### Improvements
+
+#### Error Handling & Type Safety
+- **Enhanced Type Annotations** - Updated type annotations in BaseError class for improved gRPC context handling and better type safety
+- **Refined Interceptors** - Improved gRPC server interceptors with better error handling and method name context support
+
+#### Code Quality & Performance
+- **DateTime Optimization** - Refactored BaseUtils and UpdatableMixin to use naive local datetime for improved performance and consistency
+- **Library Updates** - Updated dependencies and libraries for better compatibility and security
+
+### Community Contributions
+- **Collaborative Development** - Merged contributions from @Mohammadreza-kh94 for Keycloak gRPC authentication enhancements
+- **Code Refactoring** - Integrated improvements from @heysaeid for datetime handling optimizations
+
 ## [v3.3.1] - 2025-01-06
 
 ### Improvements
