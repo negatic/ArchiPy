@@ -1,4 +1,4 @@
-from typing import Any, ClassVar
+from typing import ClassVar
 
 try:
     import grpc
@@ -178,11 +178,11 @@ class BaseError(Exception):
         """
         return self.error_detail.message_fa
 
-    def _get_grpc_status_code(self) -> Any:
+    def _get_grpc_status_code(self) -> grpc.StatusCode | int:
         """Gets the proper gRPC status code for this error.
 
         Returns:
-            grpc.StatusCode: The gRPC status code enum value.
+            grpc.StatusCode | int: The gRPC status code enum value or integer code.
         """
         if not GRPC_AVAILABLE:
             return 13  # INTERNAL
@@ -203,7 +203,7 @@ class BaseError(Exception):
 
         return status_code
 
-    async def abort_grpc_async(self, context: Any) -> None:
+    async def abort_grpc_async(self, context: object) -> None:
         """Aborts an async gRPC call with the appropriate status code and message.
 
         Args:
@@ -223,7 +223,7 @@ class BaseError(Exception):
 
         await context.abort(status_code, message)
 
-    def abort_grpc_sync(self, context: Any) -> None:
+    def abort_grpc_sync(self, context: object) -> None:
         """Aborts a sync gRPC call with the appropriate status code and message.
 
         Args:
@@ -246,7 +246,7 @@ class BaseError(Exception):
     @classmethod
     async def abort_with_error_async(
         cls,
-        context: Any,
+        context: object,
         error: ErrorDetailDTO | ErrorMessageType | None = None,
         lang: LanguageType = LanguageType.FA,
         additional_data: dict | None = None,
@@ -268,7 +268,7 @@ class BaseError(Exception):
     @classmethod
     def abort_with_error_sync(
         cls,
-        context: Any,
+        context: object,
         error: ErrorDetailDTO | ErrorMessageType | None = None,
         lang: LanguageType = LanguageType.FA,
         additional_data: dict | None = None,
