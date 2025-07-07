@@ -1,9 +1,8 @@
 from datetime import datetime
 from typing import ClassVar
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, text
-from sqlalchemy.orm import DeclarativeBase, Mapped, Synonym, func
-
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, func
+from sqlalchemy.orm import DeclarativeBase, Mapped, Synonym
 
 PK_COLUMN_NAME = "pk_uuid"
 
