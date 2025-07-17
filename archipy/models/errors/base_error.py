@@ -41,7 +41,7 @@ class BaseError(Exception):
     """
 
     http_status_code: ClassVar[int] = 500
-    grpc_status_code: ClassVar[grpc.StatusCode] = grpc.StatusCode.INTERNAL
+    grpc_status_code: ClassVar[grpc.StatusCode] = grpc.StatusCode.INTERNAL if grpc else 13
 
     def __init__(
         self,
