@@ -2,6 +2,21 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [3.4.3] - 2025-07-17
+
+### Improvements
+
+#### Keycloak Security Enhancements
+- **Admin Mode Control** - Implemented `IS_ADMIN_MODE_ENABLED` configuration flag to control Keycloak admin operations
+- **Enhanced Security** - Added granular control over admin capabilities allowing authentication-only mode without admin privileges
+- **Principle of Least Privilege** - Updated both synchronous and asynchronous Keycloak adapters to respect admin mode configuration
+- **Test Coverage** - Updated BDD test steps to properly handle admin mode configuration for comprehensive testing
+
+### Security
+- **Reduced Attack Surface** - Admin operations can now be disabled while maintaining authentication capabilities
+- **Environment Isolation** - Different environments can have different admin capabilities based on configuration
+- **Audit Trail** - Clear separation between authentication and administrative operations for better security monitoring
+
 ## [3.4.2] - 2025-07-17
 
 ### Bug Fixes

@@ -346,6 +346,7 @@ class KeycloakConfig(BaseModel):
     CLIENT_SECRET_KEY: str | None = None
     VERIFY_SSL: bool = True
     TIMEOUT: int = 10
+    IS_ADMIN_MODE_ENABLED: bool = False
     ADMIN_USERNAME: str | None = None
     ADMIN_PASSWORD: str | None = None
     ADMIN_REALM_NAME: str = "master"
@@ -661,7 +662,8 @@ class DatetimeConfig(BaseModel):
     MAX_RETRIES: int = Field(default=3, description="Maximum retry attempts")
     CACHE_TTL: int = Field(default=86400, description="Cache time-to-live in seconds (24 hours)")
     HISTORICAL_CACHE_TTL: int = Field(
-        default=604800, description="Cache time-to-live for historical dates in seconds (7 days)",
+        default=604800,
+        description="Cache time-to-live for historical dates in seconds (7 days)",
     )
 
 

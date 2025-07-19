@@ -333,9 +333,10 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
         self._admin_adapter = None
         self._admin_token_expiry = 0
 
-        # Initialize admin client with service account if client_secret is provided
-        # or with admin credentials if provided
-        if self.configs.CLIENT_SECRET_KEY or (self.configs.ADMIN_USERNAME and self.configs.ADMIN_PASSWORD):
+        # Initialize admin client if admin mode is enabled and credentials are provided
+        if self.configs.IS_ADMIN_MODE_ENABLED and (
+            self.configs.CLIENT_SECRET_KEY or (self.configs.ADMIN_USERNAME and self.configs.ADMIN_PASSWORD)
+        ):
             self._initialize_admin_client()
 
     def clear_all_caches(self) -> None:
@@ -431,8 +432,14 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
             UnauthenticatedError: If admin client is not available due to authentication issues
             UnavailableError: If Keycloak service is unavailable
         """
-        if not (self.configs.CLIENT_SECRET_KEY or (self.configs.ADMIN_USERNAME and self.configs.ADMIN_PASSWORD)):
-            raise UnauthenticatedError(additional_data={"data": "Neither admin credentials nor client secret provided"})
+        if not self.configs.IS_ADMIN_MODE_ENABLED or not (
+            self.configs.CLIENT_SECRET_KEY or (self.configs.ADMIN_USERNAME and self.configs.ADMIN_PASSWORD)
+        ):
+            raise UnauthenticatedError(
+                additional_data={
+                    "data": "Admin mode is disabled or neither admin credentials nor client secret provided",
+                },
+            )
 
         # Check if token is about to expire and refresh if needed
         if self._admin_adapter is None or time.time() >= self._admin_token_expiry:
@@ -1528,7 +1535,10 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
 
     @override
     def add_client_roles_to_composite(
-        self, composite_role_name: str, client_id: str, child_role_names: list[str]
+        self,
+        composite_role_name: str,
+        client_id: str,
+        child_role_names: list[str],
     ) -> None:
         """Add client roles to a composite role.
 
@@ -1553,7 +1563,9 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
 
             if child_roles:
                 self.admin_adapter.add_composite_client_roles_to_role(
-                    role_name=composite_role_name, client_role_id=internal_client_id, roles=child_roles
+                    role_name=composite_role_name,
+                    client_role_id=internal_client_id,
+                    roles=child_roles,
                 )
                 logger.info(f"Added {len(child_roles)} client roles to composite role: {composite_role_name}")
 
@@ -1600,9 +1612,10 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
         self._admin_adapter = None
         self._admin_token_expiry = 0
 
-        # Initialize admin client with service account if client_secret is provided
-        # or with admin credentials if provided
-        if self.configs.CLIENT_SECRET_KEY or (self.configs.ADMIN_USERNAME and self.configs.ADMIN_PASSWORD):
+        # Initialize admin client if admin mode is enabled and credentials are provided
+        if self.configs.IS_ADMIN_MODE_ENABLED and (
+            self.configs.CLIENT_SECRET_KEY or (self.configs.ADMIN_USERNAME and self.configs.ADMIN_PASSWORD)
+        ):
             self._initialize_admin_client()
 
     def clear_all_caches(self) -> None:
@@ -1697,9 +1710,13 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
             UnauthenticatedError: If admin client is not available due to authentication issues
             UnavailableError: If Keycloak service is unavailable
         """
-        if not (self.configs.CLIENT_SECRET_KEY or (self.configs.ADMIN_USERNAME and self.configs.ADMIN_PASSWORD)):
+        if not self.configs.IS_ADMIN_MODE_ENABLED or not (
+            self.configs.CLIENT_SECRET_KEY or (self.configs.ADMIN_USERNAME and self.configs.ADMIN_PASSWORD)
+        ):
             raise UnauthenticatedError(
-                additional_data={"detail": "Neither admin credentials nor client secret provided"},
+                additional_data={
+                    "detail": "Admin mode is disabled or neither admin credentials nor client secret provided",
+                },
             )
 
         # Check if token is about to expire and refresh if needed
@@ -2801,7 +2818,8 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
 
             if child_roles:
                 await self.admin_adapter.a_add_composite_realm_roles_to_role(
-                    role_name=composite_role_name, roles=child_roles
+                    role_name=composite_role_name,
+                    roles=child_roles,
                 )
                 logger.info(f"Added {len(child_roles)} realm roles to composite role: {composite_role_name}")
 
@@ -2810,7 +2828,10 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
 
     @override
     async def add_client_roles_to_composite(
-        self, composite_role_name: str, client_id: str, child_role_names: list[str]
+        self,
+        composite_role_name: str,
+        client_id: str,
+        child_role_names: list[str],
     ) -> None:
         """Add client roles to a composite role.
 
@@ -2835,7 +2856,9 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
 
             if child_roles:
                 await self.admin_adapter.a_add_composite_client_roles_to_role(
-                    role_name=composite_role_name, client_role_id=internal_client_id, roles=child_roles
+                    role_name=composite_role_name,
+                    client_role_id=internal_client_id,
+                    roles=child_roles,
                 )
                 logger.info(f"Added {len(child_roles)} client roles to composite role: {composite_role_name}")
 
