@@ -2,8 +2,19 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [3.4.2] - 2025-07-17
 
-## [v3.4.0] - 2025-01-06
+### Bug Fixes
+
+- **Import Error Resolution** - Fixed critical import errors that were preventing proper module initialization and functionality
+
+## [3.4.1] - 2025-07-07
+
+### Bug Fixes
+
+- **Import Error Fix** - Resolved import error issues that were affecting module loading and dependency resolution
+
+## [3.4.0] - 2025-06-29
 
 ### New Features
 
@@ -31,7 +42,7 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 - **Collaborative Development** - Merged contributions from @Mohammadreza-kh94 for Keycloak gRPC authentication enhancements
 - **Code Refactoring** - Integrated improvements from @heysaeid for datetime handling optimizations
 
-## [v3.3.1] - 2025-01-06
+## [v3.3.1] - 2025-06-12
 
 ### Improvements
 
@@ -91,7 +102,7 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 - **Collaborative improvements** - Merged contributions from @Mohammadreza-kh94 for Keycloak enhancements and @heysaeid
   for configuration fixes
 
-## [v3.3.0] - 2025-01-06
+## [v3.3.0] - 2025-06-09
 
 ### New Features
 
@@ -133,7 +144,12 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
   result processing, allowing developers to choose between `fetchall()` for multiple entities or `scalars().all()` for
   single entity queries, optimizing performance based on query requirements.
 
-## [v3.2.7] - 2025-01-06
+#### Database Performance
+
+- **Optimized search query execution** - Refactored SQLAlchemy query execution method to use `fetchall()` instead of
+  `scalars().all()` for improved performance and memory efficiency in both synchronous and asynchronous adapters
+
+## [v3.2.6] - 2025-01-06
 
 ### Improvements
 
