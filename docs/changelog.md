@@ -2,17 +2,39 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [3.4.4] - 2025-07-17
+
+### Improvements
+
+#### gRPC Integration Improvements
+
+- **Import Safety** - Added robust gRPC import handling with try/except blocks to prevent import errors when gRPC is not
+  available
+- **Type Safety** - Enhanced type annotations for gRPC context handling with improved error type definitions
+- **Error Handling** - Improved gRPC error handling with better type safety and context management
+
+#### Dependency Updates
+
+- **Kafka** - Updated confluent-kafka to version 2.11.0+ for improved stability and performance
+- **Keycloak** - Updated python-keycloak to version 5.7.0+ for enhanced security and features
+- **Sentry** - Updated sentry-sdk to version 2.33.0+ for better error tracking capabilities
+- **MyPy** - Updated MyPy to version 1.17.0+ for improved type checking and Python 3.13 support
+
 ## [3.4.3] - 2025-07-17
 
 ### Improvements
 
 #### Keycloak Security Enhancements
+
 - **Admin Mode Control** - Implemented `IS_ADMIN_MODE_ENABLED` configuration flag to control Keycloak admin operations
-- **Enhanced Security** - Added granular control over admin capabilities allowing authentication-only mode without admin privileges
-- **Principle of Least Privilege** - Updated both synchronous and asynchronous Keycloak adapters to respect admin mode configuration
+- **Enhanced Security** - Added granular control over admin capabilities allowing authentication-only mode without admin
+  privileges
+- **Principle of Least Privilege** - Updated both synchronous and asynchronous Keycloak adapters to respect admin mode
+  configuration
 - **Test Coverage** - Updated BDD test steps to properly handle admin mode configuration for comprehensive testing
 
 ### Security
+
 - **Reduced Attack Surface** - Admin operations can now be disabled while maintaining authentication capabilities
 - **Environment Isolation** - Different environments can have different admin capabilities based on configuration
 - **Audit Trail** - Clear separation between authentication and administrative operations for better security monitoring
@@ -21,7 +43,8 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 
 ### Bug Fixes
 
-- **Import Error Resolution** - Fixed critical import errors that were preventing proper module initialization and functionality
+- **Import Error Resolution** - Fixed critical import errors that were preventing proper module initialization and
+  functionality
 
 ## [3.4.1] - 2025-07-07
 
@@ -34,27 +57,42 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 ### New Features
 
 #### gRPC Integration Enhancements
-- **Async gRPC Server Interceptors** - Added comprehensive async gRPC server interceptors with enhanced tracing capabilities and metric collection for better observability
-- **Enhanced Authentication Context** - Implemented advanced authentication context management with gRPC decorators for seamless integration
-- **Improved Error Handling** - Enhanced gRPC error handling and context management with better type annotations and error propagation
+
+- **Async gRPC Server Interceptors** - Added comprehensive async gRPC server interceptors with enhanced tracing
+  capabilities and metric collection for better observability
+- **Enhanced Authentication Context** - Implemented advanced authentication context management with gRPC decorators for
+  seamless integration
+- **Improved Error Handling** - Enhanced gRPC error handling and context management with better type annotations and
+  error propagation
 
 #### Keycloak gRPC Authentication
-- **gRPC Authentication Enhancement** - Added token extraction and role validation capabilities for gRPC services with Keycloak integration
-- **Composite Role Management** - Implemented composite role management methods in both KeycloakAdapter and AsyncKeycloakAdapter for advanced authorization scenarios
-- **Streamlined Role Checks** - Enhanced role checking and error handling in KeycloakAdapter for better performance and reliability
+
+- **gRPC Authentication Enhancement** - Added token extraction and role validation capabilities for gRPC services with
+  Keycloak integration
+- **Composite Role Management** - Implemented composite role management methods in both KeycloakAdapter and
+  AsyncKeycloakAdapter for advanced authorization scenarios
+- **Streamlined Role Checks** - Enhanced role checking and error handling in KeycloakAdapter for better performance and
+  reliability
 
 ### Improvements
 
 #### Error Handling & Type Safety
-- **Enhanced Type Annotations** - Updated type annotations in BaseError class for improved gRPC context handling and better type safety
-- **Refined Interceptors** - Improved gRPC server interceptors with better error handling and method name context support
+
+- **Enhanced Type Annotations** - Updated type annotations in BaseError class for improved gRPC context handling and
+  better type safety
+- **Refined Interceptors** - Improved gRPC server interceptors with better error handling and method name context
+  support
 
 #### Code Quality & Performance
-- **DateTime Optimization** - Refactored BaseUtils and UpdatableMixin to use naive local datetime for improved performance and consistency
+
+- **DateTime Optimization** - Refactored BaseUtils and UpdatableMixin to use naive local datetime for improved
+  performance and consistency
 - **Library Updates** - Updated dependencies and libraries for better compatibility and security
 
 ### Community Contributions
-- **Collaborative Development** - Merged contributions from @Mohammadreza-kh94 for Keycloak gRPC authentication enhancements
+
+- **Collaborative Development** - Merged contributions from @Mohammadreza-kh94 for Keycloak gRPC authentication
+  enhancements
 - **Code Refactoring** - Integrated improvements from @heysaeid for datetime handling optimizations
 
 ## [v3.3.1] - 2025-06-12

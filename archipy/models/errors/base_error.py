@@ -41,7 +41,7 @@ class BaseError(Exception):
     """
 
     http_status_code: ClassVar[int] = 500
-    grpc_status_code: ClassVar[grpc.StatusCode] = grpc.StatusCode.INTERNAL if grpc else 13
+    grpc_status_code: ClassVar[int] = grpc.StatusCode.INTERNAL if grpc else 13
 
     def __init__(
         self,
@@ -178,11 +178,11 @@ class BaseError(Exception):
         """
         return self.error_detail.message_fa
 
-    def _get_grpc_status_code(self) -> grpc.StatusCode | int:
+    def _get_grpc_status_code(self) -> int:
         """Gets the proper gRPC status code for this error.
 
         Returns:
-            grpc.StatusCode | int: The gRPC status code enum value or integer code.
+            int: The gRPC status code enum value or integer code.
         """
         if not GRPC_AVAILABLE:
             return 13  # INTERNAL

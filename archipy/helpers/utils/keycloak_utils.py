@@ -4,7 +4,15 @@ from collections.abc import Callable
 from contextvars import ContextVar
 from typing import Any
 
-import grpc
+try:
+    import grpc
+    from grpc import ServicerContext
+    from grpc.aio import ServicerContext as AsyncServicerContext
+
+except ImportError:
+    ServicerContext = None
+    AsyncServicerContext = None
+
 from fastapi import Depends, Request, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
@@ -284,7 +292,7 @@ class KeycloakUtils:
         return dependency
 
     @staticmethod
-    def _extract_token_from_metadata(context: grpc.aio.ServicerContext) -> str | None:
+    def _extract_token_from_metadata(context: ServicerContext) -> str | None:
         """Extract Bearer token from gRPC metadata."""
         metadata = dict(context.invocation_metadata())
 
@@ -335,7 +343,7 @@ class KeycloakUtils:
 
         def decorator(func: Callable) -> Callable:
             @functools.wraps(func)
-            def wrapper(self: object, request: object, context: grpc.ServicerContext) -> object:
+            def wrapper(self: object, request: object, context: ServicerContext) -> object:
                 try:
                     # 1. Extract and validate token
                     token_str = cls._extract_token_from_metadata(context)
@@ -428,7 +436,8 @@ class KeycloakUtils:
                     if isinstance(e, BaseError):
                         e.abort_grpc_sync(context)
                     raise InternalError(
-                        lang=lang, additional_data={"original_error": str(e), "error_type": type(e).__name__}
+                        lang=lang,
+                        additional_data={"original_error": str(e), "error_type": type(e).__name__},
                     ) from e
 
                 finally:
@@ -472,7 +481,7 @@ class KeycloakUtils:
 
         def decorator(func: Callable) -> Callable:
             @functools.wraps(func)
-            async def wrapper(self: object, request: object, context: grpc.aio.ServicerContext) -> object:
+            async def wrapper(self: object, request: object, context: AsyncServicerContext) -> object:
                 try:
                     # 1. Extract and validate token
                     token_str = cls._extract_token_from_metadata(context)
@@ -565,7 +574,8 @@ class KeycloakUtils:
                     if isinstance(e, BaseError):
                         await e.abort_grpc_async(context)
                     await InternalError(
-                        lang=lang, additional_data={"original_error": str(e), "error_type": type(e).__name__}
+                        lang=lang,
+                        additional_data={"original_error": str(e), "error_type": type(e).__name__},
                     ).abort_grpc_async(context)
 
                 finally:
