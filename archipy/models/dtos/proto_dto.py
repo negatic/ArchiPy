@@ -1,4 +1,4 @@
-from typing import Type, TypeVar, Self
+from typing import Type, TypeVar, Self, ClassVar
 from archipy.models.dtos.base_dtos import BaseDTO
 
 # --- Safe Import Block ---
@@ -24,7 +24,7 @@ class ProtoDTO(BaseDTO):
     A base DTO that can be converted to and from a Protobuf message.
     Requires 'google-protobuf' to be installed.
     """
-    _proto_class: Type[TProto] | None = None
+    _proto_class: ClassVar[Type[TProto] | None] = None
 
     def __init__(self, *args, **kwargs):
         # Add a check at runtime when someone tries to use the class
@@ -38,7 +38,7 @@ class ProtoDTO(BaseDTO):
     def from_proto(cls, request: TProto) -> Self:
         """Converts a Protobuf message into a Pydantic DTO instance."""
         if cls._proto_class is None:
-            raise NotImplementedError("DTO is not mapped to a proto class")
+            raise NotImplementedError(f"{cls.__name__} is not mapped to a proto class.")
 
         input_data = MessageToDict(
             message=request,
@@ -50,6 +50,6 @@ class ProtoDTO(BaseDTO):
     def to_proto(self) -> TProto:
         """Converts the Pydantic DTO instance into a Protobuf message."""
         if self._proto_class is None:
-            raise NotImplementedError("DTO is not mapped to a proto class")
+            raise NotImplementedError(f"{self.__class__.__name__} is not mapped to a proto class.")
 
         return ParseDict(self.model_dump(mode='json'), self._proto_class())
