@@ -110,7 +110,7 @@ class ElasticsearchAPMConfig(BaseModel):
     and error reporting.
     """
 
-    API_REQUEST_SIZE: int = Field(default=768 * 1024, description="Maximum size of API requests")
+    API_REQUEST_SIZE: int = Field(default="768kb", description="Maximum size of API requests")
     API_REQUEST_TIME: str = Field(default="10s", description="Maximum time for API requests")
     AUTO_LOG_STACKS: bool = Field(default=True, description="Whether to automatically log stack traces")
     CAPTURE_BODY: str = Field(default="off", description="Level of request body capture")
@@ -119,7 +119,7 @@ class ElasticsearchAPMConfig(BaseModel):
     IS_ENABLED: bool = Field(default=False, description="Whether APM is enabled")
     ENVIRONMENT: str | None = Field(default=None, description="APM environment name")
     LOG_FILE: str = Field(default="", description="Path to APM log file")
-    LOG_FILE_SIZE: int = Field(default=50 * 1024 * 1024, description="Maximum size of APM log file")
+    LOG_FILE_SIZE: int = Field(default="50mb", description="Maximum size of APM log file")
     RECORDING: bool = Field(default=True, description="Whether to record transactions")
     SECRET_TOKEN: str | None = Field(default=None, description="APM secret token")
     SERVER_TIMEOUT: str = Field(default="5s", description="Server timeout duration")

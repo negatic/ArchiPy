@@ -2,6 +2,21 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [3.4.5] - 2025-01-27
+
+### Improvements
+
+#### Configuration Template Enhancements
+
+- **Improved Readability** - Enhanced ElasticsearchAPMConfig size fields to use human-readable string values instead of raw bytes
+  - Changed `API_REQUEST_SIZE` from `768 * 1024` to `"768kb"` for better configuration clarity
+  - Changed `LOG_FILE_SIZE` from `50 * 1024 * 1024` to `"50mb"` for improved readability
+- **Configuration Clarity** - Updated size-related configuration fields to use standard size notation (kb, mb) making configuration files more intuitive and easier to understand
+
+### Bug Fixes
+
+- **Code Cleanup** - Removed redundant files to improve project structure and reduce maintenance overhead
+
 ## [3.4.4] - 2025-07-17
 
 ### Improvements
