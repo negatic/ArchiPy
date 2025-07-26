@@ -25,6 +25,33 @@ options:
 show_root_heading: true
 show_source: true
 
+### Protobuf DTOs
+
+Base class for DTOs that can be converted to and from Google Protocol Buffer messages.
+
+```python
+from archipy.models.dtos.base_protobuf_dto import BaseProtobufDTO
+from google.protobuf.message import Message
+
+class UserProtobufDTO(BaseProtobufDTO):
+    _proto_class = UserProto  # Your protobuf message class
+
+    id: str
+    username: str
+    email: str
+
+# Convert from protobuf to DTO
+user_dto = UserProtobufDTO.from_proto(protobuf_message)
+
+# Convert DTO to protobuf
+protobuf_message = user_dto.to_proto()
+```
+
+::: archipy.models.dtos.base_protobuf_dto
+options:
+show_root_heading: true
+show_source: true
+
 ### Email DTOs
 
 DTOs for email-related operations.
