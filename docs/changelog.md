@@ -2,7 +2,7 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
-## [Unreleased]
+## [3.5.0] - 2025-07-26
 
 ### New Features
 
@@ -39,7 +39,7 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
   - Maintained strict type checking while allowing necessary flexibility for DTO inheritance patterns
   - Ensured all pre-commit hooks pass without compromising code quality standards
 
-## [3.4.5] - 2025-01-27
+## [3.4.5] - 2025-07-24
 
 ### Improvements
 
