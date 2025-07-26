@@ -32,6 +32,12 @@ class BaseProtobufDTO(BaseDTO):
         if cls._proto_class is None:
             raise NotImplementedError(f"{cls.__name__} is not mapped to a proto class.")
 
+        if not isinstance(request, cls._proto_class):
+            raise TypeError(
+                f"{cls.__name__}.from_proto expected {cls._proto_class.__name__}, "
+                f"but got {type(request).__name__} instead."
+            )
+
         input_data = MessageToDict(
             message=request,
             always_print_fields_with_no_presence=True,
