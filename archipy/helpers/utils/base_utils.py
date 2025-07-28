@@ -1,5 +1,7 @@
 import re
 
+from pydantic import ValidationError
+
 from archipy.helpers.utils.datetime_utils import DatetimeUtils
 from archipy.helpers.utils.error_utils import ErrorUtils
 from archipy.helpers.utils.file_utils import FileUtils
@@ -19,6 +21,32 @@ class BaseUtils(ErrorUtils, DatetimeUtils, PasswordUtils, JWTUtils, TOTPUtils, F
 
     This class inherits from various utility classes to provide a centralized place for common utility methods.
     """
+
+    @staticmethod
+    def format_validation_errors(
+        validation_error: ValidationError, *, include_type: bool = False
+    ) -> list[dict[str, str]]:
+        """Formats Pydantic validation errors into a structured format.
+
+        Args:
+            validation_error (ValidationError): The validation error to format.
+            include_type (bool): Whether to include the error type in the output. Defaults to False.
+
+        Returns:
+            list[dict[str, str]]: A list of formatted validation error details.
+        """
+        formatted_errors = []
+        for error in validation_error.errors():
+            error_dict = {
+                "field": ".".join(str(x) for x in error["loc"]),
+                "message": error["msg"],
+                "value": str(error.get("input", "")),
+            }
+            if include_type:
+                error_dict["type"] = error["type"]
+            formatted_errors.append(error_dict)
+
+        return formatted_errors
 
     @staticmethod
     def sanitize_iranian_landline_or_phone_number(landline_or_phone_number: str) -> str:
