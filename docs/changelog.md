@@ -2,6 +2,31 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [3.5.2] - 2025-07-28
+
+### Bug Fixes
+
+#### Elasticsearch Authentication
+
+- **Password Secret Value Extraction** - Fixed critical authentication issue in Elasticsearch adapters where password secret values were not being properly extracted
+  - Updated both synchronous and asynchronous Elasticsearch adapters to use `get_secret_value()` method for HTTP_PASSWORD
+  - Resolved authentication failures when using SecretStr password configuration
+  - Improved security by properly handling encrypted password fields in Elasticsearch configuration
+
+### Dependencies
+
+- **Poetry Lock Update** - Updated poetry.lock file to Poetry 2.1.2 for improved dependency management
+  - Enhanced dependency resolution with latest Poetry version
+  - Updated platform-specific package markers for better cross-platform compatibility
+  - Improved package hash verification and security
+
+### Code Quality
+
+- **Authentication Consistency** - Standardized password handling across Elasticsearch adapters
+  - Ensured consistent secret value extraction in both sync and async adapters
+  - Maintained backward compatibility while improving security practices
+  - Enhanced error handling for authentication configuration
+
 ## [3.5.1] - 2025-07-28
 
 ### Bug Fixes
