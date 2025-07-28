@@ -2,6 +2,40 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [3.5.1] - 2025-07-28
+
+### Bug Fixes
+
+#### HTTP Status Code Handling
+
+- **Status Code Name Mismatch** - Fixed critical issue in FastAPIExceptionHandler where `http_status_code` was incorrectly referenced
+  - Changed from `exception.http_status_code` to `exception.http_status_code_value` for proper status code retrieval
+  - Resolved HTTP status code name mismatch that was causing incorrect error responses
+  - Improved error handling consistency in FastAPI exception processing
+
+### Improvements
+
+#### Protobuf DTO Runtime Type Safety
+
+- **Runtime Type Checking** - Enhanced BaseProtobufDTO with comprehensive runtime type validation
+  - Added runtime type checking in `from_proto()` method to validate input parameter types
+  - Implemented proper type validation before protobuf message processing
+  - Enhanced error messages with clear type mismatch information
+
+#### Custom Exception Integration
+
+- **Custom Exception Handling** - Replaced generic TypeError with domain-specific InvalidEntityTypeError
+  - Updated protobuf DTO type validation to use `InvalidEntityTypeError` for better error categorization
+  - Improved error context with expected and actual type information
+  - Enhanced error handling consistency across the protobuf DTO system
+
+### Code Quality Enhancements
+
+- **Error Handling Consistency** - Standardized error handling patterns across protobuf DTO operations
+  - Improved error message clarity and debugging capabilities
+  - Enhanced type safety with proper exception chaining
+  - Maintained backward compatibility while improving error reporting
+
 ## [3.5.0] - 2025-07-26
 
 ### New Features
