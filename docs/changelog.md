@@ -2,7 +2,78 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
-## [3.4.5] - 2025-01-27
+## [3.5.1] - 2025-07-28
+
+### Bug Fixes
+
+#### HTTP Status Code Handling
+
+- **Status Code Name Mismatch** - Fixed critical issue in FastAPIExceptionHandler where `http_status_code` was incorrectly referenced
+  - Changed from `exception.http_status_code` to `exception.http_status_code_value` for proper status code retrieval
+  - Resolved HTTP status code name mismatch that was causing incorrect error responses
+  - Improved error handling consistency in FastAPI exception processing
+
+### Improvements
+
+#### Protobuf DTO Runtime Type Safety
+
+- **Runtime Type Checking** - Enhanced BaseProtobufDTO with comprehensive runtime type validation
+  - Added runtime type checking in `from_proto()` method to validate input parameter types
+  - Implemented proper type validation before protobuf message processing
+  - Enhanced error messages with clear type mismatch information
+
+#### Custom Exception Integration
+
+- **Custom Exception Handling** - Replaced generic TypeError with domain-specific InvalidEntityTypeError
+  - Updated protobuf DTO type validation to use `InvalidEntityTypeError` for better error categorization
+  - Improved error context with expected and actual type information
+  - Enhanced error handling consistency across the protobuf DTO system
+
+### Code Quality Enhancements
+
+- **Error Handling Consistency** - Standardized error handling patterns across protobuf DTO operations
+  - Improved error message clarity and debugging capabilities
+  - Enhanced type safety with proper exception chaining
+  - Maintained backward compatibility while improving error reporting
+
+## [3.5.0] - 2025-07-26
+
+### New Features
+
+#### Protobuf DTO Support
+
+- **BaseProtobufDTO** - Added new base class for Data Transfer Objects that can be converted to and from Protobuf messages
+  - Provides seamless integration between Pydantic DTOs and Google Protocol Buffers
+  - Supports bidirectional conversion with `from_proto()` and `to_proto()` methods
+  - Includes runtime dependency checking for protobuf availability
+  - Maintains type safety with proper error handling for missing protobuf dependencies
+
+### Bug Fixes
+
+#### Type Safety Improvements
+
+- **ClassVar Type Variable Issue** - Fixed critical type annotation issue in BaseProtobufDTO where ClassVar contained type variables
+  - Resolved `ClassVar` parameter cannot include type variables error
+  - Updated type annotations to use concrete `Message` type instead of type variables
+  - Improved type safety by using proper concrete types for class variables
+  - Added comprehensive type annotations for all methods and parameters
+
+#### Code Quality Enhancements
+
+- **Import Cleanup** - Removed invalid Unicode characters and simplified import structure
+  - Fixed invisible Unicode character `\uab` that was causing linter errors
+  - Streamlined protobuf import logic by removing unnecessary type variables
+  - Enhanced code readability and maintainability
+  - Added proper docstring formatting with Google-style documentation
+
+#### Linting Configuration
+
+- **Ruff Configuration** - Updated linting rules to accommodate protobuf DTO patterns
+  - Added `ANN401` exception for `base_protobuf_dto.py` to allow `Any` types in `*args` and `**kwargs`
+  - Maintained strict type checking while allowing necessary flexibility for DTO inheritance patterns
+  - Ensured all pre-commit hooks pass without compromising code quality standards
+
+## [3.4.5] - 2025-07-24
 
 ### Improvements
 
