@@ -19,6 +19,14 @@ except ImportError:
     HTTPStatus = None
 
 
+if GRPC_AVAILABLE:
+    from grpc import ServicerContext
+    from grpc.aio import ServicerContext as AsyncServicerContext
+else:
+    # Fallback types for when grpc is not available
+    ServicerContext = object
+    AsyncServicerContext = object
+
 from archipy.models.dtos.error_dto import ErrorDetailDTO
 from archipy.models.types.error_message_types import ErrorMessageType
 from archipy.models.types.language_type import LanguageType
@@ -203,7 +211,7 @@ class BaseError(Exception):
 
         return status_code
 
-    async def abort_grpc_async(self, context: object) -> None:
+    async def abort_grpc_async(self, context: AsyncServicerContext) -> None:
         """Aborts an async gRPC call with the appropriate status code and message.
 
         Args:
@@ -221,9 +229,12 @@ class BaseError(Exception):
         status_code = self._get_grpc_status_code()
         message = self.get_message()
 
+        import json
+        context.set_trailing_metadata([("additional_data", json.dumps(self.additional_data))])
+
         await context.abort(status_code, message)
 
-    def abort_grpc_sync(self, context: object) -> None:
+    def abort_grpc_sync(self, context: ServicerContext) -> None:
         """Aborts a sync gRPC call with the appropriate status code and message.
 
         Args:
@@ -240,6 +251,9 @@ class BaseError(Exception):
 
         status_code = self._get_grpc_status_code()
         message = self.get_message()
+
+        import json
+        context.set_trailing_metadata([("additional_data", json.dumps(self.additional_data))])
 
         context.abort(status_code, message)
 
