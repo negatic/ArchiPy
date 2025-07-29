@@ -80,13 +80,15 @@ class BaseError(Exception):
         if lang is None:
             try:
                 from archipy.configs.base_config import BaseConfig
+
                 self.lang = BaseConfig.global_config().LANGUAGE
             except (ImportError, AssertionError):
                 from archipy.models.types.language_type import LanguageType
+
                 self.lang = LanguageType.FA
         else:
             self.lang = lang
-            
+
         self.additional_data = additional_data or {}
 
         # Initialize base Exception with the message
