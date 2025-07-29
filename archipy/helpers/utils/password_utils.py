@@ -66,7 +66,6 @@ class PasswordUtils:
     def validate_password(
         password: str,
         auth_config: AuthConfig | None = None,
-        lang: LanguageType = LanguageType.FA,
     ) -> None:
         """Validates a password against the password policy.
 
@@ -97,7 +96,7 @@ class PasswordUtils:
             errors.append(f"Password must contain at least one special character: {configs.SPECIAL_CHARACTERS}")
 
         if errors:
-            raise InvalidPasswordError(requirements=errors, lang=lang)
+            raise InvalidPasswordError(requirements=errors)
 
     @staticmethod
     def generate_password(auth_config: AuthConfig | None = None) -> str:
@@ -146,7 +145,7 @@ class PasswordUtils:
         new_password: str,
         password_history: list[str],
         auth_config: AuthConfig | None = None,
-        lang: LanguageType = LanguageType.FA,
+        lang: LanguageType | None = None,
     ) -> None:
         """Validates a new password against the password history.
 
