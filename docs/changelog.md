@@ -2,30 +2,102 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [3.6.0] - 2025-07-29
+
+### New Features
+
+#### gRPC Exception Interceptor System
+
+- **Centralized Exception Handling** - Implemented comprehensive gRPC server exception interceptors for both synchronous
+  and asynchronous operations
+    - Added `GrpcServerExceptionInterceptor` for synchronous gRPC services with automatic exception conversion
+    - Added `AsyncGrpcServerExceptionInterceptor` for asynchronous gRPC services with async exception handling
+    - Eliminated the need for repetitive try-catch blocks in individual gRPC service methods
+    - Automatic conversion of exceptions to appropriate gRPC error responses with proper status codes
+
+#### Enhanced Error Handling
+
+- **Pydantic Validation Error Handling** - Integrated automatic Pydantic validation error processing in gRPC
+  interceptors
+    - Automatic conversion of ValidationError to InvalidArgumentError with detailed error information
+    - Structured validation error formatting with field-level error details
+    - Enhanced debugging capabilities with comprehensive validation error reporting
+
+#### Language Configuration System
+
+- **Global Language Configuration** - Added LANGUAGE configuration to BaseConfig for consistent language handling
+    - Introduced LANGUAGE attribute in BaseConfig with default Persian (FA) language support
+    - Standardized language type constants to uppercase for ISO compliance
+    - Improved language handling across error messages and user interfaces
+
+### Improvements
+
+#### gRPC Status Code Management
+
+- **Enhanced Status Code Handling** - Improved gRPC status code conversion and management in BaseError
+    - Added static method for converting integer status codes to gRPC StatusCode enums
+    - Enhanced metadata handling in gRPC abort methods with conditional additional data inclusion
+    - Refined type hints for context parameters in abort methods for better clarity
+    - Improved error context preservation and debugging capabilities
+
+#### Error System Refactoring
+
+- **Optional Language Parameters** - Refactored error handling classes to use optional language parameters
+    - Removed mandatory language parameter requirements for improved flexibility
+    - Enhanced error initialization with automatic language detection from global configuration
+    - Improved error message consistency and localization support
+    - Maintained backward compatibility while improving developer experience
+
+### Bug Fixes
+
+#### Error Initialization
+
+- **Language Configuration Fix** - Fixed language initialization in BaseError to use global configuration
+    - Ensured language is set correctly from global configuration when not provided during initialization
+    - Improved error message consistency across different initialization scenarios
+    - Enhanced code readability and maintainability
+
+#### Type Safety Improvements
+
+- **Enhanced Type Hints** - Improved type hints for gRPC status codes and error handling
+    - Refined type annotations for better IDE support and code reliability
+    - Enhanced type safety across error handling components
+    - Improved developer experience with better autocomplete and error detection
+
+### Code Quality
+
+- **Comprehensive Error Coverage** - Updated all error classes to support the new language and gRPC handling system
+    - Enhanced auth_errors, business_errors, database_errors, network_errors, resource_errors, system_errors, and
+      validation_errors
+    - Improved error categorization and handling consistency
+    - Enhanced error reporting and debugging capabilities across all error types
+
 ## [3.5.2] - 2025-07-28
 
 ### Bug Fixes
 
 #### Elasticsearch Authentication
 
-- **Password Secret Value Extraction** - Fixed critical authentication issue in Elasticsearch adapters where password secret values were not being properly extracted
-  - Updated both synchronous and asynchronous Elasticsearch adapters to use `get_secret_value()` method for HTTP_PASSWORD
-  - Resolved authentication failures when using SecretStr password configuration
-  - Improved security by properly handling encrypted password fields in Elasticsearch configuration
+- **Password Secret Value Extraction** - Fixed critical authentication issue in Elasticsearch adapters where password
+  secret values were not being properly extracted
+    - Updated both synchronous and asynchronous Elasticsearch adapters to use `get_secret_value()` method for
+      HTTP_PASSWORD
+    - Resolved authentication failures when using SecretStr password configuration
+    - Improved security by properly handling encrypted password fields in Elasticsearch configuration
 
 ### Dependencies
 
 - **Poetry Lock Update** - Updated poetry.lock file to Poetry 2.1.2 for improved dependency management
-  - Enhanced dependency resolution with latest Poetry version
-  - Updated platform-specific package markers for better cross-platform compatibility
-  - Improved package hash verification and security
+    - Enhanced dependency resolution with latest Poetry version
+    - Updated platform-specific package markers for better cross-platform compatibility
+    - Improved package hash verification and security
 
 ### Code Quality
 
 - **Authentication Consistency** - Standardized password handling across Elasticsearch adapters
-  - Ensured consistent secret value extraction in both sync and async adapters
-  - Maintained backward compatibility while improving security practices
-  - Enhanced error handling for authentication configuration
+    - Ensured consistent secret value extraction in both sync and async adapters
+    - Maintained backward compatibility while improving security practices
+    - Enhanced error handling for authentication configuration
 
 ## [3.5.1] - 2025-07-28
 
@@ -33,33 +105,34 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 
 #### HTTP Status Code Handling
 
-- **Status Code Name Mismatch** - Fixed critical issue in FastAPIExceptionHandler where `http_status_code` was incorrectly referenced
-  - Changed from `exception.http_status_code` to `exception.http_status_code_value` for proper status code retrieval
-  - Resolved HTTP status code name mismatch that was causing incorrect error responses
-  - Improved error handling consistency in FastAPI exception processing
+- **Status Code Name Mismatch** - Fixed critical issue in FastAPIExceptionHandler where `http_status_code` was
+  incorrectly referenced
+    - Changed from `exception.http_status_code` to `exception.http_status_code_value` for proper status code retrieval
+    - Resolved HTTP status code name mismatch that was causing incorrect error responses
+    - Improved error handling consistency in FastAPI exception processing
 
 ### Improvements
 
 #### Protobuf DTO Runtime Type Safety
 
 - **Runtime Type Checking** - Enhanced BaseProtobufDTO with comprehensive runtime type validation
-  - Added runtime type checking in `from_proto()` method to validate input parameter types
-  - Implemented proper type validation before protobuf message processing
-  - Enhanced error messages with clear type mismatch information
+    - Added runtime type checking in `from_proto()` method to validate input parameter types
+    - Implemented proper type validation before protobuf message processing
+    - Enhanced error messages with clear type mismatch information
 
 #### Custom Exception Integration
 
 - **Custom Exception Handling** - Replaced generic TypeError with domain-specific InvalidEntityTypeError
-  - Updated protobuf DTO type validation to use `InvalidEntityTypeError` for better error categorization
-  - Improved error context with expected and actual type information
-  - Enhanced error handling consistency across the protobuf DTO system
+    - Updated protobuf DTO type validation to use `InvalidEntityTypeError` for better error categorization
+    - Improved error context with expected and actual type information
+    - Enhanced error handling consistency across the protobuf DTO system
 
 ### Code Quality Enhancements
 
 - **Error Handling Consistency** - Standardized error handling patterns across protobuf DTO operations
-  - Improved error message clarity and debugging capabilities
-  - Enhanced type safety with proper exception chaining
-  - Maintained backward compatibility while improving error reporting
+    - Improved error message clarity and debugging capabilities
+    - Enhanced type safety with proper exception chaining
+    - Maintained backward compatibility while improving error reporting
 
 ## [3.5.0] - 2025-07-26
 
@@ -67,36 +140,38 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 
 #### Protobuf DTO Support
 
-- **BaseProtobufDTO** - Added new base class for Data Transfer Objects that can be converted to and from Protobuf messages
-  - Provides seamless integration between Pydantic DTOs and Google Protocol Buffers
-  - Supports bidirectional conversion with `from_proto()` and `to_proto()` methods
-  - Includes runtime dependency checking for protobuf availability
-  - Maintains type safety with proper error handling for missing protobuf dependencies
+- **BaseProtobufDTO** - Added new base class for Data Transfer Objects that can be converted to and from Protobuf
+  messages
+    - Provides seamless integration between Pydantic DTOs and Google Protocol Buffers
+    - Supports bidirectional conversion with `from_proto()` and `to_proto()` methods
+    - Includes runtime dependency checking for protobuf availability
+    - Maintains type safety with proper error handling for missing protobuf dependencies
 
 ### Bug Fixes
 
 #### Type Safety Improvements
 
-- **ClassVar Type Variable Issue** - Fixed critical type annotation issue in BaseProtobufDTO where ClassVar contained type variables
-  - Resolved `ClassVar` parameter cannot include type variables error
-  - Updated type annotations to use concrete `Message` type instead of type variables
-  - Improved type safety by using proper concrete types for class variables
-  - Added comprehensive type annotations for all methods and parameters
+- **ClassVar Type Variable Issue** - Fixed critical type annotation issue in BaseProtobufDTO where ClassVar contained
+  type variables
+    - Resolved `ClassVar` parameter cannot include type variables error
+    - Updated type annotations to use concrete `Message` type instead of type variables
+    - Improved type safety by using proper concrete types for class variables
+    - Added comprehensive type annotations for all methods and parameters
 
 #### Code Quality Enhancements
 
 - **Import Cleanup** - Removed invalid Unicode characters and simplified import structure
-  - Fixed invisible Unicode character `\uab` that was causing linter errors
-  - Streamlined protobuf import logic by removing unnecessary type variables
-  - Enhanced code readability and maintainability
-  - Added proper docstring formatting with Google-style documentation
+    - Fixed invisible Unicode character `\uab` that was causing linter errors
+    - Streamlined protobuf import logic by removing unnecessary type variables
+    - Enhanced code readability and maintainability
+    - Added proper docstring formatting with Google-style documentation
 
 #### Linting Configuration
 
 - **Ruff Configuration** - Updated linting rules to accommodate protobuf DTO patterns
-  - Added `ANN401` exception for `base_protobuf_dto.py` to allow `Any` types in `*args` and `**kwargs`
-  - Maintained strict type checking while allowing necessary flexibility for DTO inheritance patterns
-  - Ensured all pre-commit hooks pass without compromising code quality standards
+    - Added `ANN401` exception for `base_protobuf_dto.py` to allow `Any` types in `*args` and `**kwargs`
+    - Maintained strict type checking while allowing necessary flexibility for DTO inheritance patterns
+    - Ensured all pre-commit hooks pass without compromising code quality standards
 
 ## [3.4.5] - 2025-07-24
 
@@ -104,10 +179,12 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 
 #### Configuration Template Enhancements
 
-- **Improved Readability** - Enhanced ElasticsearchAPMConfig size fields to use human-readable string values instead of raw bytes
-  - Changed `API_REQUEST_SIZE` from `768 * 1024` to `"768kb"` for better configuration clarity
-  - Changed `LOG_FILE_SIZE` from `50 * 1024 * 1024` to `"50mb"` for improved readability
-- **Configuration Clarity** - Updated size-related configuration fields to use standard size notation (kb, mb) making configuration files more intuitive and easier to understand
+- **Improved Readability** - Enhanced ElasticsearchAPMConfig size fields to use human-readable string values instead of
+  raw bytes
+    - Changed `API_REQUEST_SIZE` from `768 * 1024` to `"768kb"` for better configuration clarity
+    - Changed `LOG_FILE_SIZE` from `50 * 1024 * 1024` to `"50mb"` for improved readability
+- **Configuration Clarity** - Updated size-related configuration fields to use standard size notation (kb, mb) making
+  configuration files more intuitive and easier to understand
 
 ### Bug Fixes
 
