@@ -7,7 +7,7 @@ except ImportError:
     KeycloakError = Exception
 
 
-from archipy.models.errors import InternalError
+from archipy.models.errors.system_errors import InternalError
 from archipy.models.errors.base_error import BaseError
 from archipy.models.types.keycloak_error_message_types import KeycloakErrorMessageType
 

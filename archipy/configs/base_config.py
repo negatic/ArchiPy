@@ -31,6 +31,7 @@ from archipy.configs.config_template import (
     StarRocksSQLAlchemyConfig,
 )
 from archipy.configs.environment_type import EnvironmentType
+from archipy.models.types import LanguageType
 
 """
 
@@ -171,6 +172,7 @@ class BaseConfig(BaseSettings, Generic[R]):
     STARROCKS_SQLALCHEMY: StarRocksSQLAlchemyConfig = StarRocksSQLAlchemyConfig()
     POSTGRES_SQLALCHEMY: PostgresSQLAlchemyConfig = PostgresSQLAlchemyConfig()
     SQLITE_SQLALCHEMY: SQLiteSQLAlchemyConfig = SQLiteSQLAlchemyConfig()
+    LANGUAGE: LanguageType = LanguageType.FA
 
     def customize(self) -> None:
         """Customize configuration after loading.
