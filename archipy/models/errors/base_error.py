@@ -55,7 +55,7 @@ class BaseError(Exception):
     def __init__(
         self,
         error: ErrorDetailDTO | ErrorMessageType | None = None,
-        lang: LanguageType = LanguageType.FA,
+        lang: LanguageType | None = None,
         additional_data: dict | None = None,
         *args: object,
     ) -> None:
@@ -77,7 +77,16 @@ class BaseError(Exception):
         else:
             self.error_detail = ErrorMessageType.UNKNOWN_ERROR.value
 
-        self.lang = lang
+        if lang is None:
+            try:
+                from archipy.configs.base_config import BaseConfig
+                self.lang = BaseConfig.global_config().LANGUAGE
+            except (ImportError, AssertionError):
+                from archipy.models.types.language_type import LanguageType
+                self.lang = LanguageType.FA
+        else:
+            self.lang = lang
+            
         self.additional_data = additional_data or {}
 
         # Initialize base Exception with the message
@@ -293,7 +302,7 @@ class BaseError(Exception):
         cls,
         context: AsyncServicerContext,
         error: ErrorDetailDTO | ErrorMessageType | None = None,
-        lang: LanguageType = LanguageType.FA,
+        lang: LanguageType | None = None,
         additional_data: dict | None = None,
     ) -> None:
         """Creates an error instance and immediately aborts the async gRPC context.
@@ -315,7 +324,7 @@ class BaseError(Exception):
         cls,
         context: ServicerContext,
         error: ErrorDetailDTO | ErrorMessageType | None = None,
-        lang: LanguageType = LanguageType.FA,
+        lang: LanguageType | None = None,
         additional_data: dict | None = None,
     ) -> None:
         """Creates an error instance and immediately aborts the sync gRPC context.
