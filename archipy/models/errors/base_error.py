@@ -1,5 +1,8 @@
 import json
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
+
+if TYPE_CHECKING:
+    import grpc
 
 try:
     import grpc
@@ -43,7 +46,7 @@ class BaseError(Exception):
 
     Attributes:
         http_status_code (ClassVar[int]): HTTP status code for the error.
-        grpc_status_code (ClassVar[int | grpc.StatusCode]): gRPC status code for the error.
+        grpc_status_code (ClassVar[int | "grpc.StatusCode"]): gRPC status code for the error.
     """
 
     http_status_code: ClassVar[int] = 500
@@ -185,7 +188,7 @@ class BaseError(Exception):
         return self.error_detail.message_fa
 
     @staticmethod
-    def _convert_int_to_grpc_status(status_int: int) -> grpc.StatusCode:
+    def _convert_int_to_grpc_status(status_int: int) -> "grpc.StatusCode":
         """Convert integer status code to gRPC StatusCode enum.
 
         Args:
@@ -216,7 +219,7 @@ class BaseError(Exception):
 
         return status_map.get(status_int, grpc.StatusCode.INTERNAL)
 
-    def _get_grpc_status_code(self):
+    def _get_grpc_status_code(self) -> "grpc.StatusCode":
         """Gets the proper gRPC status code for this error.
 
         Returns:
