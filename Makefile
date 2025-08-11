@@ -72,7 +72,7 @@ lint: ## Run all linters
 .PHONY: security
 security: ## Run security scan with Bandit
 	@echo "${BLUE}Running security scan...${NC}"
-	$(PYTHON) bandit -r archipy/ -s B101,B301,B403 -x features,docs,scripts -f json -o bandit-report.json || true
+	$(PYTHON) bandit -c pyproject.toml -r archipy/ -f json -o bandit-report.json || true
 
 .PHONY: behave
 behave: ## Run tests with behave

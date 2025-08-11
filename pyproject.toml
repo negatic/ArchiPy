@@ -335,3 +335,19 @@ pyproject_root_var = "pyproject"
 [tool.codespell]
 ignore-words-list = "exat,convertor"
 skip = ".git,__pycache__,build,dist"
+
+[tool.bandit]
+# Bandit configuration for security scanning
+# https://bandit.readthedocs.io/en/latest/config.html
+
+# Target directories to scan
+targets = ["archipy"]
+
+# Exclude directories from scanning
+exclude_dirs = ["features", "docs", "scripts"]
+
+# Skip specific test IDs
+# B101: assert_used - Allow assert statements in tests
+# B301: pickle - Allow pickle usage (needed for some serialization)
+# B403: import_pickle - Allow pickle imports
+skips = ["B101", "B301", "B403"]
