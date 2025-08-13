@@ -4,295 +4,294 @@ Feature: Keycloak Authentication Testing
   I want to test Keycloak authentication operations
   So that I can ensure secure authentication and management operations
 
-  Scenario: Create realm and verify creation using sync adapter
-    Given a configured sync Keycloak adapter
-    When I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    Then the sync realm creation should succeed
-    And the realm "test-realm" should exist
-    And the realm should have display name "Test Realm"
+  Scenario Outline: Basic realm and client operations
+    Given a configured <adapter_type> Keycloak adapter
+    When I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    Then the <adapter_type> realm creation should succeed
+    And the realm "<realm_name>" should exist
+    And the realm should have display name "<realm_display_name>"
 
-  Scenario: Create client with service accounts and verify creation using sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    When I create a client named "test-client" in realm "test-realm" with service accounts enabled using sync adapter
-    Then the sync client creation should succeed
-    And the client "test-client" should exist in realm "test-realm"
-    And the client "test-client" should have service accounts enabled
+    Examples:
+      | adapter_type | realm_name      | realm_display_name | client_name      |
+      | sync         | test-realm      | Test Realm         | test-client      |
+      | async        | async-test-realm| Async Test Realm   | async-test-client|
 
-  Scenario: Create user and obtain token using sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    When I create a user with username "testuser" and password "pass123" using sync adapter
-    And I request a token with username "testuser" and password "pass123" using sync adapter
-    Then the sync user creation should succeed
-    And the sync user token request should succeed
-    And the sync token response should contain "access_token" and "refresh_token"
+  Scenario Outline: User authentication flow
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    When I create a user with username "<username>" and password "<password>" using <adapter_type> adapter
+    And I request a token with username "<username>" and password "<password>" using <adapter_type> adapter
+    Then the <adapter_type> user creation should succeed
+    And the <adapter_type> user token request should succeed
+    And the <adapter_type> token response should contain "access_token" and "refresh_token"
 
-  Scenario: Refresh token using sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    And I create a user with username "testuser" and password "pass123" using sync adapter
-    And I have a valid token for "testuser" with password "pass123" using sync adapter
-    When I refresh the token using sync adapter
-    Then the sync token refresh should succeed
-    And the sync token response should contain "access_token" and "refresh_token"
+    Examples:
+      | adapter_type | username | password | realm_name      | realm_display_name | client_name      |
+      | sync         | testuser | pass123  | test-realm      | Test Realm         | test-client      |
+      | async        | asyncuser| async123 | async-test-realm| Async Test Realm   | async-test-client|
 
-  Scenario: Get user info with sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    And I create a user with username "testuser" and password "pass123" using sync adapter
-    And I have a valid token for "testuser" with password "pass123" using sync adapter
-    When I request user info with the token using sync adapter
-    Then the sync user info request should succeed
-    And the sync user info should contain "sub" and "preferred_username"
+  Scenario Outline: Token operations
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    And I create a user with username "<username>" and password "<password>" using <adapter_type> adapter
+    And I have a valid token for "<username>" with password "<password>" using <adapter_type> adapter
+    When I refresh the token using <adapter_type> adapter
+    Then the <adapter_type> token refresh should succeed
+    And the <adapter_type> token response should contain "access_token" and "refresh_token"
 
-  Scenario: Validate token with sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    And I create a user with username "testuser" and password "pass123" using sync adapter
-    And I have a valid token for "testuser" with password "pass123" using sync adapter
-    When I validate the token using sync adapter
-    Then the sync token validation should succeed
+    Examples:
+      | adapter_type | username | password | realm_name      | realm_display_name | client_name      |
+      | sync         | testuser | pass123  | test-realm      | Test Realm         | test-client      |
+      | async        | asyncuser| async123 | async-test-realm| Async Test Realm   | async-test-client|
 
-  Scenario: Get user by username using sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    And I create a user with username "testuser" and password "pass123" using sync adapter
-    When I get user by username "testuser" using sync adapter
-    Then the sync user retrieval should succeed
-    And the user should have username "testuser"
+  Scenario Outline: User information operations
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    And I create a user with username "<username>" and password "<password>" using <adapter_type> adapter
+    And I have a valid token for "<username>" with password "<password>" using <adapter_type> adapter
+    When I request user info with the token using <adapter_type> adapter
+    Then the <adapter_type> user info request should succeed
+    And the <adapter_type> user info should contain "sub" and "preferred_username"
 
-  Scenario: Get user by email using sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    And I create a user including username "testuser" email "test@example.com" and password "pass123" using sync adapter
-    When I get user by email "test@example.com" using sync adapter
-    Then the sync user retrieval should succeed
-    And the user should have email "test@example.com"
+    Examples:
+      | adapter_type | username | password | realm_name      | realm_display_name | client_name      |
+      | sync         | testuser | pass123  | test-realm      | Test Realm         | test-client      |
+      | async        | asyncuser| async123 | async-test-realm| Async Test Realm   | async-test-client|
 
-  Scenario: Create and assign realm role using sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    And I create a user with username "testuser" and password "pass123" using sync adapter
-    When I create a realm role named "test-role" with description "Test Role" using sync adapter
-    And I assign realm role "test-role" to user "testuser" using sync adapter
-    Then the sync realm role creation should succeed
-    And the sync realm role assignment should succeed
-    And the user "testuser" should have realm role "test-role"
+  Scenario Outline: Token validation
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    And I create a user with username "<username>" and password "<password>" using <adapter_type> adapter
+    And I have a valid token for "<username>" with password "<password>" using <adapter_type> adapter
+    When I validate the token using <adapter_type> adapter
+    Then the <adapter_type> token validation should succeed
 
-  Scenario: Create and assign client role using sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    And I create a user with username "testuser" and password "pass123" using sync adapter
-    When I create a client role named "client-role" for client "test-client" with description "Client Role" using sync adapter
-    And I assign client role "client-role" of client "test-client" to user "testuser" using sync adapter
-    Then the sync client role creation should succeed
-    And the sync client role assignment should succeed
-    And the user "testuser" should have client role "client-role" for client "test-client"
+    Examples:
+      | adapter_type | username | password | realm_name      | realm_display_name | client_name      |
+      | sync         | testuser | pass123  | test-realm      | Test Realm         | test-client      |
+      | async        | asyncuser| async123 | async-test-realm| Async Test Realm   | async-test-client|
 
-  Scenario: Search users using sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    And I create a user with username "searchuser1" and password "pass123" using sync adapter
-    And I create a user with username "searchuser2" and password "pass123" using sync adapter
-    When I search for users with query "searchuser" using sync adapter
-    Then the sync user search should succeed
+  Scenario Outline: User retrieval operations
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    And I create a user with username "<username>" and password "<password>" using <adapter_type> adapter
+    When I get user by username "<username>" using <adapter_type> adapter
+    Then the <adapter_type> user retrieval should succeed
+    And the user should have username "<username>"
+
+    Examples:
+      | adapter_type | username | password | realm_name      | realm_display_name | client_name      |
+      | sync         | testuser | pass123  | test-realm      | Test Realm         | test-client      |
+      | async        | asyncuser| async123 | async-test-realm| Async Test Realm   | async-test-client|
+
+  Scenario Outline: Email-based user retrieval
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    And I create a user including username "<username>" email "<email>" and password "<password>" using <adapter_type> adapter
+    When I get user by email "<email>" using <adapter_type> adapter
+    Then the <adapter_type> user retrieval should succeed
+    And the user should have email "<email>"
+
+    Examples:
+      | adapter_type | username | email              | password | realm_name      | realm_display_name | client_name      |
+      | sync         | testuser | test@example.com   | pass123  | test-realm      | Test Realm         | test-client      |
+      | async        | asyncuser| async@example.com  | async123 | async-test-realm| Async Test Realm   | async-test-client|
+
+  Scenario Outline: Realm role management
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    And I create a user with username "<username>" and password "<password>" using <adapter_type> adapter
+    When I create a realm role named "<role_name>" with description "<role_description>" using <adapter_type> adapter
+    And I assign realm role "<role_name>" to user "<username>" using <adapter_type> adapter
+    Then the <adapter_type> realm role creation should succeed
+    And the <adapter_type> realm role assignment should succeed
+    And the user "<username>" should have realm role "<role_name>"
+
+    Examples:
+      | adapter_type | username | password | role_name    | role_description | realm_name      | realm_display_name | client_name      |
+      | sync         | testuser | pass123  | test-role    | Test Role        | test-realm      | Test Realm         | test-client      |
+      | async        | asyncuser| async123 | async-test-role| Async Test Role | async-test-realm| Async Test Realm   | async-test-client|
+
+  Scenario Outline: Client role management
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    And I create a user with username "<username>" and password "<password>" using <adapter_type> adapter
+    When I create a client role named "<client_role_name>" for client "<client_name>" with description "<client_role_description>" using <adapter_type> adapter
+    And I assign client role "<client_role_name>" of client "<client_name>" to user "<username>" using <adapter_type> adapter
+    Then the <adapter_type> client role creation should succeed
+    And the <adapter_type> client role assignment should succeed
+    And the user "<username>" should have client role "<client_role_name>" for client "<client_name>"
+
+    Examples:
+      | adapter_type | username | password | client_role_name | client_role_description | realm_name      | realm_display_name | client_name      |
+      | sync         | testuser | pass123  | client-role      | Client Role             | test-realm      | Test Realm         | test-client      |
+      | async        | asyncuser| async123 | async-client-role| Async Client Role       | async-test-realm| Async Test Realm   | async-test-client|
+
+  Scenario Outline: User search operations
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    And I create a user with username "<search_user1>" and password "<password>" using <adapter_type> adapter
+    And I create a user with username "<search_user2>" and password "<password>" using <adapter_type> adapter
+    When I search for users with query "<search_query>" using <adapter_type> adapter
+    Then the <adapter_type> user search should succeed
     And the search results should contain 2 users
 
-  Scenario: Update user using sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    And I create a user with username "testuser" and password "pass123" using sync adapter
-    When I update user "testuser" with first name "John" and last name "Doe" using sync adapter
-    Then the sync user update should succeed
-    And the user "testuser" should have first name "John" and last name "Doe"
+    Examples:
+      | adapter_type | search_user1   | search_user2   | search_query | password | realm_name      | realm_display_name | client_name      |
+      | sync         | searchuser1    | searchuser2    | searchuser   | pass123  | test-realm      | Test Realm         | test-client      |
+      | async        | asynctestuser4 | asynctestuser5 | asynctestuser| async123 | async-test-realm| Async Test Realm   | async-test-client|
 
-  Scenario: Reset user password using sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    And I create a user with username "testuser" and password "pass123" using sync adapter
-    When I reset password for user "testuser" to "newpass456" using sync adapter
-    Then the sync password reset should succeed
-    And I should be able to get token with username "testuser" and password "newpass456" using sync adapter
+  Scenario Outline: User update operations
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    And I create a user with username "<username>" and password "<password>" using <adapter_type> adapter
+    When I update user "<username>" with first name "<first_name>" and last name "<last_name>" using <adapter_type> adapter
+    Then the <adapter_type> user update should succeed
+    And the user "<username>" should have first name "<first_name>" and last name "<last_name>"
 
-  Scenario: Clear user sessions using sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    And I create a user with username "testuser" and password "pass123" using sync adapter
-    And I have a valid token for "testuser" with password "pass123" using sync adapter
-    When I clear sessions for user "testuser" using sync adapter
-    Then the sync session clearing should succeed
+    Examples:
+      | adapter_type | username | password | first_name | last_name | realm_name      | realm_display_name | client_name      |
+      | sync         | testuser | pass123  | John       | Doe       | test-realm      | Test Realm         | test-client      |
+      | async        | asyncuser| async123 | Async      | User      | async-test-realm| Async Test Realm   | async-test-client|
 
-  Scenario: Logout user using sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    And I create a user with username "testuser" and password "pass123" using sync adapter
-    And I have a valid token for "testuser" with password "pass123" using sync adapter
-    When I logout the user using sync adapter
-    Then the sync logout operation should succeed
+  Scenario Outline: Password reset operations
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    And I create a user with username "<username>" and password "<password>" using <adapter_type> adapter
+    When I reset password for user "<username>" to "<new_password>" using <adapter_type> adapter
+    Then the <adapter_type> password reset should succeed
+    And I should be able to get token with username "<username>" and password "<new_password>" using <adapter_type> adapter
 
-  Scenario: Get client credentials token using sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    When I request client credentials token using sync adapter
-    Then the sync client credentials token request should succeed
-    And the sync token response should contain "access_token"
+    Examples:
+      | adapter_type | username | password | new_password | realm_name      | realm_display_name | client_name      |
+      | sync         | testuser | pass123  | newpass456   | test-realm      | Test Realm         | test-client      |
+      | async        | asyncuser| async123 | newasync456  | async-test-realm| Async Test Realm   | async-test-client|
 
-  Scenario: Introspect token using sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    And I create a user with username "testuser" and password "pass123" using sync adapter
-    And I have a valid token for "testuser" with password "pass123" using sync adapter
-    When I introspect the token using sync adapter
-    Then the sync token introspection should succeed
+  Scenario Outline: Session management
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    And I create a user with username "<username>" and password "<password>" using <adapter_type> adapter
+    And I have a valid token for "<username>" with password "<password>" using <adapter_type> adapter
+    When I clear sessions for user "<username>" using <adapter_type> adapter
+    Then the <adapter_type> session clearing should succeed
+
+    Examples:
+      | adapter_type | username | password | realm_name      | realm_display_name | client_name      |
+      | sync         | testuser | pass123  | test-realm      | Test Realm         | test-client      |
+      | async        | asyncuser| async123 | async-test-realm| Async Test Realm   | async-test-client|
+
+  Scenario Outline: Logout operations
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    And I create a user with username "<username>" and password "<password>" using <adapter_type> adapter
+    And I have a valid token for "<username>" with password "<password>" using <adapter_type> adapter
+    When I logout the user using <adapter_type> adapter
+    Then the <adapter_type> logout operation should succeed
+
+    Examples:
+      | adapter_type | username | password | realm_name      | realm_display_name | client_name      |
+      | sync         | testuser | pass123  | test-realm      | Test Realm         | test-client      |
+      | async        | asyncuser| async123 | async-test-realm| Async Test Realm   | async-test-client|
+
+  Scenario Outline: Client credentials token
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    When I request client credentials token using <adapter_type> adapter
+    Then the <adapter_type> client credentials token request should succeed
+    And the <adapter_type> token response should contain "access_token"
+
+    Examples:
+      | adapter_type | realm_name      | realm_display_name | client_name      |
+      | sync         | test-realm      | Test Realm         | test-client      |
+      | async        | async-test-realm| Async Test Realm   | async-test-client|
+
+  Scenario Outline: Token introspection
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    And I create a user with username "<username>" and password "<password>" using <adapter_type> adapter
+    And I have a valid token for "<username>" with password "<password>" using <adapter_type> adapter
+    When I introspect the token using <adapter_type> adapter
+    Then the <adapter_type> token introspection should succeed
     And the introspection result should indicate active token
 
-  Scenario: Get token info using sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    And I create a user with username "testuser" and password "pass123" using sync adapter
-    And I have a valid token for "testuser" with password "pass123" using sync adapter
-    When I get token info using sync adapter
-    Then the sync token info request should succeed
+    Examples:
+      | adapter_type | username | password | realm_name      | realm_display_name | client_name      |
+      | sync         | testuser | pass123  | test-realm      | Test Realm         | test-client      |
+      | async        | asyncuser| async123 | async-test-realm| Async Test Realm   | async-test-client|
+
+  Scenario Outline: Token info retrieval
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    And I create a user with username "<username>" and password "<password>" using <adapter_type> adapter
+    And I have a valid token for "<username>" with password "<password>" using <adapter_type> adapter
+    When I get token info using <adapter_type> adapter
+    Then the <adapter_type> token info request should succeed
     And the token info should contain user claims
 
-  Scenario: Check user role permissions using sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    And I create a user with username "testuser" and password "pass123" using sync adapter
-    And I create a realm role named "test-role" with description "Test Role" using sync adapter
-    And I assign realm role "test-role" to user "testuser" using sync adapter
-    And I have a valid token for "testuser" with password "pass123" using sync adapter
-    When I check if user has role "test-role" using sync adapter
-    Then the sync role check should succeed
-    And the user should have the role "test-role"
+    Examples:
+      | adapter_type | username | password | realm_name      | realm_display_name | client_name      |
+      | sync         | testuser | pass123  | test-realm      | Test Realm         | test-client      |
+      | async        | asyncuser| async123 | async-test-realm| Async Test Realm   | async-test-client|
 
-  Scenario: Remove realm role from user using sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    And I create a user with username "testuser" and password "pass123" using sync adapter
-    And I create a realm role named "test-role" with description "Test Role" using sync adapter
-    And I assign realm role "test-role" to user "testuser" using sync adapter
-    When I remove realm role "test-role" from user "testuser" using sync adapter
-    Then the sync role removal should succeed
-    And the user "testuser" should not have realm role "test-role"
+  Scenario Outline: Role permission checking
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    And I create a user with username "<username>" and password "<password>" using <adapter_type> adapter
+    And I create a realm role named "<role_name>" with description "<role_description>" using <adapter_type> adapter
+    And I assign realm role "<role_name>" to user "<username>" using <adapter_type> adapter
+    And I have a valid token for "<username>" with password "<password>" using <adapter_type> adapter
+    When I check if user has role "<role_name>" using <adapter_type> adapter
+    Then the <adapter_type> role check should succeed
+    And the user should have the role "<role_name>"
 
-  Scenario: Delete user using sync adapter
-    Given a configured sync Keycloak adapter
-    And I create a realm named "test-realm" with display name "Test Realm" using sync adapter
-    And I create a client named "test-client" in realm "test-realm" with service accounts and update adapter using sync adapter
-    And I create a user with username "testuser" and password "pass123" using sync adapter
-    When I delete user "testuser" using sync adapter
-    Then the sync user deletion should succeed
-    And the user "testuser" should not exist
+    Examples:
+      | adapter_type | username | password | role_name    | role_description | realm_name      | realm_display_name | client_name      |
+      | sync         | testuser | pass123  | test-role    | Test Role        | test-realm      | Test Realm         | test-client      |
+      | async        | asyncuser| async123 | async-test-role| Async Test Role | async-test-realm| Async Test Realm   | async-test-client|
 
-  @async
-  Scenario: Create realm and verify creation using async adapter
-    Given a configured async Keycloak adapter
-    When I create a realm named "async-test-realm" with display name "Async Test Realm" using async adapter
-    Then the async realm creation should succeed
-    And the realm "async-test-realm" should exist
-    And the realm should have display name "Async Test Realm"
+  Scenario Outline: Role removal operations
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    And I create a user with username "<username>" and password "<password>" using <adapter_type> adapter
+    And I create a realm role named "<role_name>" with description "<role_description>" using <adapter_type> adapter
+    And I assign realm role "<role_name>" to user "<username>" using <adapter_type> adapter
+    When I remove realm role "<role_name>" from user "<username>" using <adapter_type> adapter
+    Then the <adapter_type> role removal should succeed
+    And the user "<username>" should not have realm role "<role_name>"
 
-  @async
-  Scenario: Create client with service accounts and verify creation using async adapter
-    Given a configured async Keycloak adapter
-    And I create a realm named "async-test-realm" with display name "Async Test Realm" using async adapter
-    When I create a client named "async-test-client" in realm "async-test-realm" with service accounts enabled using async adapter
-    Then the async client creation should succeed
-    And the client "async-test-client" should exist in realm "async-test-realm"
-    And the client "async-test-client" should have service accounts enabled
+    Examples:
+      | adapter_type | username | password | role_name    | role_description | realm_name      | realm_display_name | client_name      |
+      | sync         | testuser | pass123  | test-role    | Test Role        | test-realm      | Test Realm         | test-client      |
+      | async        | asyncuser| async123 | async-test-role| Async Test Role | async-test-realm| Async Test Realm   | async-test-client|
 
-  @async
-  Scenario: Create user and obtain token using async adapter
-    Given a configured async Keycloak adapter
-    And I create a realm named "async-test-realm" with display name "Async Test Realm" using async adapter
-    And I create a client named "async-test-client" in realm "async-test-realm" with service accounts enabled using async adapter
-    When I create a user with username "asyncuser" and password "async123" using async adapter
-    And I request a token with username "asyncuser" and password "async123" using async adapter
-    Then the async user creation should succeed
-    And the async user token request should succeed
-    And the async token response should contain "access_token" and "refresh_token"
+  Scenario Outline: User deletion operations
+    Given a configured <adapter_type> Keycloak adapter
+    And I create a realm named "<realm_name>" with display name "<realm_display_name>" using <adapter_type> adapter
+    And I create a client named "<client_name>" in realm "<realm_name>" with service accounts and update adapter using <adapter_type> adapter
+    And I create a user with username "<username>" and password "<password>" using <adapter_type> adapter
+    When I delete user "<username>" using <adapter_type> adapter
+    Then the <adapter_type> user deletion should succeed
+    And the user "<username>" should not exist
 
-  @async
-  Scenario: Refresh token using async adapter
-    Given a configured async Keycloak adapter
-    And I create a realm named "async-test-realm" with display name "Async Test Realm" using async adapter
-    And I create a client named "async-test-client" in realm "async-test-realm" with service accounts enabled using async adapter
-    And I create a user with username "asyncuser" and password "async123" using async adapter
-    And I have a valid token for "asyncuser" with password "async123" using async adapter
-    When I refresh the token using async adapter
-    Then the async token refresh should succeed
-    And the async token response should contain "access_token" and "refresh_token"
-
-  @async
-  Scenario: Get user info using async adapter
-    Given a configured async Keycloak adapter
-    And I create a realm named "async-test-realm" with display name "Async Test Realm" using async adapter
-    And I create a client named "async-test-client" in realm "async-test-realm" with service accounts enabled using async adapter
-    And I create a user with username "asyncuser" and password "async123" using async adapter
-    And I have a valid token for "asyncuser" with password "async123" using async adapter
-    When I request user info with the token using async adapter
-    Then the async user info request should succeed
-    And the async user info should contain "sub" and "preferred_username"
-
-  @async
-  Scenario: Validate token using async adapter
-    Given a configured async Keycloak adapter
-    And I create a realm named "async-test-realm" with display name "Async Test Realm" using async adapter
-    And I create a client named "async-test-client" in realm "async-test-realm" with service accounts enabled using async adapter
-    And I create a user with username "asyncuser" and password "async123" using async adapter
-    And I have a valid token for "asyncuser" with password "async123" using async adapter
-    When I validate the token using async adapter
-    Then the async token validation should succeed
-
-  @async
-  Scenario: Create and assign realm role using async adapter
-    Given a configured async Keycloak adapter
-    And I create a realm named "async-test-realm" with display name "Async Test Realm" using async adapter
-    And I create a client named "async-test-client" in realm "async-test-realm" with service accounts enabled using async adapter
-    And I create a user with username "asyncuser" and password "async123" using async adapter
-    When I create a realm role named "async-test-role" with description "Async Test Role" using async adapter
-    And I assign realm role "async-test-role" to user "asyncuser" using async adapter
-    Then the async realm role creation should succeed
-    And the async realm role assignment should succeed
-    And the user "asyncuser" should have realm role "async-test-role"
-
-  @async
-  Scenario: Search users using async adapter
-    Given a configured async Keycloak adapter
-    And I create a realm named "async-test-realm" with display name "Async Test Realm" using async adapter
-    And I create a client named "async-test-client" in realm "async-test-realm" with service accounts enabled using async adapter
-    And I create a user with username "asynctestuser4" and password "async123" using async adapter
-    And I create a user with username "asynctestuser5" and password "async123" using async adapter
-    When I search for users with query "asynctestuser" using async adapter
-    Then the async user search should succeed
-    And the search results should contain 2 users
-
-  @async
-  Scenario: Delete user using async adapter
-    Given a configured async Keycloak adapter
-    And I create a realm named "async-test-realm" with display name "Async Test Realm" using async adapter
-    And I create a client named "async-test-client" in realm "async-test-realm" with service accounts enabled using async adapter
-    And I create a user with username "asyncuser6" and password "async123" using async adapter
-    When I delete user "asyncuser6" using async adapter
-    Then the async user deletion should succeed
-    And the user "asyncuser6" should not exist
+    Examples:
+      | adapter_type | username | password | realm_name      | realm_display_name | client_name      |
+      | sync         | testuser | pass123  | test-realm      | Test Realm         | test-client      |
+      | async        | asyncuser6| async123| async-test-realm| Async Test Realm   | async-test-client|

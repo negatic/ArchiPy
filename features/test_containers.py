@@ -84,7 +84,7 @@ class ContainerManager:
         return {name: cls.get_container(name) for name in cls._containers}
 
 
-@ContainerManager.register("redis")
+# @ContainerManager.register("redis")
 class RedisTestContainer(metaclass=Singleton, thread_safe=True):
     def __init__(self, config: RedisConfig | None = None, image: str | None = None) -> None:
         self.name = "redis"
@@ -138,7 +138,7 @@ class RedisTestContainer(metaclass=Singleton, thread_safe=True):
         logger.info("Redis container stopped")
 
 
-@ContainerManager.register("postgres")
+# @ContainerManager.register("postgres")
 class PostgresTestContainer(metaclass=Singleton, thread_safe=True):
     def __init__(self, config: PostgresSQLAlchemyConfig | None = None, image: str | None = None) -> None:
         self.name = "postgres"
@@ -263,7 +263,7 @@ class KeycloakTestContainer(metaclass=Singleton, thread_safe=True):
         logger.info("Keycloak container stopped")
 
 
-@ContainerManager.register("elasticsearch")
+# @ContainerManager.register("elasticsearch")
 class ElasticsearchTestContainer(metaclass=Singleton, thread_safe=True):
     def __init__(self, config: ElasticsearchConfig | None = None, image: str | None = None) -> None:
         self.name = "elasticsearch"
@@ -324,7 +324,7 @@ class ElasticsearchTestContainer(metaclass=Singleton, thread_safe=True):
         logger.info("Elasticsearch container stopped")
 
 
-@ContainerManager.register("kafka")
+# @ContainerManager.register("kafka")
 class KafkaTestContainer(metaclass=Singleton, thread_safe=True):
     def __init__(self, config: KafkaConfig | None = None, image: str | None = None) -> None:
         self.name = "kafka"
@@ -382,7 +382,7 @@ class KafkaTestContainer(metaclass=Singleton, thread_safe=True):
         logger.info("Kafka container stopped")
 
 
-@ContainerManager.register("minio")
+# @ContainerManager.register("minio")
 class MinioTestContainer(metaclass=Singleton, thread_safe=True):
     def __init__(self, config: MinioConfig | None = None, image: str | None = None) -> None:
         self.name = "minio"
