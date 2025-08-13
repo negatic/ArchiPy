@@ -9,54 +9,54 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 #### Security Scanning Integration
 
 - **Bandit Security Tool** - Added comprehensive security vulnerability scanning to the development workflow
-    - Integrated Bandit 1.7.8 for automated security analysis of Python code
-    - Added security scanning to CI/CD pipeline with configurable rules and exclusions
-    - Enhanced security posture with automated detection of common security issues
-    - Improved code quality through proactive security vulnerability identification
+  - Integrated Bandit 1.7.8 for automated security analysis of Python code
+  - Added security scanning to CI/CD pipeline with configurable rules and exclusions
+  - Enhanced security posture with automated detection of common security issues
+  - Improved code quality through proactive security vulnerability identification
 
 #### Enhanced Testing Framework
 
 - **Behave 1.3.0 Upgrade** - Updated BDD testing framework to latest version with improved async support
-    - Enhanced async test handling capabilities for better performance and reliability
-    - Improved test execution efficiency with optimized async context management
-    - Streamlined test infrastructure with cleaner step definitions and scenario management
-    - Enhanced test coverage and reliability across all adapter test suites
+  - Enhanced async test handling capabilities for better performance and reliability
+  - Improved test execution efficiency with optimized async context management
+  - Streamlined test infrastructure with cleaner step definitions and scenario management
+  - Enhanced test coverage and reliability across all adapter test suites
 
 ### Improvements
 
 #### SQLAlchemy Type Safety
 
 - **Generic TypeVar Support** - Enhanced SQLAlchemy adapters with improved generic type preservation
-    - Added TypeVar support to preserve concrete entity types in adapter operations
-    - Improved type safety for database operations with better generic type handling
-    - Enhanced IDE support and type checking for database adapter usage
-    - Maintained backward compatibility while improving type inference capabilities
+  - Added TypeVar support to preserve concrete entity types in adapter operations
+  - Improved type safety for database operations with better generic type handling
+  - Enhanced IDE support and type checking for database adapter usage
+  - Maintained backward compatibility while improving type inference capabilities
 
 #### Test Infrastructure
 
 - **Streamlined Test Helpers** - Refactored and optimized test infrastructure for better maintainability
-    - Removed redundant test helper functions to reduce code duplication
-    - Enhanced step definitions with cleaner, more focused implementations
-    - Improved test scenario context management for better test isolation
-    - Optimized test execution with reduced overhead and improved performance
+  - Removed redundant test helper functions to reduce code duplication
+  - Enhanced step definitions with cleaner, more focused implementations
+  - Improved test scenario context management for better test isolation
+  - Optimized test execution with reduced overhead and improved performance
 
 ### Code Quality
 
 #### Security Enhancements
 
 - **Automated Security Checks** - Integrated security scanning into development workflow
-    - Added Bandit configuration with customizable security rules and exclusions
-    - Enhanced CI/CD pipeline with automated security vulnerability detection
-    - Improved security posture through proactive code analysis
-    - Standardized security practices across development team
+  - Added Bandit configuration with customizable security rules and exclusions
+  - Enhanced CI/CD pipeline with automated security vulnerability detection
+  - Improved security posture through proactive code analysis
+  - Standardized security practices across development team
 
 #### Testing Improvements
 
 - **Enhanced Test Coverage** - Improved test reliability and maintainability
-    - Updated all adapter test suites to work with Behave 1.3.0
-    - Streamlined test step definitions for better readability and maintenance
-    - Enhanced test context management for improved test isolation
-    - Optimized test execution performance and reliability
+  - Updated all adapter test suites to work with Behave 1.3.0
+  - Streamlined test step definitions for better readability and maintenance
+  - Enhanced test context management for improved test isolation
+  - Optimized test execution performance and reliability
 
 ### Dependencies
 
