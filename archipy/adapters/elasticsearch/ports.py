@@ -228,6 +228,26 @@ class ElasticsearchPort:
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def index_exists(
+        self,
+        index: ElasticsearchIndexType,
+        **kwargs: object,
+    ) -> ElasticsearchResponseType:
+        """Check if an index exists in Elasticsearch.
+
+        Args:
+            index (ElasticsearchIndexType): The index name.
+            **kwargs (object): Additional keyword arguments passed to the Elasticsearch client.
+
+        Returns:
+            ElasticsearchResponseType: True if the index exists, False otherwise.
+
+        Raises:
+            NotImplementedError: If not implemented by the subclass.
+        """
+        raise NotImplementedError
+
 
 class AsyncElasticsearchPort:
     """Async interface for Elasticsearch operations providing a standardized access pattern.
@@ -442,6 +462,26 @@ class AsyncElasticsearchPort:
 
         Returns:
             ElasticsearchResponseType: True if the document exists, False otherwise.
+
+        Raises:
+            NotImplementedError: If not implemented by the subclass.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    async def index_exists(
+        self,
+        index: ElasticsearchIndexType,
+        **kwargs: object,
+    ) -> ElasticsearchResponseType:
+        """Check if an index exists in Elasticsearch.
+
+        Args:
+            index (ElasticsearchIndexType): The index name.
+            **kwargs (object): Additional keyword arguments passed to the Elasticsearch client.
+
+        Returns:
+            ElasticsearchResponseType: True if the index exists, False otherwise.
 
         Raises:
             NotImplementedError: If not implemented by the subclass.
