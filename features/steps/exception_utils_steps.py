@@ -100,11 +100,11 @@ def step_when_grpc_exception_is_handled(context):
     scenario_context.store("grpc_code", grpc_code)
 
 
-@then('the response should have gRPC status "UNKNOWN"')
-def step_then_grpc_status_should_be_unknown(context):
+@then('the response should have gRPC status "INTERNAL"')
+def step_then_grpc_status_should_be_internal(context):
     scenario_context = get_current_scenario_context(context)
     grpc_code = scenario_context.get("grpc_code")
-    assert grpc_code == StatusCode.UNKNOWN.value[0]
+    assert grpc_code == StatusCode.INTERNAL
 
 
 @given("a list of FastAPI errors {exception_names}")
