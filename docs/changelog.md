@@ -2,7 +2,7 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
-## [3.6.2] - 2025-08-16
+## [3.7.0] - 2025-08-16
 
 ### New Features
 
