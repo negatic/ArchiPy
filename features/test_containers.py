@@ -356,7 +356,7 @@ class KafkaTestContainer(metaclass=Singleton, thread_safe=True):
         # Set container properties from running container
         self.host = self._container.get_container_host_ip()
         self.bootstrap_servers = self._container.get_bootstrap_server()
-        self.config.BROKERS_LIST = self.bootstrap_servers
+        self.config.BROKERS_LIST = [self.bootstrap_servers]
 
         logger.info("Kafka container started on %s:%s", self.host, self.port)
         logger.info("Bootstrap servers: %s", self.bootstrap_servers)

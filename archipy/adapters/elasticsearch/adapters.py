@@ -258,6 +258,23 @@ class ElasticsearchAdapter(ElasticsearchPort):
         """
         return self.client.exists(index=index, id=doc_id, **kwargs)
 
+    @override
+    def index_exists(
+        self,
+        index: ElasticsearchIndexType,
+        **kwargs: object,
+    ) -> ElasticsearchResponseType:
+        """Check if an index exists in Elasticsearch.
+
+        Args:
+            index (ElasticsearchIndexType): The index name.
+            kwargs: Additional keyword arguments passed to the Elasticsearch client.
+
+        Returns:
+            ElasticsearchResponseType: True if the index exists, False otherwise.
+        """
+        return self.client.indices.exists(index=index, **kwargs)
+
 
 class AsyncElasticsearchAdapter(AsyncElasticsearchPort):
     """Concrete implementation of the AsyncElasticsearchPort interface using elasticsearch-py library.
@@ -495,3 +512,20 @@ class AsyncElasticsearchAdapter(AsyncElasticsearchPort):
             ElasticsearchResponseType: True if the document exists, False otherwise.
         """
         return await self.client.exists(index=index, id=doc_id, **kwargs)
+
+    @override
+    async def index_exists(
+        self,
+        index: ElasticsearchIndexType,
+        **kwargs: object,
+    ) -> ElasticsearchResponseType:
+        """Check if an index exists in Elasticsearch.
+
+        Args:
+            index (ElasticsearchIndexType): The index name.
+            kwargs: Additional keyword arguments passed to the Elasticsearch client.
+
+        Returns:
+            ElasticsearchResponseType: True if the index exists, False otherwise.
+        """
+        return await self.client.indices.exists(index=index, **kwargs)

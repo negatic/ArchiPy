@@ -18,7 +18,7 @@ Feature: Exception Utilities
   Scenario: Handle a gRPC exception
     Given a gRPC exception "BaseError"
     When gRPC exception is handled
-    Then the response should have gRPC status "UNKNOWN"
+    Then the response should have gRPC status "INTERNAL"
 
   Scenario: Generate FastAPI exception responses
     Given a list of FastAPI errors ["InvalidPhoneNumberError", "NotFoundError"]
