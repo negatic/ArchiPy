@@ -27,12 +27,12 @@ class TestConfig(BaseConfig):
     )
 
     # Test container images
-    REDIS__IMAGE: str = "redis:7-alpine"
+    REDIS__IMAGE: str = "redis:8.2.0"
     POSTGRES__IMAGE: str = "postgres:17"
-    ELASTIC__IMAGE: str = "elasticsearch:9.1.0"
-    KAFKA__IMAGE: str = "confluentinc/cp-kafka:7.4.0"
-    MINIO__IMAGE: str = "minio/minio:latest"
-    KEYCLOAK__IMAGE: str = "quay.io/keycloak/keycloak:23.0"
+    ELASTIC__IMAGE: str = "docker.elastic.co/elasticsearch/elasticsearch:9.1.0"
+    KAFKA__IMAGE: str = "confluentinc/cp-kafka:7.4.10"
+    MINIO__IMAGE: str = "quay.io/minio/minio:latest"
+    KEYCLOAK__IMAGE: str = "quay.io/keycloak/keycloak:26.3"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

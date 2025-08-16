@@ -1,4 +1,5 @@
 # features/steps/kafka_steps.py
+import time
 from behave import given, then, when
 from confluent_kafka import TopicPartition
 from features.test_helpers import get_current_scenario_context
@@ -11,9 +12,14 @@ def get_kafka_admin_adapter(context):
     """Get or initialize the Kafka admin adapter."""
     scenario_context = get_current_scenario_context(context)
     if not hasattr(scenario_context, "admin_adapter") or scenario_context.admin_adapter is None:
-        test_config = scenario_context.get("test_config")
-        context.logger.info("Initializing Kafka admin adapter")
-        scenario_context.admin_adapter = KafkaAdminAdapter(test_config.KAFKA)
+        # Get the updated configuration from the running container
+        test_containers = scenario_context.get("test_containers")
+        kafka_container = test_containers.get_container("kafka")
+
+        # Use the configuration from the running container
+        kafka_config = kafka_container.config
+
+        scenario_context.admin_adapter = KafkaAdminAdapter(kafka_config)
     return scenario_context.admin_adapter
 
 
@@ -24,9 +30,14 @@ def get_kafka_producer_adapter(context, topic_name):
         not hasattr(scenario_context, f"producer_{topic_name}")
         or getattr(scenario_context, f"producer_{topic_name}") is None
     ):
-        test_config = scenario_context.get("test_config")
-        context.logger.info(f"Initializing Kafka producer for topic: {topic_name}")
-        producer = KafkaProducerAdapter(topic_name, kafka_configs=test_config.KAFKA)
+        # Get the updated configuration from the running container
+        test_containers = scenario_context.get("test_containers")
+        kafka_container = test_containers.get_container("kafka")
+
+        # Use the configuration from the running container
+        kafka_config = kafka_container.config
+
+        producer = KafkaProducerAdapter(topic_name, kafka_configs=kafka_config)
         setattr(scenario_context, f"producer_{topic_name}", producer)
     return getattr(scenario_context, f"producer_{topic_name}")
 
@@ -36,12 +47,32 @@ def get_kafka_consumer_adapter(context, topic_name, group_id):
     scenario_context = get_current_scenario_context(context)
     consumer_key = f"consumer_{topic_name}_{group_id}"
     if not hasattr(scenario_context, consumer_key) or getattr(scenario_context, consumer_key) is None:
-        test_config = scenario_context.get("test_config")
-        context.logger.info(f"Initializing Kafka consumer for topic: {topic_name}, group: {group_id}")
-        consumer = KafkaConsumerAdapter(group_id=group_id, topic_list=[topic_name], kafka_configs=test_config.KAFKA)
+        # Get the updated configuration from the running container
+        test_containers = scenario_context.get("test_containers")
+        kafka_container = test_containers.get_container("kafka")
+
+        # Use the configuration from the running container
+        kafka_config = kafka_container.config
+
+        consumer = KafkaConsumerAdapter(group_id=group_id, topic_list=[topic_name], kafka_configs=kafka_config)
         setattr(scenario_context, consumer_key, consumer)
     return getattr(scenario_context, consumer_key)
 
+def wait_for_topic_condition(adapter, condition_func, topic_name, max_retries=5, initial_delay=0.5):
+    """Helper function to wait for a topic condition with retries."""
+    delay = initial_delay
+    for attempt in range(max_retries):
+        try:
+            topics = adapter.list_topics(timeout=2).topics
+            if condition_func(topic_name, topics):
+                return True
+        except Exception as e:
+            if attempt == max_retries - 1:
+                raise e
+        if attempt < max_retries - 1:
+            time.sleep(delay)
+            delay *= 1.5
+    return False
 
 # Given steps
 @given("a configured Kafka admin adapter")
@@ -159,37 +190,28 @@ def step_delete_topic(context, topic_name):
 @then('the topic "{topic_name}" should exist')
 def step_topic_should_exist(context, topic_name):
     adapter = get_kafka_admin_adapter(context)
-    try:
-        topics = adapter.list_topics(timeout=1).topics
-        assert topic_name in topics, f"Topic '{topic_name}' does not exist"
+    if wait_for_topic_condition(adapter, lambda name, topics: name in topics, topic_name):
         context.logger.info(f"Verified topic '{topic_name}' exists")
-    except Exception as e:
-        context.logger.exception(f"Failed to verify topic existence: {str(e)}")
-        raise
+    else:
+        raise AssertionError(f"Topic '{topic_name}' does not exist after retries")
 
 
 @then('the topic "{topic_name}" should not exist')
 def step_topic_should_not_exist(context, topic_name):
     adapter = get_kafka_admin_adapter(context)
-    try:
-        topics = adapter.list_topics(timeout=1).topics
-        assert topic_name not in topics, f"Topic '{topic_name}' still exists"
+    if wait_for_topic_condition(adapter, lambda name, topics: name not in topics, topic_name):
         context.logger.info(f"Verified topic '{topic_name}' does not exist")
-    except Exception as e:
-        context.logger.exception(f"Failed to verify topic non-existence: {str(e)}")
-        raise
+    else:
+        raise AssertionError(f"Topic '{topic_name}' still exists after retries")
 
 
 @then('the topic list should include "{topic_name}"')
 def step_topic_list_includes(context, topic_name):
     adapter = get_kafka_admin_adapter(context)
-    try:
-        topics = adapter.list_topics(timeout=1).topics
-        assert topic_name in topics, f"Topic '{topic_name}' not in topic list"
+    if wait_for_topic_condition(adapter, lambda name, topics: name in topics, topic_name):
         context.logger.info(f"Verified '{topic_name}' in topic list")
-    except Exception as e:
-        context.logger.exception(f"Failed to verify topic list: {str(e)}")
-        raise
+    else:
+        raise AssertionError(f"Topic '{topic_name}' not in topic list after retries")
 
 
 @then('the consumer should receive message "{expected_message}" from topic "{topic_name}"')

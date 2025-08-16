@@ -374,6 +374,16 @@ async def step_create_index(context: Context, index_name: str, shards: str, repl
         index_body = {"settings": {"number_of_shards": int(shards), "number_of_replicas": int(replicas)}}
         actual_index_name = get_actual_index_name(context, index_name)
 
+        # If no mapping exists, create a unique name
+        if actual_index_name == index_name:
+            unique_suffix = str(uuid.uuid4())[:8]
+            actual_index_name = f"{index_name}-{unique_suffix}"
+
+            # Store the mapping for other steps to use
+            index_name_mapping = scenario_context.get("index_name_mapping", {})
+            index_name_mapping[index_name] = actual_index_name
+            scenario_context.store("index_name_mapping", index_name_mapping)
+
         if is_async:
             result = await adapter.create_index(index=actual_index_name, body=index_body)
         else:
