@@ -2,7 +2,7 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
-## [Unreleased] - 2025-01-21
+## [3.8.0] - 2025-08-21
 
 ### Changed
 
@@ -16,6 +16,62 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
   - Migrated from Poetry build backend to Hatchling for better flexibility
   - Updated all documentation to reflect UV usage instead of Poetry
   - Significant performance improvements in dependency resolution and installation
+
+#### Python 3.13 Compatibility
+- **Modern Type Hints** - Updated codebase to use Python 3.13 generic syntax and modern type annotations
+  - Migrated from `Union[T, None]` to `T | None` syntax throughout the codebase
+  - Updated Generic syntax to use modern Python 3.13 patterns (UP046, UP047)
+  - Enhanced type safety with improved generic type operations and Comparable protocol
+  - Fixed type assignment issues in error classes and DTO implementations
+  - Added comprehensive mypy overrides for flexible data dictionary assignments
+
+#### Code Quality Improvements
+- **Linting and Type Checking** - Resolved all ruff and mypy issues across the codebase
+  - Fixed type annotations and imports across configs, models, and decorators
+  - Added missing error classes (DeadlineExceededError, DeprecationError)
+  - Enhanced SQLAlchemy column type compatibility with mapped_column
+  - Resolved import conflicts and improved code organization
+  - Added missing docstrings and type hints for better code documentation
+- **Test Infrastructure Cleanup** - Streamlined test helper functions for better maintainability
+  - Removed unused imports and dependencies from test_helpers.py
+  - Cleaned up test infrastructure to reduce code duplication
+  - Improved test execution efficiency and maintainability
+
+#### CI/CD Enhancements
+- **GitHub Actions Updates** - Updated all GitHub Actions workflows to latest versions
+  - Bumped actions/setup-python from 4 to 5 for improved Python support
+  - Bumped actions/cache from 3 to 4 for enhanced caching capabilities
+  - Bumped actions/checkout from 4 to 5 for better repository access
+  - Improved workflow reliability and performance across all CI/CD pipelines
+
+#### Testing Framework Updates
+- **Behave Version Upgrade** - Updated Behave testing framework to version 1.3.1
+  - Enhanced test execution capabilities with latest Behave features
+  - Improved test reliability and performance across all test suites
+  - Better compatibility with modern Python development practices
+- **MyPy Version Upgrade** - Updated MyPy type checker to version 1.17.1
+  - Enhanced type checking capabilities with latest MyPy features
+  - Improved type safety and error detection across the codebase
+  - Better support for Python 3.13 type annotations and modern type patterns
+
+### Bug Fixes
+
+#### Type System
+- **Generic Type Operations** - Fixed generic type operations with Comparable protocol in DTO classes
+- **SQLAlchemy Compatibility** - Resolved SQLAlchemy column type compatibility issues with mapped_column
+- **Error Class Initialization** - Fixed type assignment issues in error classes for better type safety
+
+#### Configuration
+- **Type Annotations** - Resolved type annotation and inheritance issues in configuration classes
+- **Validator Documentation** - Added missing docstrings to validators for better code documentation
+
+### Known Issues
+
+- **Remaining Linting Issues** - Some minor linting issues remain that are planned for future releases
+  - 13 ANN401 (any-type) violations for flexible data handling
+  - 11 ANN201 (missing return type annotations) for public functions
+  - 8 D415 (missing terminal punctuation) for docstrings
+  - These issues are intentionally allowed for specific use cases and will be addressed incrementally
 
 ## [3.7.0] - 2025-08-16
 
