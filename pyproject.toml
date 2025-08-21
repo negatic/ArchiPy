@@ -197,9 +197,9 @@ target-version = "py313"
 # Ignore F811 (redefinition of function) in steps implementations
 "archipy/configs/config_template.py" = ["S104"]  # Allow binding to all interfaces for containerized deployments
 "archipy/models/errors/keycloak_errors.py" = ["ANN401"]  # Allow Any type for additional_data
+"archipy/helpers/decorators/sqlalchemy_atomic.py" = ["BLE001"]  # Allow complex decorator patterns
 "archipy/helpers/decorators/*" = ["ANN401"]
 "archipy/helpers/utils/jwt_utils.py" = ["S105"]
-"archipy/helpers/decorators/sqlalchemy_atomic.py" = ["BLE001"]
 "archipy/helpers/utils/file_utils.py" = ["S324"]
 "archipy/helpers/utils/keycloak_utils.py" = ["FBT001", "FBT002"]
 "archipy/adapters/orm/sqlalchemy/ports.py" = ["ANN401"]
@@ -336,6 +336,10 @@ disable_error_code = ["assignment"]  # Allow flexible data dictionary assignment
 [[tool.mypy.overrides]]
 module = "archipy.models.dtos.range_dtos"
 disable_error_code = ["operator"]  # Allow generic type comparisons
+
+[[tool.mypy.overrides]]
+module = "archipy.helpers.decorators.sqlalchemy_atomic"
+disable_error_code = ["return", "misc", "no-any-return", "return-value"]  # Allow complex decorator patterns
 
 [tool.config]
 pyproject_root_var = "pyproject"

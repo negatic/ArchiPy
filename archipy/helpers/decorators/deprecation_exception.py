@@ -52,7 +52,7 @@ def method_deprecation_error(operation: str | None = None, lang: LanguageType = 
         @wraps(func)
         def wrapper(*_args: Any, **_kwargs: Any) -> Any:
             operation_name = operation if operation is not None else func.__name__
-            raise DeprecationError(operation=operation_name, lang=lang)
+            raise DeprecationError(deprecated_feature=operation_name, lang=lang)
 
         return cast(F, wrapper)
 
@@ -93,7 +93,7 @@ def class_deprecation_error(operation: str | None = None, lang: LanguageType = L
     def decorator(cls: T) -> T:
         def new_init(_self: Any, *_args: Any, **_kwargs: Any) -> None:
             operation_name = operation if operation is not None else cls.__name__
-            raise DeprecationError(operation=operation_name, lang=lang)
+            raise DeprecationError(deprecated_feature=operation_name, lang=lang)
 
         cls.__init__ = new_init
         return cls

@@ -7,7 +7,7 @@ and support for different database types (PostgreSQL, SQLite, StarRocks).
 import logging
 from collections.abc import Callable
 from functools import partial, wraps
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 from sqlalchemy.exc import (
     IntegrityError,
@@ -179,7 +179,7 @@ def sqlalchemy_atomic_decorator(
 
             module_path, class_name = ATOMIC_BLOCK_CONFIGS[db_type]["registry"].rsplit(".", 1)
             module = importlib.import_module(module_path)
-            return getattr(module, class_name)
+            return cast(type[SessionManagerRegistry], getattr(module, class_name))
         except (ImportError, AttributeError) as e:
             raise DatabaseConfigurationError(
                 database=db_type,
@@ -231,8 +231,9 @@ def sqlalchemy_atomic_decorator(
                         if not is_nested:
                             await session.commit()
                         return result
-                    async with session.begin():
-                        return await func(*args, **kwargs)
+                    else:
+                        async with session.begin():
+                            return await func(*args, **kwargs)
                 except Exception as exception:
                     await session.rollback()
                     _handle_db_exception(exception, db_type, func.__name__)
@@ -278,8 +279,9 @@ def sqlalchemy_atomic_decorator(
                         if not is_nested:
                             session.commit()
                         return result
-                    with session.begin():
-                        return func(*args, **kwargs)
+                    else:
+                        with session.begin():
+                            return func(*args, **kwargs)
                 except Exception as exception:
                     session.rollback()
                     _handle_db_exception(exception, db_type, func.__name__)
