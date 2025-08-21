@@ -1,10 +1,10 @@
 import json
-from typing import ClassVar
+from typing import Any, ClassVar
 
 try:
     from keycloak.exceptions import KeycloakError
 except ImportError:
-    KeycloakError = Exception
+    KeycloakError = Exception  # type: ignore[misc]
 
 
 from archipy.models.errors.base_error import BaseError
@@ -97,25 +97,24 @@ def get_error_message(keycloak_error: KeycloakError) -> str:
     if hasattr(keycloak_error, "response_body") and keycloak_error.response_body:
         try:
             body = keycloak_error.response_body
-            if isinstance(body, bytes):
-                body = body.decode("utf-8")
+            body_str = body.decode("utf-8") if isinstance(body, bytes) else str(body)
 
-            if isinstance(body, str):
-                parsed = json.loads(body)
-                if isinstance(parsed, dict):
-                    error_message = (
-                        parsed.get("errorMessage")
-                        or parsed.get("error_description")
-                        or parsed.get("error")
-                        or error_message
-                    )
+            # body_str is now guaranteed to be str after decode
+            parsed = json.loads(body_str)
+            if isinstance(parsed, dict):
+                error_message = (
+                    parsed.get("errorMessage")
+                    or parsed.get("error_description")
+                    or parsed.get("error")
+                    or error_message
+                )
         except (json.JSONDecodeError, UnicodeDecodeError):
             pass
 
     return error_message
 
 
-def handle_keycloak_error(keycloak_error: KeycloakError, **additional_data) -> BaseError:
+def handle_keycloak_error(keycloak_error: KeycloakError, **additional_data: Any) -> BaseError:
     """Convert Keycloak error to appropriate custom error."""
     error_message = get_error_message(keycloak_error)
     response_code = getattr(keycloak_error, "response_code", None)

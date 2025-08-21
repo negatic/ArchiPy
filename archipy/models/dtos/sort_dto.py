@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -9,7 +9,7 @@ from archipy.models.types.sort_order_type import SortOrderType
 T = TypeVar("T", bound=Enum)
 
 
-class SortDTO(BaseModel, Generic[T]):
+class SortDTO[T](BaseModel):
     """Data Transfer Object for sorting parameters.
 
     This DTO encapsulates sorting information for database queries and API responses,

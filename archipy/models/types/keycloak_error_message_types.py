@@ -26,6 +26,13 @@ except ImportError:
 
 
 class KeycloakErrorMessageType(Enum):
+    """Enumeration of Keycloak error message types.
+
+    Contains predefined error message templates for common Keycloak operations
+    and authentication scenarios, providing localized error messages in both
+    Farsi and English.
+    """
+
     REALM_ALREADY_EXISTS = ErrorDetailDTO(
         code="REALM_ALREADY_EXISTS",
         message_en="Realm already exists",

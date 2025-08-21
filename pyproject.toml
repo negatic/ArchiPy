@@ -196,6 +196,7 @@ target-version = "py313"
 [tool.ruff.lint.per-file-ignores]
 # Ignore F811 (redefinition of function) in steps implementations
 "archipy/configs/config_template.py" = ["S104"]  # Allow binding to all interfaces for containerized deployments
+"archipy/models/errors/keycloak_errors.py" = ["ANN401"]  # Allow Any type for additional_data
 "archipy/helpers/decorators/*" = ["ANN401"]
 "archipy/helpers/utils/jwt_utils.py" = ["S105"]
 "archipy/helpers/decorators/sqlalchemy_atomic.py" = ["BLE001"]
@@ -327,6 +328,14 @@ module = [
 ]
 ignore_missing_imports = true
 disable_error_code = ["no-any-return", "misc", "return-value", "arg-type", "type-var", "unused-ignore", "no-untyped-call"]
+
+[[tool.mypy.overrides]]
+module = "archipy.models.errors.*"
+disable_error_code = ["assignment"]  # Allow flexible data dictionary assignments
+
+[[tool.mypy.overrides]]
+module = "archipy.models.dtos.range_dtos"
+disable_error_code = ["operator"]  # Allow generic type comparisons
 
 [tool.config]
 pyproject_root_var = "pyproject"

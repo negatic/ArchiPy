@@ -1,6 +1,6 @@
 from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import ClassVar, Generic, Self, TypeVar
+from typing import ClassVar, Protocol, Self, TypeVar
 
 from pydantic import field_validator, model_validator
 
@@ -8,11 +8,20 @@ from archipy.models.dtos.base_dtos import BaseDTO
 from archipy.models.errors import InvalidArgumentError, OutOfRangeError
 from archipy.models.types.time_interval_unit_type import TimeIntervalUnitType
 
+
 # Generic types
-R = TypeVar("R")  # Type for range values (Decimal, int, date, etc.)
+class Comparable(Protocol):
+    """Protocol for types that support comparison operators."""
+
+    def __gt__(self, other: Self) -> bool:
+        """Greater than comparison operator."""
+        ...
 
 
-class BaseRangeDTO(BaseDTO, Generic[R]):
+R = TypeVar("R", bound=Comparable)  # Type for range values (Decimal, int, date, etc.)
+
+
+class BaseRangeDTO[R](BaseDTO):
     """Base Data Transfer Object for range queries.
 
     Encapsulates a range of values with from_ and to fields.

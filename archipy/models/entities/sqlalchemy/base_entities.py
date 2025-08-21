@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import ClassVar
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, func
-from sqlalchemy.orm import DeclarativeBase, Mapped, Synonym
+from sqlalchemy.orm import DeclarativeBase, Mapped, Synonym, mapped_column
 
 PK_COLUMN_NAME = "pk_uuid"
 
@@ -20,7 +20,7 @@ class BaseEntity(DeclarativeBase):
     """
 
     __abstract__ = True
-    created_at: Mapped[datetime] = Column(DateTime(), server_default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(), server_default=func.now(), nullable=False)
 
     @classmethod
     def _is_abstract(cls) -> bool:

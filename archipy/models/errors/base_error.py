@@ -1,5 +1,5 @@
 import json
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar
 
 if TYPE_CHECKING:
     import grpc
@@ -20,7 +20,7 @@ try:
     HTTP_AVAILABLE = True
 except ImportError:
     HTTP_AVAILABLE = False
-    HTTPStatus = None
+    HTTPStatus = None  # type: ignore[misc]
 
 
 if GRPC_AVAILABLE:
@@ -56,7 +56,7 @@ class BaseError(Exception):
         self,
         error: ErrorDetailDTO | ErrorMessageType | None = None,
         lang: LanguageType | None = None,
-        additional_data: dict | None = None,
+        additional_data: dict[str, Any] | None = None,
         *args: object,
     ) -> None:
         """Initialize the error with message and optional context.
@@ -305,7 +305,7 @@ class BaseError(Exception):
         context: AsyncServicerContext,
         error: ErrorDetailDTO | ErrorMessageType | None = None,
         lang: LanguageType | None = None,
-        additional_data: dict | None = None,
+        additional_data: dict[str, Any] | None = None,
     ) -> None:
         """Creates an error instance and immediately aborts the async gRPC context.
 
@@ -327,7 +327,7 @@ class BaseError(Exception):
         context: ServicerContext,
         error: ErrorDetailDTO | ErrorMessageType | None = None,
         lang: LanguageType | None = None,
-        additional_data: dict | None = None,
+        additional_data: dict[str, Any] | None = None,
     ) -> None:
         """Creates an error instance and immediately aborts the sync gRPC context.
 

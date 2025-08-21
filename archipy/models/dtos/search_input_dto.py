@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from pydantic import BaseModel
 
@@ -10,7 +10,7 @@ from archipy.models.dtos.sort_dto import SortDTO
 T = TypeVar("T", bound=Enum)
 
 
-class SearchInputDTO(BaseModel, Generic[T]):
+class SearchInputDTO[T](BaseModel):
     """Data Transfer Object for search inputs with pagination and sorting.
 
     This DTO encapsulates search parameters for database queries and API responses,
