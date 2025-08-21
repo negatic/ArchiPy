@@ -20,7 +20,11 @@ class GrpcServerTraceInterceptor(BaseGrpcServerInterceptor):
     """
 
     def intercept(
-        self, method: Callable, request: object, context: grpc.ServicerContext, method_name_model: MethodName
+        self,
+        method: Callable,
+        request: object,
+        context: grpc.ServicerContext,
+        method_name_model: MethodName,
     ) -> object:
         """Intercepts a gRPC server call to trace the request using Elastic APM.
 
@@ -99,7 +103,11 @@ class AsyncGrpcServerTraceInterceptor(BaseAsyncGrpcServerInterceptor):
     """
 
     async def intercept(
-        self, method: Callable, request: object, context: grpc.aio.ServicerContext, method_name_model: MethodName
+        self,
+        method: Callable,
+        request: object,
+        context: grpc.aio.ServicerContext,
+        method_name_model: MethodName,
     ) -> object:
         """Intercepts an async gRPC server call to trace the request using Elastic APM.
 

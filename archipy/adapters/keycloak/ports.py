@@ -236,7 +236,11 @@ class KeycloakPort:
 
     @abstractmethod
     def create_client(
-        self, client_id: str, realm: str | None = None, skip_exists: bool = True, **kwargs
+        self,
+        client_id: str,
+        realm: str | None = None,
+        skip_exists: bool = True,
+        **kwargs,
     ) -> dict[str, Any] | None:
         """Create a new client in the specified realm."""
         raise NotImplementedError
@@ -248,7 +252,10 @@ class KeycloakPort:
 
     @abstractmethod
     def add_client_roles_to_composite(
-        self, composite_role_name: str, client_id: str, child_role_names: list[str]
+        self,
+        composite_role_name: str,
+        client_id: str,
+        child_role_names: list[str],
     ) -> None:
         """Add client roles to a composite role."""
         raise NotImplementedError
@@ -465,7 +472,10 @@ class AsyncKeycloakPort:
 
     @abstractmethod
     async def create_client_role(
-        self, client_id: str, role_name: str, description: str | None = None
+        self,
+        client_id: str,
+        role_name: str,
+        description: str | None = None,
     ) -> dict[str, Any]:
         """Create a new client role."""
         raise NotImplementedError
@@ -482,7 +492,11 @@ class AsyncKeycloakPort:
 
     @abstractmethod
     async def create_client(
-        self, client_id: str, realm: str | None = None, skip_exists: bool = True, **kwargs
+        self,
+        client_id: str,
+        realm: str | None = None,
+        skip_exists: bool = True,
+        **kwargs,
     ) -> dict[str, Any] | None:
         """Create a new client in the specified realm."""
         raise NotImplementedError
@@ -494,7 +508,10 @@ class AsyncKeycloakPort:
 
     @abstractmethod
     async def add_client_roles_to_composite(
-        self, composite_role_name: str, client_id: str, child_role_names: list[str]
+        self,
+        composite_role_name: str,
+        client_id: str,
+        child_role_names: list[str],
     ) -> None:
         """Add client roles to a composite role."""
         raise NotImplementedError

@@ -75,7 +75,7 @@ Documentation is crucial for user experience. You can help by:
 Before contributing, ensure you have:
 
 - **Python 3.13+**
-- **Poetry** (dependency management)
+- **UV** (dependency management)
 - **Git**
 - **make** (for running development commands)
 
@@ -89,7 +89,7 @@ Before contributing, ensure you have:
 
 2. **Set up the environment**:
    ```bash
-   # Set up project pre-requisites
+   # Set up project pre-requisites (installs UV)
    make setup
 
    # Install development dependencies

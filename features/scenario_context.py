@@ -70,7 +70,7 @@ class ScenarioContext:
         if self.async_adapter:
             try:
                 if hasattr(self.async_adapter, "session_manager") and hasattr(
-                        self.async_adapter.session_manager, "engine"
+                        self.async_adapter.session_manager, "engine",
                 ):
                     # Clean up async sessions and engine
                     await self.async_adapter.session_manager.remove_session()

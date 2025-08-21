@@ -22,7 +22,11 @@ class GrpcServerExceptionInterceptor(BaseGrpcServerInterceptor):
     """
 
     def intercept(
-        self, method: Callable, request: object, context: grpc.ServicerContext, method_name_model: MethodName
+        self,
+        method: Callable,
+        request: object,
+        context: grpc.ServicerContext,
+        method_name_model: MethodName,
     ) -> object:
         """Intercepts a sync gRPC server call and handles exceptions.
 
@@ -75,7 +79,9 @@ class GrpcServerExceptionInterceptor(BaseGrpcServerInterceptor):
 
     @staticmethod
     def _handle_unexpected_error(
-        error: Exception, context: grpc.ServicerContext, method_name_model: MethodName
+        error: Exception,
+        context: grpc.ServicerContext,
+        method_name_model: MethodName,
     ) -> None:
         """Handle unexpected errors by converting them to internal errors.
 
@@ -92,7 +98,7 @@ class GrpcServerExceptionInterceptor(BaseGrpcServerInterceptor):
                 "service": method_name_model.service,
                 "method": method_name_model.method,
                 "package": method_name_model.package,
-            }
+            },
         ).abort_grpc_sync(context)
 
     @staticmethod
@@ -120,7 +126,11 @@ class AsyncGrpcServerExceptionInterceptor(BaseAsyncGrpcServerInterceptor):
     """
 
     async def intercept(
-        self, method: Callable, request: object, context: grpc.aio.ServicerContext, method_name_model: MethodName
+        self,
+        method: Callable,
+        request: object,
+        context: grpc.aio.ServicerContext,
+        method_name_model: MethodName,
     ) -> object:
         """Intercepts an async gRPC server call and handles exceptions.
 
@@ -173,7 +183,9 @@ class AsyncGrpcServerExceptionInterceptor(BaseAsyncGrpcServerInterceptor):
 
     @staticmethod
     async def _handle_unexpected_error(
-        error: Exception, context: grpc.aio.ServicerContext, method_name_model: MethodName
+        error: Exception,
+        context: grpc.aio.ServicerContext,
+        method_name_model: MethodName,
     ) -> None:
         """Handle unexpected errors by converting them to internal errors.
 
@@ -190,7 +202,7 @@ class AsyncGrpcServerExceptionInterceptor(BaseAsyncGrpcServerInterceptor):
                 "service": method_name_model.service,
                 "method": method_name_model.method,
                 "package": method_name_model.package,
-            }
+            },
         ).abort_grpc_async(context)
 
     @staticmethod

@@ -68,7 +68,7 @@ productivity.
 
 ## Best Practices & Tooling
 
-- **Poetry**: Modern dependency management
+- **UV**: Fast Python package installer and resolver
 - **Pre-commit**: Automated code quality checks
 - **Clean Architecture**: Hexagonal design pattern
 - **Modular Design**: Optional dependencies for flexibility

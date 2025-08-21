@@ -14,16 +14,16 @@ from archipy.models.entities.sqlalchemy.base_entities import (
 )
 
 __all__ = [
-    "BaseEntity",
-    "UpdatableEntity",
-    "DeletableEntity",
-    "UpdatableDeletableEntity",
     "AdminEntity",
+    "BaseEntity",
+    "DeletableEntity",
     "ManagerEntity",
     "UpdatableAdminEntity",
-    "UpdatableManagerEntity",
-    "UpdatableManagerAdminEntity",
     "UpdatableDeletableAdminEntity",
-    "UpdatableDeletableManagerEntity",
+    "UpdatableDeletableEntity",
     "UpdatableDeletableManagerAdminEntity",
+    "UpdatableDeletableManagerEntity",
+    "UpdatableEntity",
+    "UpdatableManagerAdminEntity",
+    "UpdatableManagerEntity",
 ]

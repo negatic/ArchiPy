@@ -2,6 +2,21 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [Unreleased] - 2025-01-21
+
+### Changed
+
+#### Build System Migration
+- **Poetry to UV Migration** - Migrated from Poetry to UV for improved performance and modern toolchain
+  - Replaced Poetry with UV for dependency management and virtual environment handling
+  - Updated all GitHub Actions workflows to use `astral-sh/setup-uv@v4`
+  - Converted `pyproject.toml` to use standard `[project]` format with UV-compatible optional dependencies
+  - Updated Makefile commands to use UV equivalents (`uv sync`, `uv run`, `uv build`)
+  - Updated pre-commit hooks to use UV for tool execution
+  - Migrated from Poetry build backend to Hatchling for better flexibility
+  - Updated all documentation to reflect UV usage instead of Poetry
+  - Significant performance improvements in dependency resolution and installation
+
 ## [3.7.0] - 2025-08-16
 
 ### New Features

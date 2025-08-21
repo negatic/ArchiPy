@@ -73,7 +73,11 @@ class BaseGrpcServerInterceptor(grpc.ServerInterceptor, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def intercept(
-        self, method: Callable, request: object, context: grpc.ServicerContext, method_name_model: MethodName
+        self,
+        method: Callable,
+        request: object,
+        context: grpc.ServicerContext,
+        method_name_model: MethodName,
     ) -> object:
         """Intercepts a gRPC server call.
 
@@ -138,7 +142,11 @@ class BaseAsyncGrpcServerInterceptor(grpc.aio.ServerInterceptor, metaclass=abc.A
 
     @abc.abstractmethod
     async def intercept(
-        self, method: Callable, request: object, context: grpc.aio.ServicerContext, method_name_model: MethodName
+        self,
+        method: Callable,
+        request: object,
+        context: grpc.aio.ServicerContext,
+        method_name_model: MethodName,
     ) -> object:
         """Intercepts an async gRPC server call.
 

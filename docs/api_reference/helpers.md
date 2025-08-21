@@ -13,14 +13,14 @@ This module is included in the base ArchiPy installation:
 
 ```bash
 # Add ArchiPy to your project
-poetry add archipy
+uv add archipy
 ```
 
 For development features:
 
 ```bash
 # Add ArchiPy with development extras
-poetry add archipy -E dev
+uv add archipy[dev]
 ```
 
 ## Source Code

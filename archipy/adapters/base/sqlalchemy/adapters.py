@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, override, TypeVar
+from typing import Any, TypeVar, override
 from uuid import UUID
 
 from sqlalchemy import Delete, Executable, Result, ScalarResult, Update, func, select
@@ -31,7 +31,7 @@ from archipy.models.types.base_types import FilterOperationType
 from archipy.models.types.sort_order_type import SortOrderType
 
 # Generic type variable for BaseEntity subclasses
-T = TypeVar('T', bound=BaseEntity)
+T = TypeVar("T", bound=BaseEntity)
 
 
 class SQLAlchemyExceptionHandlerMixin:

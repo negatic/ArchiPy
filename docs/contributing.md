@@ -22,7 +22,6 @@ contributing to ArchiPy.
    make setup
    make install
    make install-dev
-   poetry run pre-commit install
    ```
 
 4. **Create a Branch**

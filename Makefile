@@ -1,7 +1,7 @@
 # Variables
-PYTHON := poetry run
-POETRY := poetry
-PRE_COMMIT := poetry run pre-commit
+PYTHON := uv run
+UV := uv
+PRE_COMMIT := uv run pre-commit
 PROJECT_NAME := archipy
 PYTHON_FILES := $(PROJECT_NAME) features/steps scripts
 
@@ -23,28 +23,28 @@ help: ## Show this help message
 .PHONY: setup
 setup: ## Setup project pre-requisites
 	@echo "${BLUE}Setup project pre-requisites...${NC}"
-	@echo "${GREEN}Installing poetry (may need your sudo password)...${NC}"
+	@echo "${GREEN}Installing uv (may need your sudo password)...${NC}"
 	sudo apt install pipx
-	pipx install poetry
+	pipx install uv
 	pipx ensurepath
-	poetry completions bash >> ~/.bash_completion
+	uv generate-shell-completion bash >> ~/.bash_completion
 
 .PHONY: install
 install: ## Install project dependencies
 	@echo "${BLUE}Installing project dependencies...${NC}"
-	$(POETRY) install
+	$(UV) sync --extra dev
 	$(PRE_COMMIT) install
 
 .PHONY: install-dev
-install-dev: ## Install project dependencies
-	@echo "${BLUE}Installing project dependencies...${NC}"
-	$(POETRY) install --with dev --all-extras
+install-dev: ## Install project dependencies with dev extras
+	@echo "${BLUE}Installing project dependencies with dev extras...${NC}"
+	$(UV) sync --all-extras
 	$(PRE_COMMIT) install
 
 .PHONY: update
 update: ## Update dependencies to their latest versions
 	@echo "${BLUE}Updating dependencies...${NC}"
-	$(POETRY) update
+	$(UV) lock --upgrade
 
 .PHONY: clean
 clean: ## Remove build artifacts and cache directories
@@ -77,45 +77,48 @@ security: ## Run security scan with Bandit
 .PHONY: behave
 behave: ## Run tests with behave
 	@echo "${BLUE}Running tests...${NC}"
-	$(PYTHON) behave
+	$(UV) run --extra behave behave
+
+.PHONY: test
+test: behave ## Run tests (alias for behave)
 
 .PHONY: build
 build: clean ## Build project distribution
 	@echo "${BLUE}Building project distribution...${NC}"
-	$(POETRY) build
+	$(UV) build
 
 .PHONY: version
 version: ## Display current version
 	@echo "${BLUE}Current version:${NC}"
-	@$(POETRY) version
-	@echo "${YELLOW}Current tag(Fetching...):${NC}"
-	@git fetch && git describe --tags  --abbrev=0
+	@$(UV) run python -c "import tomllib; print(f\"archipy {tomllib.load(open('pyproject.toml', 'rb'))['project']['version']}\")"
+	@echo "${YELLOW}Current tag:${NC}"
+	@git describe --tags --abbrev=0 2>/dev/null || echo "No tags found"
 
 .PHONY: bump-patch
 bump-patch: ## Bump patch version
 	@echo "${BLUE}Bumping patch version...${NC}"
 	@if [ -n "$(message)" ]; then \
-		$(PYTHON) python scripts/bump_version.py patch -m "$(message)"; \
+		$(UV) run python scripts/bump_version.py patch -m "$(message)"; \
 	else \
-		$(PYTHON) python scripts/bump_version.py patch -m "$$(git log -1 --pretty=%s)"; \
+		$(UV) run python scripts/bump_version.py patch -m "$$(git log -1 --pretty=%s)"; \
 	fi
 
 .PHONY: bump-minor
 bump-minor: ## Bump minor version
 	@echo "${BLUE}Bumping minor version...${NC}"
 	@if [ -n "$(message)" ]; then \
-		$(PYTHON) python scripts/bump_version.py minor -m "$(message)"; \
+		$(UV) run python scripts/bump_version.py minor -m "$(message)"; \
 	else \
-		$(PYTHON) python scripts/bump_version.py minor -m "$$(git log -1 --pretty=%s)"; \
+		$(UV) run python scripts/bump_version.py minor -m "$$(git log -1 --pretty=%s)"; \
 	fi
 
 .PHONY: bump-major
 bump-major: ## Bump major version
 	@echo "${BLUE}Bumping major version...${NC}"
 	@if [ -n "$(message)" ]; then \
-		$(PYTHON) python scripts/bump_version.py major -m "$(message)"; \
+		$(UV) run python scripts/bump_version.py major -m "$(message)"; \
 	else \
-		$(PYTHON) python scripts/bump_version.py major -m "$$(git log -1 --pretty=%s)"; \
+		$(UV) run python scripts/bump_version.py major -m "$$(git log -1 --pretty=%s)"; \
 	fi
 
 .PHONY: docker-build
@@ -134,7 +137,7 @@ pre-commit: ## Run pre-commit hooks
 	$(PRE_COMMIT) run --all-files
 
 .PHONY: check
-check: lint security test ## Run all checks (linting, security, and tests)
+check: lint security behave ## Run all checks (linting, security, and tests)
 
 .PHONY: ci
 ci: ## Run CI pipeline locally
@@ -143,22 +146,22 @@ ci: ## Run CI pipeline locally
 	$(MAKE) install
 	$(MAKE) lint
 	$(MAKE) security
-	$(MAKE) test
+	$(MAKE) behave
 	$(MAKE) build
 
 .PHONY: docs-serve
 docs-serve: ## Serve MkDocs documentation locally
 	@echo "${BLUE}Serving documentation...${NC}"
-	$(POETRY) run mkdocs serve
+	$(UV) run --extra docs mkdocs serve
 
 .PHONY: docs-build
 docs-build: ## Build MkDocs documentation
 	@echo "${BLUE}Building documentation...${NC}"
-	$(POETRY) run mkdocs build
+	$(UV) run --extra docs mkdocs build
 
 .PHONY: docs-deploy
 docs-deploy: ## Deploy MkDocs to GitHub Pages
 	@echo "${BLUE}Deploying documentation...${NC}"
-	$(POETRY) run mkdocs gh-deploy --force
+	$(UV) run --extra docs mkdocs gh-deploy --force
 
 .DEFAULT_GOAL := help

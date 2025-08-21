@@ -5,7 +5,7 @@
 [![Forks](https://img.shields.io/github/forks/SyntaxArc/ArchiPy)](https://github.com/SyntaxArc/ArchiPy/network/members)
 [![Stars](https://img.shields.io/github/stars/SyntaxArc/ArchiPy)](https://github.com/SyntaxArc/ArchiPy/stargazers)
 [![Python](https://img.shields.io/badge/Python-3.13+-blue.svg)](https://www.python.org/downloads/)
-[![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)](https://python-poetry.org/)
+[![UV](https://img.shields.io/badge/UV-package%20manager-blue)](https://docs.astral.sh/uv/)
 [![Documentation](https://img.shields.io/badge/docs-MkDocs-blue.svg)](https://syntaxarc.github.io/ArchiPy/)
 [![License](https://img.shields.io/github/license/SyntaxArc/ArchiPy)](https://github.com/SyntaxArc/ArchiPy/blob/master/LICENSE)
 [![Maintained](https://img.shields.io/badge/Maintained-yes-brightgreen)](https://github.com/SyntaxArc/ArchiPy)
@@ -73,7 +73,7 @@ ArchiPy is built with the following objectives in mind:
 ## 🛠️ Prerequisites
 
 - **Python 3.13 or higher**
-- **Poetry** (recommended for development)
+- **UV** (recommended for development)
 
 ---
 
@@ -87,12 +87,12 @@ pip install archipy
 pip install archipy[redis,fastapi]
 ```
 
-Using Poetry:
+Using UV:
 ```bash
-poetry add archipy
+uv add archipy
 
 # With optional dependencies
-poetry add archipy[redis,fastapi]
+uv add archipy[redis,fastapi]
 ```
 
 [View installation documentation](https://syntaxarc.github.io/ArchiPy/installation)
@@ -179,7 +179,7 @@ To run the documentation locally:
 
 ```bash
 # Install documentation dependencies
-poetry install --with docs
+uv sync --extra docs
 
 # Serve documentation locally
 make docs-serve

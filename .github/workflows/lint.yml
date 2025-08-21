@@ -23,16 +23,15 @@ jobs:
       with:
         python-version: "3.13"
 
-    - name: Install Poetry
-      run: |
-        pip install poetry
+    - name: Install UV
+      uses: astral-sh/setup-uv@v4
 
     - name: Install dependencies
       run: |
-        poetry install --with dev
+        uv sync --extra dev
 
     - name: Run Ruff on changed files
       run: |
         # Filter Python files from changed files and run Ruff
-        echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | grep '\.py$' | xargs -r poetry run ruff check
-        echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | grep '\.py$' | xargs -r poetry run ruff format --check
+        echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | grep '\.py$' | xargs -r uv run ruff check
+        echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | grep '\.py$' | xargs -r uv run ruff format --check

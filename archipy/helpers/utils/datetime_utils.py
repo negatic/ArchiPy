@@ -205,7 +205,7 @@ class DatetimeUtils:
         return dt
 
     @classmethod
-    def daterange(cls, start_date: datetime, end_date: datetime) -> Generator[date, None, None]:
+    def daterange(cls, start_date: datetime, end_date: datetime) -> Generator[date]:
         """Generates a range of dates from start_date to end_date, exclusive of end_date.
 
         Args:

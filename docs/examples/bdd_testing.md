@@ -80,13 +80,13 @@ make behave
 To run a specific feature:
 
 ```bash
-poetry run behave features/user_management.feature
+uv run behave features/user_management.feature
 ```
 
 To run a specific scenario by line number:
 
 ```bash
-poetry run behave features/user_management.feature:7
+uv run behave features/user_management.feature:7
 ```
 
 ## Advanced BDD Testing

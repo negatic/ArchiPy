@@ -11,7 +11,7 @@ First, ensure you have the Redis dependencies installed:
 ```bash
 pip install "archipy[redis]"
 # or
-poetry add "archipy[redis]"
+uv add "archipy[redis]"
 ```
 
 ### Synchronous Redis Adapter

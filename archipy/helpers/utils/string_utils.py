@@ -338,7 +338,7 @@ class StringUtils(StringUtilsConstants):
         Returns:
             bool: `True` if the string is `None` or empty, `False` otherwise.
         """
-        return text is None or isinstance(text, str) and not text.strip()
+        return text is None or (isinstance(text, str) and not text.strip())
 
     @classmethod
     def normalize_persian_text(

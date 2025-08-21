@@ -20,9 +20,8 @@
 3. Install dependencies:
 
    ```bash
-   make install
-   make install-dev  # For dev tools
-   poetry run pre-commit install
+   make install      # Core dependencies
+   make install-dev  # All dependencies including dev tools
    ```
 
 ## Workflow
@@ -81,5 +80,5 @@ make html
 Update dependencies:
 
 ```bash
-make update
+make update  # Updates uv.lock with latest versions
 ```

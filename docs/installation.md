@@ -14,9 +14,9 @@ Before starting, ensure you have:
 
   If needed, [download Python 3.13+](https://www.python.org/downloads/).
 
-- **Poetry** (for dependency management)
+- **UV** (for dependency management)
 
-  Poetry manages dependencies and project setup. Install it via the [official guide](https://python-poetry.org/docs/).
+  UV is a fast Python package installer and resolver. Install it via the [official guide](https://docs.astral.sh/uv/getting-started/installation/).
 
 ## Installation Methods
 
@@ -34,18 +34,18 @@ With optional dependencies (e.g., database adapters, services):
 pip install archipy[postgres,sqlite,starrocks,redis,keycloak,minio,kafka]
 ```
 
-### Using Poetry
+### Using UV
 
 Add the core library:
 
 ```bash
-poetry add archipy
+uv add archipy
 ```
 
 With optional dependencies:
 
 ```bash
-poetry add "archipy[postgres,sqlite,starrocks,redis,keycloak,minio,kafka]"
+uv add "archipy[postgres,sqlite,starrocks,redis,keycloak,minio,kafka]"
 ```
 
 ## Optional Dependencies
@@ -94,13 +94,13 @@ For contributors:
 git clone https://github.com/SyntaxArc/ArchiPy.git
 cd ArchiPy
 
-# Set up the project
+# Set up the project (installs UV)
 make setup
 
 # Install dependencies
 make install
 
-# Optional: Install dev tools
+# Install all development tools and optional dependencies
 make install-dev
 ```
 
@@ -109,8 +109,8 @@ make install-dev
 If issues arise, verify:
 
 1. Python version is 3.13+
-2. `pip` or `poetry` is updated (e.g., `pip install --upgrade pip`)
-3. Build tools (`setuptools`, `wheel`) are installed
+2. `pip` or `uv` is updated (e.g., `pip install --upgrade pip` or `uv self update`)
+3. Build tools are available (UV handles this automatically)
 4. Database-specific dependencies are installed if using database adapters
 
 !!! tip "IDE Integration"

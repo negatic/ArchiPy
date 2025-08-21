@@ -17,14 +17,19 @@ jobs:
       with:
         python-version: 3.13
 
-    - name: Install Poetry
+    - name: Install UV
+      uses: astral-sh/setup-uv@v4
+
+    - name: Update version in pyproject.toml
       run: |
-        pip install poetry
+        # Extract version from tag
+        VERSION=${GITHUB_REF#refs/tags/}
+        # Update version in pyproject.toml
+        sed -i "s/^version = .*/version = \"$VERSION\"/" pyproject.toml
 
     - name: Build and Publish to PyPI
       env:
-        POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
+        UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
       run: |
-        poetry version ${GITHUB_REF#refs/tags/}
-        poetry build
-        poetry publish
+        uv build
+        uv publish
