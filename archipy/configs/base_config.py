@@ -1,4 +1,4 @@
-from typing import Generic, Self, TypeVar
+from typing import Self, TypeVar
 
 from pydantic_settings import (
     BaseSettings,
@@ -45,7 +45,7 @@ Priority :
 R = TypeVar("R")  # Runtime Config
 
 
-class BaseConfig(BaseSettings, Generic[R]):
+class BaseConfig[R](BaseSettings):
     """Base configuration class for ArchiPy applications.
 
     This class provides a comprehensive configuration system that loads settings

@@ -158,8 +158,6 @@ lint.select = [
 lint.ignore = [
     "ANN002", # Missing type annotation for *args
     "ANN003", # Missing type annotation for **kwargs
-    "ANN101", # Missing type annotation for self in method
-    "ANN102", # Missing type annotation for cls in classmethod
     "BLE001", # Do not catch blind exception: `Exception`
     "C901", # Function is too complex (McCabe complexity)
     "D100", # Missing docstring in public module
@@ -175,7 +173,7 @@ lint.ignore = [
     "S101", # Ignore assert used (equivalent to bandit's B101)
     "S301", # Ignore pickle usage (equivalent to bandit's B301)
     "S403", # Ignore pickle usage (equivalent to bandit's B403)
-    "TCH002", # Type-checking import issues
+    "TC002", # Type-checking import issues
     "TRY003", #Avoid specifying long messages outside the exception class
     "TRY301", # Abstract raise into a function
 ]
@@ -197,6 +195,7 @@ target-version = "py313"
 # Per-file ignores
 [tool.ruff.lint.per-file-ignores]
 # Ignore F811 (redefinition of function) in steps implementations
+"archipy/configs/config_template.py" = ["S104"]  # Allow binding to all interfaces for containerized deployments
 "archipy/helpers/decorators/*" = ["ANN401"]
 "archipy/helpers/utils/jwt_utils.py" = ["S105"]
 "archipy/helpers/decorators/sqlalchemy_atomic.py" = ["BLE001"]

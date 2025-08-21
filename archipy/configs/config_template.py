@@ -110,7 +110,7 @@ class ElasticsearchAPMConfig(BaseModel):
     and error reporting.
     """
 
-    API_REQUEST_SIZE: int = Field(default="768kb", description="Maximum size of API requests")
+    API_REQUEST_SIZE: str = Field(default="768kb", description="Maximum size of API requests")
     API_REQUEST_TIME: str = Field(default="10s", description="Maximum time for API requests")
     AUTO_LOG_STACKS: bool = Field(default=True, description="Whether to automatically log stack traces")
     CAPTURE_BODY: str = Field(default="off", description="Level of request body capture")
@@ -119,7 +119,7 @@ class ElasticsearchAPMConfig(BaseModel):
     IS_ENABLED: bool = Field(default=False, description="Whether APM is enabled")
     ENVIRONMENT: str | None = Field(default=None, description="APM environment name")
     LOG_FILE: str = Field(default="", description="Path to APM log file")
-    LOG_FILE_SIZE: int = Field(default="50mb", description="Maximum size of APM log file")
+    LOG_FILE_SIZE: str = Field(default="50mb", description="Maximum size of APM log file")
     RECORDING: bool = Field(default=True, description="Whether to record transactions")
     SECRET_TOKEN: str | None = Field(default=None, description="APM secret token")
     SERVER_TIMEOUT: str = Field(default="5s", description="Server timeout duration")
@@ -308,6 +308,18 @@ class KafkaConfig(BaseModel):
 
     @model_validator(mode="after")
     def validate_security_settings(self) -> "KafkaConfig":
+        """Validate security-related settings for Kafka configuration.
+
+        Ensures that SASL authentication settings are properly configured when
+        using SASL security protocols, and warns about missing SSL certificates
+        when SSL is enabled.
+
+        Returns:
+            KafkaConfig: The validated configuration instance.
+
+        Raises:
+            ValueError: If SASL authentication is incomplete.
+        """
         if self.SECURITY_PROTOCOL in ["SASL_PLAINTEXT", "SASL_SSL"]:
             if not (self.SASL_MECHANISM and self.USERNAME and self.PASSWORD):
                 raise ValueError("SASL authentication requires SASL_MECHANISM, USERNAME, and PASSWORD to be set.")
@@ -318,6 +330,17 @@ class KafkaConfig(BaseModel):
 
     @model_validator(mode="after")
     def validate_consumer_settings(self) -> "KafkaConfig":
+        """Validate consumer-specific settings for Kafka configuration.
+
+        Ensures that auto-commit and offset reset settings are compatible,
+        and that heartbeat interval is less than session timeout.
+
+        Returns:
+            KafkaConfig: The validated configuration instance.
+
+        Raises:
+            ValueError: If consumer settings are incompatible.
+        """
         if self.ENABLE_AUTO_COMMIT and self.AUTO_OFFSET_RESET == "none":
             raise ValueError("ENABLE_AUTO_COMMIT cannot be True when AUTO_OFFSET_RESET is 'none'.")
         if self.HEARTBEAT_INTERVAL_MS >= self.SESSION_TIMEOUT_MS:
@@ -326,6 +349,17 @@ class KafkaConfig(BaseModel):
 
     @model_validator(mode="after")
     def validate_idempotence_and_transactions(self) -> "KafkaConfig":
+        """Validate idempotence and transaction settings for Kafka configuration.
+
+        Ensures that idempotence is properly configured with 'all' acknowledgments,
+        and that transactional producers have idempotence enabled.
+
+        Returns:
+            KafkaConfig: The validated configuration instance.
+
+        Raises:
+            ValueError: If idempotence or transaction settings are invalid.
+        """
         if self.ENABLE_IDEMPOTENCE and self.ACKS != "all":
             raise ValueError("ENABLE_IDEMPOTENCE requires ACKS to be 'all'.")
         if self.TRANSACTIONAL_ID is not None and not self.ENABLE_IDEMPOTENCE:
@@ -406,7 +440,7 @@ class SQLiteSQLAlchemyConfig(SQLAlchemyConfig):
     DRIVER_NAME: str = Field(default="sqlite+aiosqlite", description="SQLite driver name")
     DATABASE: str = Field(default=":memory:", description="SQLite database path")
     ISOLATION_LEVEL: str | None = Field(default=None, description="SQLite isolation level")
-    PORT: str | None = Field(default=None, description="Not used for SQLite")
+    PORT: int | None = Field(default=None, description="Not used for SQLite")
 
 
 class PostgresSQLAlchemyConfig(SQLAlchemyConfig):
@@ -455,8 +489,8 @@ class PostgresSQLAlchemyConfig(SQLAlchemyConfig):
             url = str(self.POSTGRES_DSN)
             parsed = urlparse(url)
 
-            # Extract scheme/driver
-            if self.DRIVER_NAME is None and parsed.scheme:
+            # Extract scheme/driver (override default if URL scheme is different)
+            if parsed.scheme and parsed.scheme != self.DRIVER_NAME:
                 self.DRIVER_NAME = parsed.scheme
 
             # Extract username and password
