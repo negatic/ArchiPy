@@ -50,7 +50,7 @@ def _swap_args(fn: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
         Callable[[Any, Any], Any]: A new function with swapped arguments.
     """
 
-    def new_fn(x, y):
+    def new_fn(x: Any, y: Any) -> Any:
         return fn(y, x)
 
     return new_fn
@@ -88,7 +88,12 @@ class BaseGrpcClientInterceptor(
         """
         return method(request_or_iterator, call_details)
 
-    def intercept_unary_unary(self, continuation: Callable, call_details: grpc.ClientCallDetails, request: Any):
+    def intercept_unary_unary(
+        self,
+        continuation: Callable,
+        call_details: grpc.ClientCallDetails,
+        request: Any,
+    ) -> ClientInterceptorReturnType:
         """Intercepts a unary-unary RPC call.
 
         Args:
@@ -101,7 +106,12 @@ class BaseGrpcClientInterceptor(
         """
         return self.intercept(_swap_args(continuation), request, call_details)
 
-    def intercept_unary_stream(self, continuation: Callable, call_details: grpc.ClientCallDetails, request: Any):
+    def intercept_unary_stream(
+        self,
+        continuation: Callable,
+        call_details: grpc.ClientCallDetails,
+        request: Any,
+    ) -> ClientInterceptorReturnType:
         """Intercepts a unary-stream RPC call.
 
         Args:
@@ -119,7 +129,7 @@ class BaseGrpcClientInterceptor(
         continuation: Callable,
         call_details: grpc.ClientCallDetails,
         request_iterator: Iterator[Any],
-    ):
+    ) -> ClientInterceptorReturnType:
         """Intercepts a stream-unary RPC call.
 
         Args:
@@ -137,7 +147,7 @@ class BaseGrpcClientInterceptor(
         continuation: Callable,
         call_details: grpc.ClientCallDetails,
         request_iterator: Iterator[Any],
-    ):
+    ) -> ClientInterceptorReturnType:
         """Intercepts a stream-stream RPC call.
 
         Args:
@@ -221,7 +231,7 @@ class BaseAsyncGrpcClientInterceptor(
         continuation: Callable,
         call_details: grpc.aio.ClientCallDetails,
         request: Any,
-    ):
+    ) -> AsyncClientInterceptorReturnType:
         """Intercepts an asynchronous unary-unary RPC call.
 
         Args:
@@ -239,7 +249,7 @@ class BaseAsyncGrpcClientInterceptor(
         continuation: Callable,
         call_details: grpc.aio.ClientCallDetails,
         request: Any,
-    ):
+    ) -> AsyncClientInterceptorReturnType:
         """Intercepts an asynchronous unary-stream RPC call.
 
         Args:
@@ -257,7 +267,7 @@ class BaseAsyncGrpcClientInterceptor(
         continuation: Callable,
         call_details: grpc.aio.ClientCallDetails,
         request_iterator: Iterator[Any],
-    ):
+    ) -> AsyncClientInterceptorReturnType:
         """Intercepts an asynchronous stream-unary RPC call.
 
         Args:
@@ -275,7 +285,7 @@ class BaseAsyncGrpcClientInterceptor(
         continuation: Callable,
         call_details: grpc.aio.ClientCallDetails,
         request_iterator: Iterator[Any],
-    ):
+    ) -> AsyncClientInterceptorReturnType:
         """Intercepts an asynchronous stream-stream RPC call.
 
         Args:

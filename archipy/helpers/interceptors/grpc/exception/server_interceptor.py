@@ -50,14 +50,17 @@ class GrpcServerExceptionInterceptor(BaseGrpcServerInterceptor):
         except ValidationError as validation_error:
             BaseUtils.capture_exception(validation_error)
             self._handle_validation_error(validation_error, context)
+            raise  # This will never be reached, but satisfies MyPy
 
         except BaseError as base_error:
             BaseUtils.capture_exception(base_error)
             base_error.abort_grpc_sync(context)
+            raise  # This will never be reached, but satisfies MyPy
 
         except Exception as unexpected_error:
             BaseUtils.capture_exception(unexpected_error)
             self._handle_unexpected_error(unexpected_error, context, method_name_model)
+            raise  # This will never be reached, but satisfies MyPy
         else:
             return result
 
@@ -154,14 +157,17 @@ class AsyncGrpcServerExceptionInterceptor(BaseAsyncGrpcServerInterceptor):
         except ValidationError as validation_error:
             BaseUtils.capture_exception(validation_error)
             await self._handle_validation_error(validation_error, context)
+            raise  # This will never be reached, but satisfies MyPy
 
         except BaseError as base_error:
             BaseUtils.capture_exception(base_error)
             await base_error.abort_grpc_async(context)
+            raise  # This will never be reached, but satisfies MyPy
 
         except Exception as unexpected_error:
             BaseUtils.capture_exception(unexpected_error)
             await self._handle_unexpected_error(unexpected_error, context, method_name_model)
+            raise  # This will never be reached, but satisfies MyPy
         else:
             return result
 

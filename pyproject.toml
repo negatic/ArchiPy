@@ -347,6 +347,10 @@ disable_error_code = ["return", "misc", "no-any-return", "return-value"]  # Allo
 module = "archipy.adapters.elasticsearch.*"
 disable_error_code = ["arg-type"]  # Allow kwargs in elasticsearch client calls
 
+[[tool.mypy.overrides]]
+module = "archipy.helpers.interceptors.grpc.*"
+disable_error_code = ["misc", "no-any-return", "attr-defined", "no-untyped-call", "var-annotated"]  # Allow grpc and elasticapm untyped usage
+
 [tool.config]
 pyproject_root_var = "pyproject"
 

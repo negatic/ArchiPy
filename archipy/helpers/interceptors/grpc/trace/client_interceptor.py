@@ -22,7 +22,7 @@ class GrpcClientTraceInterceptor(BaseGrpcClientInterceptor):
     to monitor the performance of gRPC calls.
     """
 
-    def intercept(self, method: Callable, request_or_iterator: Any, call_details: grpc.ClientCallDetails):
+    def intercept(self, method: Callable, request_or_iterator: Any, call_details: grpc.ClientCallDetails) -> Any:
         """Intercepts a gRPC client call to inject the Elastic APM trace parent header and monitor performance with Sentry.
 
         Args:
@@ -66,7 +66,12 @@ class AsyncGrpcClientTraceInterceptor(BaseAsyncGrpcClientInterceptor):
     to enable distributed tracing across services.
     """
 
-    async def intercept(self, method: Callable, request_or_iterator: Any, call_details: grpc.aio.ClientCallDetails):
+    async def intercept(
+        self,
+        method: Callable,
+        request_or_iterator: Any,
+        call_details: grpc.aio.ClientCallDetails,
+    ) -> Any:
         """Intercepts an asynchronous gRPC client call to inject the Elastic APM trace parent header.
 
         Args:
