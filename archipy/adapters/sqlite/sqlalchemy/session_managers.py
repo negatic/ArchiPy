@@ -13,7 +13,7 @@ from archipy.helpers.metaclasses.singleton import Singleton
 from archipy.models.errors import DatabaseConnectionError
 
 
-class SQLiteSQLAlchemySessionManager(BaseSQLAlchemySessionManager, metaclass=Singleton):
+class SQLiteSQLAlchemySessionManager(BaseSQLAlchemySessionManager[SQLiteSQLAlchemyConfig], metaclass=Singleton):
     """Synchronous SQLAlchemy session manager for SQLite.
 
     Inherits from BaseSQLAlchemySessionManager to provide SQLite-specific session
@@ -74,7 +74,10 @@ class SQLiteSQLAlchemySessionManager(BaseSQLAlchemySessionManager, metaclass=Sin
             ) from e
 
 
-class AsyncSQLiteSQLAlchemySessionManager(AsyncBaseSQLAlchemySessionManager, metaclass=Singleton):
+class AsyncSQLiteSQLAlchemySessionManager(
+    AsyncBaseSQLAlchemySessionManager[SQLiteSQLAlchemyConfig],
+    metaclass=Singleton,
+):
     """Asynchronous SQLAlchemy session manager for SQLite.
 
     Inherits from AsyncBaseSQLAlchemySessionManager to provide async SQLite-specific

@@ -9,7 +9,7 @@ from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import SQLiteSQLAlchemyConfig
 
 
-class SQLiteSQLAlchemyAdapter(BaseSQLAlchemyAdapter):
+class SQLiteSQLAlchemyAdapter(BaseSQLAlchemyAdapter[SQLiteSQLAlchemyConfig]):
     """Synchronous SQLAlchemy adapter for SQLite.
 
     Inherits from BaseSQLAlchemyAdapter to provide SQLite-specific session management
@@ -41,7 +41,7 @@ class SQLiteSQLAlchemyAdapter(BaseSQLAlchemyAdapter):
         return SQLiteSQLAlchemySessionManager(configs)
 
 
-class AsyncSQLiteSQLAlchemyAdapter(AsyncBaseSQLAlchemyAdapter):
+class AsyncSQLiteSQLAlchemyAdapter(AsyncBaseSQLAlchemyAdapter[SQLiteSQLAlchemyConfig]):
     """Asynchronous SQLAlchemy adapter for SQLite.
 
     Inherits from AsyncBaseSQLAlchemyAdapter to provide async SQLite-specific session

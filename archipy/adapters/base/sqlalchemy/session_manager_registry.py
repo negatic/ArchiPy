@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from archipy.models.errors import (
     InternalError,
@@ -25,8 +25,8 @@ class SessionManagerRegistry:
         >>> session = sync_manager.get_session()
     """
 
-    _sync_instance = None
-    _async_instance = None
+    _sync_instance: ClassVar["SessionManagerPort | None"] = None
+    _async_instance: ClassVar["AsyncSessionManagerPort | None"] = None
 
     @classmethod
     def get_sync_manager(cls) -> "SessionManagerPort":

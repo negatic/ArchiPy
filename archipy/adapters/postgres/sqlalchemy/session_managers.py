@@ -13,7 +13,7 @@ from archipy.helpers.metaclasses.singleton import Singleton
 from archipy.models.errors import DatabaseConnectionError
 
 
-class PostgresSQlAlchemySessionManager(BaseSQLAlchemySessionManager, metaclass=Singleton):
+class PostgresSQlAlchemySessionManager(BaseSQLAlchemySessionManager[PostgresSQLAlchemyConfig], metaclass=Singleton):
     """Synchronous SQLAlchemy session manager for PostgreSQL.
 
     Inherits from BaseSQLAlchemySessionManager to provide PostgreSQL-specific session
@@ -78,7 +78,10 @@ class PostgresSQlAlchemySessionManager(BaseSQLAlchemySessionManager, metaclass=S
             ) from e
 
 
-class AsyncPostgresSQlAlchemySessionManager(AsyncBaseSQLAlchemySessionManager, metaclass=Singleton):
+class AsyncPostgresSQlAlchemySessionManager(
+    AsyncBaseSQLAlchemySessionManager[PostgresSQLAlchemyConfig],
+    metaclass=Singleton,
+):
     """Asynchronous SQLAlchemy session manager for PostgreSQL.
 
     Inherits from AsyncBaseSQLAlchemySessionManager to provide async PostgreSQL-specific

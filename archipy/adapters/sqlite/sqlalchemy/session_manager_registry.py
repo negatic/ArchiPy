@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, ClassVar, Optional
+from typing import TYPE_CHECKING
 
 from archipy.adapters.base.sqlalchemy.session_manager_registry import SessionManagerRegistry
 from archipy.helpers.metaclasses.singleton import Singleton
@@ -19,9 +19,6 @@ class SQLiteSessionManagerRegistry(SessionManagerRegistry, metaclass=Singleton):
     - A synchronous session manager (SQLiteSQLAlchemySessionManager)
     - An asynchronous session manager (AsyncSQLiteSQLAlchemySessionManager)
     """
-
-    _sync_instance: ClassVar[Optional["SessionManagerPort"]] = None
-    _async_instance: ClassVar[Optional["AsyncSessionManagerPort"]] = None
 
     @classmethod
     def get_sync_manager(cls) -> "SessionManagerPort":

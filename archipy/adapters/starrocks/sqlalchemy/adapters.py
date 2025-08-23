@@ -9,7 +9,7 @@ from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import StarRocksSQLAlchemyConfig
 
 
-class StarrocksSQLAlchemyAdapter(BaseSQLAlchemyAdapter):
+class StarrocksSQLAlchemyAdapter(BaseSQLAlchemyAdapter[StarRocksSQLAlchemyConfig]):
     """Synchronous SQLAlchemy adapter for Starrocks.
 
     Inherits from BaseSQLAlchemyAdapter to provide Starrocks-specific session management
@@ -41,7 +41,7 @@ class StarrocksSQLAlchemyAdapter(BaseSQLAlchemyAdapter):
         return StarRocksSQlAlchemySessionManager(configs)
 
 
-class AsyncStarrocksSQLAlchemyAdapter(AsyncBaseSQLAlchemyAdapter):
+class AsyncStarrocksSQLAlchemyAdapter(AsyncBaseSQLAlchemyAdapter[StarRocksSQLAlchemyConfig]):
     """Asynchronous SQLAlchemy adapter for Starrocks.
 
     Inherits from AsyncBaseSQLAlchemyAdapter to provide async Starrocks-specific session

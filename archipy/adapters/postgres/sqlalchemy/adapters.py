@@ -9,7 +9,7 @@ from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import PostgresSQLAlchemyConfig
 
 
-class PostgresSQLAlchemyAdapter(BaseSQLAlchemyAdapter):
+class PostgresSQLAlchemyAdapter(BaseSQLAlchemyAdapter[PostgresSQLAlchemyConfig]):
     """Synchronous SQLAlchemy adapter for PostgreSQL.
 
     Inherits from BaseSQLAlchemyAdapter to provide PostgreSQL-specific session management
@@ -41,7 +41,7 @@ class PostgresSQLAlchemyAdapter(BaseSQLAlchemyAdapter):
         return PostgresSQlAlchemySessionManager(configs)
 
 
-class AsyncPostgresSQLAlchemyAdapter(AsyncBaseSQLAlchemyAdapter):
+class AsyncPostgresSQLAlchemyAdapter(AsyncBaseSQLAlchemyAdapter[PostgresSQLAlchemyConfig]):
     """Asynchronous SQLAlchemy adapter for PostgreSQL.
 
     Inherits from AsyncBaseSQLAlchemyAdapter to provide async PostgreSQL-specific session

@@ -32,6 +32,7 @@ from archipy.models.types.sort_order_type import SortOrderType
 
 # Generic type variable for BaseEntity subclasses
 T = TypeVar("T", bound=BaseEntity)
+ConfigT = TypeVar("ConfigT", bound=SQLAlchemyConfig)
 
 
 class SQLAlchemyExceptionHandlerMixin:
@@ -82,7 +83,7 @@ class SQLAlchemyFilterMixin:
     def _apply_filter(
         query: Select | Update | Delete,
         field: InstrumentedAttribute,
-        value: Any,
+        value: str | int | float | bool | list | None,
         operation: FilterOperationType,
     ) -> Select | Update | Delete:
         """Apply a filter to a SQLAlchemy query based on the specified operation.
@@ -111,8 +112,12 @@ class SQLAlchemyFilterMixin:
                 case FilterOperationType.GREATER_THAN_OR_EQUAL:
                     return query.where(field >= value)
                 case FilterOperationType.IN_LIST:
+                    if not isinstance(value, list):
+                        raise InvalidArgumentError(f"IN_LIST operation requires a list, got {type(value)}")
                     return query.where(field.in_(value))
                 case FilterOperationType.NOT_IN_LIST:
+                    if not isinstance(value, list):
+                        raise InvalidArgumentError(f"NOT_IN_LIST operation requires a list, got {type(value)}")
                     return query.where(~field.in_(value))
                 case FilterOperationType.LIKE:
                     return query.where(field.like(f"%{value}%"))
@@ -193,7 +198,7 @@ class SQLAlchemySortMixin:
                 raise InvalidArgumentError(argument_name="sort_info.order")
 
 
-class BaseSQLAlchemyAdapter(
+class BaseSQLAlchemyAdapter[ConfigT: SQLAlchemyConfig](
     SQLAlchemyPort,
     SQLAlchemyPaginationMixin,
     SQLAlchemySortMixin,
@@ -209,16 +214,17 @@ class BaseSQLAlchemyAdapter(
         orm_config: Configuration for SQLAlchemy. If None, uses global config.
     """
 
-    def __init__(self, orm_config: SQLAlchemyConfig | None = None) -> None:
+    def __init__(self, orm_config: ConfigT | None = None) -> None:
         """Initialize the base adapter with a session manager.
 
         Args:
             orm_config: Configuration for SQLAlchemy. If None, uses global config.
         """
         configs = BaseConfig.global_config().SQLALCHEMY if orm_config is None else orm_config
-        self.session_manager: BaseSQLAlchemySessionManager = self._create_session_manager(configs)
+        # Cast to ConfigT since subclasses will ensure the proper type
+        self.session_manager: BaseSQLAlchemySessionManager[ConfigT] = self._create_session_manager(configs)  # type: ignore[arg-type]
 
-    def _create_session_manager(self, configs: SQLAlchemyConfig) -> BaseSQLAlchemySessionManager:
+    def _create_session_manager(self, configs: ConfigT) -> BaseSQLAlchemySessionManager[ConfigT]:
         """Create a session manager for the specific database.
 
         Args:
@@ -227,7 +233,7 @@ class BaseSQLAlchemyAdapter(
         Returns:
             A session manager instance.
         """
-        return BaseSQLAlchemySessionManager(configs)
+        raise NotImplementedError("Subclasses must implement _create_session_manager")
 
     @override
     def execute_search_query(
@@ -263,15 +269,16 @@ class BaseSQLAlchemyAdapter(
             paginated_query = self._apply_pagination(sorted_query, pagination)
             result_set = session.execute(paginated_query)
             if has_multiple_entities:
-                results = result_set.fetchall()
+                results = list(result_set.fetchall())
             else:
-                results = result_set.scalars().all()
+                results = list(result_set.scalars().all())
             count_query = select(func.count()).select_from(query.subquery())
             total_count = session.execute(count_query).scalar_one()
         except Exception as e:
             self._handle_db_exception(e, self.session_manager._get_database_name())
+            raise  # This will never be reached, but satisfies MyPy
         else:
-            return results, total_count
+            return results, total_count  # type: ignore[return-value]
 
     @override
     def get_session(self) -> Session:
@@ -317,6 +324,7 @@ class BaseSQLAlchemyAdapter(
             session.flush()
         except Exception as e:
             self._handle_db_exception(e, self.session_manager._get_database_name())
+            raise  # This will never be reached, but satisfies MyPy
         else:
             return entity
 
@@ -351,6 +359,7 @@ class BaseSQLAlchemyAdapter(
             session.flush()
         except Exception as e:
             self._handle_db_exception(e, self.session_manager._get_database_name())
+            raise  # This will never be reached, but satisfies MyPy
         else:
             return entities
 
@@ -384,6 +393,7 @@ class BaseSQLAlchemyAdapter(
             result = session.get(entity_type, entity_uuid)
         except Exception as e:
             self._handle_db_exception(e, self.session_manager._get_database_name())
+            raise  # This will never be reached, but satisfies MyPy
         else:
             return result
 
@@ -415,8 +425,6 @@ class BaseSQLAlchemyAdapter(
             session.flush()
         except Exception as e:
             self._handle_db_exception(e, self.session_manager._get_database_name())
-        else:
-            return ...
 
     @override
     def bulk_delete(self, entities: list[BaseEntity]) -> None:
@@ -447,8 +455,6 @@ class BaseSQLAlchemyAdapter(
             session.flush()
         except Exception as e:
             self._handle_db_exception(e, self.session_manager._get_database_name())
-        else:
-            return ...
 
     @override
     def execute(self, statement: Executable, params: AnyExecuteParams | None = None) -> Result[Any]:
@@ -472,6 +478,7 @@ class BaseSQLAlchemyAdapter(
             result = session.execute(statement, params or {})
         except Exception as e:
             self._handle_db_exception(e, self.session_manager._get_database_name())
+            raise  # This will never be reached, but satisfies MyPy
         else:
             return result
 
@@ -497,11 +504,12 @@ class BaseSQLAlchemyAdapter(
             result = session.scalars(statement, params or {})
         except Exception as e:
             self._handle_db_exception(e, self.session_manager._get_database_name())
+            raise  # This will never be reached, but satisfies MyPy
         else:
             return result
 
 
-class AsyncBaseSQLAlchemyAdapter(
+class AsyncBaseSQLAlchemyAdapter[ConfigT: SQLAlchemyConfig](
     AsyncSQLAlchemyPort,
     SQLAlchemyPaginationMixin,
     SQLAlchemySortMixin,
@@ -517,16 +525,17 @@ class AsyncBaseSQLAlchemyAdapter(
         orm_config: Configuration for SQLAlchemy. If None, uses global config.
     """
 
-    def __init__(self, orm_config: SQLAlchemyConfig | None = None) -> None:
+    def __init__(self, orm_config: ConfigT | None = None) -> None:
         """Initialize the base async adapter with a session manager.
 
         Args:
             orm_config: Configuration for SQLAlchemy. If None, uses global config.
         """
         configs = BaseConfig.global_config().SQLALCHEMY if orm_config is None else orm_config
-        self.session_manager: AsyncBaseSQLAlchemySessionManager = self._create_async_session_manager(configs)
+        # Cast to ConfigT since subclasses will ensure the proper type
+        self.session_manager: AsyncBaseSQLAlchemySessionManager[ConfigT] = self._create_async_session_manager(configs)  # type: ignore[arg-type]
 
-    def _create_async_session_manager(self, configs: SQLAlchemyConfig) -> AsyncBaseSQLAlchemySessionManager:
+    def _create_async_session_manager(self, configs: ConfigT) -> AsyncBaseSQLAlchemySessionManager[ConfigT]:
         """Create an async session manager for the specific database.
 
         Args:
@@ -535,7 +544,7 @@ class AsyncBaseSQLAlchemyAdapter(
         Returns:
             An async session manager instance.
         """
-        return AsyncBaseSQLAlchemySessionManager(configs)
+        raise NotImplementedError("Subclasses must implement _create_async_session_manager")
 
     @override
     async def execute_search_query(
@@ -571,16 +580,17 @@ class AsyncBaseSQLAlchemyAdapter(
             paginated_query = self._apply_pagination(sorted_query, pagination)
             result_set = await session.execute(paginated_query)
             if has_multiple_entities:
-                results = result_set.fetchall()
+                results = list(result_set.fetchall())
             else:
-                results = result_set.scalars().all()
+                results = list(result_set.scalars().all())
             count_query = select(func.count()).select_from(query.subquery())
-            total_count = await session.execute(count_query)
-            total_count = total_count.scalar_one()
+            total_count_result = await session.execute(count_query)
+            total_count = total_count_result.scalar_one()
         except Exception as e:
             self._handle_db_exception(e, self.session_manager._get_database_name())
+            raise  # This will never be reached, but satisfies MyPy
         else:
-            return results, total_count
+            return results, total_count  # type: ignore[return-value]
 
     @override
     def get_session(self) -> AsyncSession:
@@ -626,6 +636,7 @@ class AsyncBaseSQLAlchemyAdapter(
             await session.flush()
         except Exception as e:
             self._handle_db_exception(e, self.session_manager._get_database_name())
+            raise  # This will never be reached, but satisfies MyPy
         else:
             return entity
 
@@ -660,6 +671,7 @@ class AsyncBaseSQLAlchemyAdapter(
             await session.flush()
         except Exception as e:
             self._handle_db_exception(e, self.session_manager._get_database_name())
+            raise  # This will never be reached, but satisfies MyPy
         else:
             return entities
 
@@ -693,6 +705,7 @@ class AsyncBaseSQLAlchemyAdapter(
             result = await session.get(entity_type, entity_uuid)
         except Exception as e:
             self._handle_db_exception(e, self.session_manager._get_database_name())
+            raise  # This will never be reached, but satisfies MyPy
         else:
             return result
 
@@ -724,8 +737,6 @@ class AsyncBaseSQLAlchemyAdapter(
             await session.flush()
         except Exception as e:
             self._handle_db_exception(e, self.session_manager._get_database_name())
-        else:
-            return ...
 
     @override
     async def bulk_delete(self, entities: list[BaseEntity]) -> None:
@@ -756,8 +767,6 @@ class AsyncBaseSQLAlchemyAdapter(
             await session.flush()
         except Exception as e:
             self._handle_db_exception(e, self.session_manager._get_database_name())
-        else:
-            return ...
 
     @override
     async def execute(self, statement: Executable, params: AnyExecuteParams | None = None) -> Result[Any]:
@@ -781,6 +790,7 @@ class AsyncBaseSQLAlchemyAdapter(
             result = await session.execute(statement, params or {})
         except Exception as e:
             self._handle_db_exception(e, self.session_manager._get_database_name())
+            raise  # This will never be reached, but satisfies MyPy
         else:
             return result
 
@@ -806,5 +816,6 @@ class AsyncBaseSQLAlchemyAdapter(
             result = await session.scalars(statement, params or {})
         except Exception as e:
             self._handle_db_exception(e, self.session_manager._get_database_name())
+            raise  # This will never be reached, but satisfies MyPy
         else:
             return result

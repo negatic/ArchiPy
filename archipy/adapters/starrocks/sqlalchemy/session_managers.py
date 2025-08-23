@@ -13,7 +13,7 @@ from archipy.helpers.metaclasses.singleton import Singleton
 from archipy.models.errors import DatabaseConnectionError
 
 
-class StarRocksSQlAlchemySessionManager(BaseSQLAlchemySessionManager, metaclass=Singleton):
+class StarRocksSQlAlchemySessionManager(BaseSQLAlchemySessionManager[StarRocksSQLAlchemyConfig], metaclass=Singleton):
     """Synchronous SQLAlchemy session manager for StarRocks.
 
     Inherits from BaseSQLAlchemySessionManager to provide StarRocks-specific session
@@ -78,7 +78,10 @@ class StarRocksSQlAlchemySessionManager(BaseSQLAlchemySessionManager, metaclass=
             ) from e
 
 
-class AsyncStarRocksSQlAlchemySessionManager(AsyncBaseSQLAlchemySessionManager, metaclass=Singleton):
+class AsyncStarRocksSQlAlchemySessionManager(
+    AsyncBaseSQLAlchemySessionManager[StarRocksSQLAlchemyConfig],
+    metaclass=Singleton,
+):
     """Asynchronous SQLAlchemy session manager for StarRocks.
 
     Inherits from AsyncBaseSQLAlchemySessionManager to provide async StarRocks-specific

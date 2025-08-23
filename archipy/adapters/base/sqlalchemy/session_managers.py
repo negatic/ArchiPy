@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from asyncio import current_task
-from typing import override
+from typing import TypeVar, override
 
 from sqlalchemy import URL, Engine, create_engine
 from sqlalchemy.exc import SQLAlchemyError
@@ -22,8 +22,11 @@ from archipy.models.errors import (
     InvalidArgumentError,
 )
 
+# Generic type variable for SQLAlchemy configurations
+ConfigT = TypeVar("ConfigT", bound=SQLAlchemyConfig)
 
-class BaseSQLAlchemySessionManager(SessionManagerPort):
+
+class BaseSQLAlchemySessionManager[ConfigT: SQLAlchemyConfig](SessionManagerPort):
     """Base synchronous SQLAlchemy session manager.
 
     Implements the SessionManagerPort interface to provide session management for
@@ -34,7 +37,7 @@ class BaseSQLAlchemySessionManager(SessionManagerPort):
         orm_config: SQLAlchemy configuration. Must match the expected config type for the database.
     """
 
-    def __init__(self, orm_config: SQLAlchemyConfig) -> None:
+    def __init__(self, orm_config: ConfigT) -> None:
         """Initialize the base session manager.
 
         Args:
@@ -79,7 +82,22 @@ class BaseSQLAlchemySessionManager(SessionManagerPort):
         """
         pass
 
-    def _create_engine(self, configs: SQLAlchemyConfig) -> Engine:
+    @abstractmethod
+    def _create_url(self, configs: ConfigT) -> URL:
+        """Create a database connection URL.
+
+        Args:
+            configs: Database-specific configuration.
+
+        Returns:
+            A SQLAlchemy URL object for the database.
+
+        Raises:
+            DatabaseConnectionError: If there's an error creating the URL.
+        """
+        pass
+
+    def _create_engine(self, configs: ConfigT) -> Engine:
         """Create a SQLAlchemy engine with common configuration.
 
         Args:
@@ -119,21 +137,6 @@ class BaseSQLAlchemySessionManager(SessionManagerPort):
             raise DatabaseConnectionError(
                 database=self._get_database_name(),
             ) from e
-
-    @abstractmethod
-    def _create_url(self, configs: SQLAlchemyConfig) -> URL:
-        """Create a database connection URL.
-
-        Args:
-            configs: SQLAlchemy configuration.
-
-        Returns:
-            A SQLAlchemy URL object for the database.
-
-        Raises:
-            DatabaseConfigurationError: If there's an error in the database configuration.
-        """
-        pass
 
     def _get_connect_args(self) -> dict:
         """Return additional connection arguments for the engine.
@@ -209,7 +212,7 @@ class BaseSQLAlchemySessionManager(SessionManagerPort):
             ) from e
 
 
-class AsyncBaseSQLAlchemySessionManager(AsyncSessionManagerPort):
+class AsyncBaseSQLAlchemySessionManager[ConfigT: SQLAlchemyConfig](AsyncSessionManagerPort):
     """Base asynchronous SQLAlchemy session manager.
 
     Implements the AsyncSessionManagerPort interface to provide session management for
@@ -220,7 +223,7 @@ class AsyncBaseSQLAlchemySessionManager(AsyncSessionManagerPort):
         orm_config: SQLAlchemy configuration. Must match the expected config type for the database.
     """
 
-    def __init__(self, orm_config: SQLAlchemyConfig) -> None:
+    def __init__(self, orm_config: ConfigT) -> None:
         """Initialize the base async session manager.
 
         Args:
@@ -265,7 +268,22 @@ class AsyncBaseSQLAlchemySessionManager(AsyncSessionManagerPort):
         """
         pass
 
-    def _create_async_engine(self, configs: SQLAlchemyConfig) -> AsyncEngine:
+    @abstractmethod
+    def _create_url(self, configs: ConfigT) -> URL:
+        """Create a database connection URL.
+
+        Args:
+            configs: Database-specific configuration.
+
+        Returns:
+            A SQLAlchemy URL object for the database.
+
+        Raises:
+            DatabaseConnectionError: If there's an error creating the URL.
+        """
+        pass
+
+    def _create_async_engine(self, configs: ConfigT) -> AsyncEngine:
         """Create an async SQLAlchemy engine with common configuration.
 
         Args:
@@ -305,21 +323,6 @@ class AsyncBaseSQLAlchemySessionManager(AsyncSessionManagerPort):
             raise DatabaseConnectionError(
                 database=self._get_database_name(),
             ) from e
-
-    @abstractmethod
-    def _create_url(self, configs: SQLAlchemyConfig) -> URL:
-        """Create a database connection URL.
-
-        Args:
-            configs: SQLAlchemy configuration.
-
-        Returns:
-            A SQLAlchemy URL object for the database.
-
-        Raises:
-            DatabaseConfigurationError: If there's an error in the database configuration.
-        """
-        pass
 
     def _get_connect_args(self) -> dict:
         """Return additional connection arguments for the engine.

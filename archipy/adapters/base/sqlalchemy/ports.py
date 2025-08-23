@@ -3,7 +3,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Executable, Select
+from sqlalchemy import Executable, Result, ScalarResult, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -115,7 +115,7 @@ class SQLAlchemyPort:
         raise NotImplementedError
 
     @abstractmethod
-    def execute(self, statement: Executable, params: AnyExecuteParams | None = None) -> Any:
+    def execute(self, statement: Executable, params: AnyExecuteParams | None = None) -> Result[Any]:
         """Executes a raw SQL statement.
 
         Args:
@@ -128,7 +128,7 @@ class SQLAlchemyPort:
         raise NotImplementedError
 
     @abstractmethod
-    def scalars(self, statement: Executable, params: AnyExecuteParams | None = None) -> Any:
+    def scalars(self, statement: Executable, params: AnyExecuteParams | None = None) -> ScalarResult[Any]:
         """Executes a statement and returns the scalar result.
 
         Args:
@@ -240,7 +240,7 @@ class AsyncSQLAlchemyPort:
         raise NotImplementedError
 
     @abstractmethod
-    async def execute(self, statement: Executable, params: AnyExecuteParams | None = None) -> Any:
+    async def execute(self, statement: Executable, params: AnyExecuteParams | None = None) -> Result[Any]:
         """Executes a raw SQL statement asynchronously.
 
         Args:
@@ -253,7 +253,7 @@ class AsyncSQLAlchemyPort:
         raise NotImplementedError
 
     @abstractmethod
-    async def scalars(self, statement: Executable, params: AnyExecuteParams | None = None) -> Any:
+    async def scalars(self, statement: Executable, params: AnyExecuteParams | None = None) -> ScalarResult[Any]:
         """Executes a statement and returns the scalar result asynchronously.
 
         Args:

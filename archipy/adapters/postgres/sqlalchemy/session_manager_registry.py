@@ -20,9 +20,6 @@ class PostgresSessionManagerRegistry(SessionManagerRegistry, metaclass=Singleton
     - An asynchronous session manager (AsyncPostgresSQlAlchemySessionManager)
     """
 
-    _sync_instance: "SessionManagerPort | None" = None
-    _async_instance: "AsyncSessionManagerPort | None" = None
-
     @classmethod
     def get_sync_manager(cls) -> "SessionManagerPort":
         """Get the synchronous PostgreSQL session manager instance.
