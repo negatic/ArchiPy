@@ -5,7 +5,6 @@ from contextvars import ContextVar
 from typing import Any
 
 try:
-    import grpc
     from grpc import ServicerContext
     from grpc.aio import ServicerContext as AsyncServicerContext
 
@@ -116,18 +115,21 @@ class KeycloakUtils:
             request: Request,
             token: HTTPAuthorizationCredentials = Security(security),
             keycloak: KeycloakAdapter = Depends(cls._get_keycloak_adapter),
-        ) -> dict:
+        ) -> dict[str, Any]:
             if token is None:
                 raise UnauthenticatedError(lang=lang)
             token_str = token.credentials  # Extract the token string
             # Validate token
             if not keycloak.validate_token(token_str):
                 token_info = keycloak.introspect_token(token_str)
-                if not token_info.get("active", False):
+                if not token_info or not token_info.get("active", False):
                     raise TokenExpiredError(lang=lang)
 
             # Get user info from token
             user_info = keycloak.get_userinfo(token_str)
+            if not user_info:
+                raise UnauthenticatedError(lang=lang)
+
             token_info = keycloak.get_token_info(token_str)
 
             # Resource-based authorization if resource type is provided
@@ -219,7 +221,7 @@ class KeycloakUtils:
             request: Request,
             token: HTTPAuthorizationCredentials = Security(security),
             keycloak: AsyncKeycloakAdapter = Depends(cls._get_async_keycloak_adapter),
-        ) -> dict:
+        ) -> dict[str, Any]:
             if token is None:
                 raise UnauthenticatedError(lang=lang)
             token_str = token.credentials  # Extract the token string
@@ -228,11 +230,14 @@ class KeycloakUtils:
             if not await keycloak.validate_token(token_str):
                 # Handle token validation error
                 token_info = await keycloak.introspect_token(token_str)
-                if not token_info.get("active", False):
+                if not token_info or not token_info.get("active", False):
                     raise TokenExpiredError(lang=lang)
 
             # Get user info from token
             user_info = await keycloak.get_userinfo(token_str)
+            if not user_info:
+                raise UnauthenticatedError(lang=lang)
+
             token_info = await keycloak.get_token_info(token_str)
 
             # Resource-based authorization if resource type is provided
@@ -287,6 +292,8 @@ class KeycloakUtils:
             # Add user info to request state
             request.state.user_info = user_info
             request.state.token_info = token_info
+            if not user_info:
+                raise UnauthenticatedError(lang=lang)
             return user_info
 
         return dependency
@@ -302,11 +309,11 @@ class KeycloakUtils:
             if key in metadata:
                 auth_value = metadata[key]
                 if auth_value.startswith("Bearer "):
-                    return auth_value[7:]
+                    return str(auth_value[7:])
                 elif auth_value.startswith("bearer "):
-                    return auth_value[7:]
+                    return str(auth_value[7:])
                 else:
-                    return auth_value
+                    return str(auth_value)
 
         return None
 
@@ -356,11 +363,13 @@ class KeycloakUtils:
                     # 3. Validate token
                     if not keycloak.validate_token(token_str):
                         token_info = keycloak.introspect_token(token_str)
-                        if not token_info.get("active", False):
+                        if not token_info or not token_info.get("active", False):
                             raise TokenExpiredError(lang=lang)
 
                     # 4. Get user info from token
                     user_info = keycloak.get_userinfo(token_str)
+                    if not user_info:
+                        raise UnauthenticatedError(lang=lang)
 
                     # 5. Resource-based authorization if resource_attribute_name is provided
                     if resource_attribute_name:
@@ -494,11 +503,13 @@ class KeycloakUtils:
                     # 3. Validate token
                     if not await keycloak.validate_token(token_str):
                         token_info = await keycloak.introspect_token(token_str)
-                        if not token_info.get("active", False):
+                        if not token_info or not token_info.get("active", False):
                             raise TokenExpiredError(lang=lang)
 
                     # 4. Get user info from token
                     user_info = await keycloak.get_userinfo(token_str)
+                    if not user_info:
+                        raise UnauthenticatedError(lang=lang)
 
                     # 5. Resource-based authorization if resource_attribute_name is provided
                     if resource_attribute_name:
@@ -573,10 +584,12 @@ class KeycloakUtils:
                 except Exception as e:
                     if isinstance(e, BaseError):
                         await e.abort_grpc_async(context)
+                        return None  # abort_grpc_async will terminate, but satisfy type checker
                     await InternalError(
                         lang=lang,
                         additional_data={"original_error": str(e), "error_type": type(e).__name__},
                     ).abort_grpc_async(context)
+                    return None  # abort_grpc_async will terminate, but satisfy type checker
 
                 finally:
                     # Clean up auth context

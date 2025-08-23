@@ -1,5 +1,5 @@
 import re
-from re import compile
+from re import compile as re_compile
 
 from archipy.helpers.utils.string_utils_constants import StringUtilsConstants
 
@@ -169,7 +169,7 @@ class StringUtils(StringUtilsConstants):
             str: The text with URLs masked.
         """
         mask = mask or "MASK_URL"
-        return compile(r"https?://\S+|www\.\S+").sub(f" {mask} ", text)
+        return re_compile(r"https?://\S+|www\.\S+").sub(f" {mask} ", text)
 
     @classmethod
     def mask_emails(cls, text: str, mask: str | None = None) -> str:
@@ -183,7 +183,7 @@ class StringUtils(StringUtilsConstants):
             str: The text with email addresses masked.
         """
         mask = mask or "MASK_EMAIL"
-        return compile(r"\S+@\S+\.\S+").sub(f" {mask} ", text)
+        return re_compile(r"\S+@\S+\.\S+").sub(f" {mask} ", text)
 
     @classmethod
     def mask_phones(cls, text: str, mask: str | None = None) -> str:
@@ -197,7 +197,7 @@ class StringUtils(StringUtilsConstants):
             str: The text with phone numbers masked.
         """
         mask = mask or "MASK_PHONE"
-        return compile(r"(?:\+98|0)?(?:\d{3}\s*?\d{3}\s*?\d{4})").sub(f" {mask} ", text)
+        return re_compile(r"(?:\+98|0)?(?:\d{3}\s*?\d{3}\s*?\d{4})").sub(f" {mask} ", text)
 
     @classmethod
     def convert_english_number_to_persian(cls, text: str) -> str:
@@ -308,7 +308,7 @@ class StringUtils(StringUtilsConstants):
             str: The text with currency symbols and amounts masked.
         """
         mask = mask or "MASK_CURRENCIES"
-        currency_pattern = compile(r"(\\|zł|£|\$|₡|₦|¥|₩|₪|₫|€|₱|₲|₴|₹|﷼)+")
+        currency_pattern = re_compile(r"(\\|zł|£|\$|₡|₦|¥|₩|₪|₫|€|₱|₲|₴|₹|﷼)+")
         return currency_pattern.sub(f" {mask} ", text)
 
     @classmethod

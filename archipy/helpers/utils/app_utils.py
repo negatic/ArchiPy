@@ -166,7 +166,7 @@ class FastAPIUtils:
             from elasticapm.contrib.starlette import ElasticAPM, make_apm_client
 
             apm_client = make_apm_client(config.ELASTIC_APM.model_dump())
-            app.add_middleware(ElasticAPM, client=apm_client)
+            app.add_middleware(ElasticAPM, client=apm_client)  # type: ignore[arg-type]
         except Exception:
             logging.exception("Failed to initialize Elastic APM")
 

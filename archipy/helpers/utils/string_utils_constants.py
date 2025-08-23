@@ -1,11 +1,22 @@
-from re import compile
+import re
+from re import compile as re_compile
 
 
-def compile_patterns(patterns):
-    return [(compile(pattern), repl) for pattern, repl in patterns]
+def compile_patterns(patterns: list[tuple[str, str]]) -> list[tuple[re.Pattern[str], str]]:
+    """Compile regex patterns with their replacement strings.
+
+    Args:
+        patterns: List of tuples containing (pattern, replacement) pairs.
+
+    Returns:
+        List of tuples containing (compiled_pattern, replacement) pairs.
+    """
+    return [(re_compile(pattern), repl) for pattern, repl in patterns]
 
 
 class StringUtilsConstants:
+    """Constants for string utility operations including translation tables and regex patterns."""
+
     arabic_vowel_translate_table = str.maketrans(
         dict.fromkeys(
             "\u064e\u064f\u0650\u0652\u0651\u0653\u064b\u064c\u0621\u064d\u0670"  # Normal vowels (Fatha, Damma, Kasra, etc)
