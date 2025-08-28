@@ -77,10 +77,9 @@ class JWTUtils:
             to_encode.update(additional_claims)
 
         # Validate SECRET_KEY
-        arg_secret_key = "SECRET_KEY"
         secret_key = configs.SECRET_KEY
         if secret_key is None:
-            raise InvalidArgumentError(arg_secret_key)
+            raise InvalidArgumentError("SECRET_KEY")
         return jwt.encode(to_encode, secret_key.get_secret_value(), algorithm=configs.HASH_ALGORITHM)
 
     @classmethod
@@ -183,10 +182,9 @@ class JWTUtils:
 
         try:
             # Validate SECRET_KEY
-            arg_secret_key = "SECRET_KEY"
             secret_key = configs.SECRET_KEY
             if secret_key is None:
-                raise InvalidArgumentError(arg_secret_key)
+                raise InvalidArgumentError("SECRET_KEY")
 
             payload = jwt.decode(
                 token,
