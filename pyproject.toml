@@ -42,33 +42,7 @@ starrocks-async = ["starrocks (>=1.2.2,<2.0.0)", "aiomysql (>=0.2.0,<0.3.0)"]
 elasticsearch = ["elasticsearch (>=9.0.2,<10.0.0)"]
 elasticsearch-async = ["elasticsearch[async] (>=9.0.2,<10.0.0)"]
 testcontainers = ["testcontainers (>=4.12.0,<5.0.0)"]
-behave = ["behave (>=1.3.0)"]
-# Development dependencies
-dev = [
-    "pytest>=8.4.1",
-    "pytest-asyncio>=0.23.8",
-    "private-package>=1.1.0",
-    "pre-commit>=3.8.0",
-    "pre-commit-hooks>=4.6.0",
-    "codespell>=2.4.1",
-    "ruff>=0.7.4",
-    "black>=24.10.0",
-    "add-trailing-comma>=3.2.0",
-    "validate-pyproject>=0.18",
-    "mypy>=1.17.0",
-    "types-cachetools>=5.5.0.20240820",
-    "bandit>=1.7.8",
-]
-
-# Documentation dependencies
-docs = [
-    "mkdocs>=1.6.1",
-    "mkdocs-material>=9.6.7",
-    "pymdown-extensions>=10.14.3",
-    "mkdocstrings>=0.28.2",
-    "mkdocstrings-python>=1.16.2",
-    "mkdocs-autorefs>=1.4.0",
-]
+behave = ["behave (>=1.3.1)"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -85,6 +59,35 @@ filterwarnings = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=3.8.0",
+    "pre-commit-hooks>=4.6.0",
+    "codespell>=2.4.1",
+    "ruff>=0.7.4",
+    "black>=24.10.0",
+    "add-trailing-comma>=3.2.0",
+    "validate-pyproject>=0.18",
+    "mypy>=1.17.0",
+    "types-cachetools>=5.5.0.20240820",
+    "bandit>=1.7.8",
+    "types-protobuf>=6.30.2.20250822",
+    "types-requests>=2.32.4.20250809",
+    "types-regex>=2025.7.34.20250809",
+    "types-grpcio>=1.0.0.20250703",
+    "types-pymysql>=1.1.0.20250822",
+]
+
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.6.7",
+    "pymdown-extensions>=10.14.3",
+    "mkdocstrings>=0.28.2",
+    "mkdocstrings-python>=1.16.2",
+    "mkdocs-autorefs>=1.4.0",
+]
+
 
 [project.urls]
 Homepage = "https://syntaxarc.github.io/ArchiPy/"
@@ -320,11 +323,8 @@ module = [
     "confluent_kafka.*", # Apply overrides to Kafka
     "confluent_kafka.admin.*", # Apply overrides to Kafka
     "features.*", # Apply overrides to features files
-    "google.protobuf.*", # Apply overrides to protobuf
-    "grpc.*", # Apply overrides to gRPC
     "jdatetime.*", # Apply overrides to jdatetime
     "redis.*", # Apply overrides to Redis
-    "requests.*", # Apply overrides to requests
     "scripts.*", # Apply overrides to script files
     "sentry_sdk.*", # Apply overrides to sentry-sdk
 ]

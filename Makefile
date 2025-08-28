@@ -38,7 +38,7 @@ install: ## Install project dependencies
 .PHONY: install-dev
 install-dev: ## Install project dependencies with dev extras
 	@echo "${BLUE}Installing project dependencies with dev extras...${NC}"
-	$(UV) sync --all-extras
+	$(UV) sync --all-extras --all-groups
 	$(PRE_COMMIT) install
 
 .PHONY: update
@@ -143,7 +143,7 @@ check: lint security behave ## Run all checks (linting, security, and tests)
 ci: ## Run CI pipeline locally
 	@echo "${BLUE}Running CI pipeline...${NC}"
 	$(MAKE) clean
-	$(MAKE) install
+	$(MAKE) install-dev
 	$(MAKE) lint
 	$(MAKE) security
 	$(MAKE) behave
@@ -152,16 +152,16 @@ ci: ## Run CI pipeline locally
 .PHONY: docs-serve
 docs-serve: ## Serve MkDocs documentation locally
 	@echo "${BLUE}Serving documentation...${NC}"
-	$(UV) run --extra docs mkdocs serve
+	$(UV) run --group docs mkdocs serve
 
 .PHONY: docs-build
 docs-build: ## Build MkDocs documentation
 	@echo "${BLUE}Building documentation...${NC}"
-	$(UV) run --extra docs mkdocs build
+	$(UV) run --group docs mkdocs build
 
 .PHONY: docs-deploy
 docs-deploy: ## Deploy MkDocs to GitHub Pages
 	@echo "${BLUE}Deploying documentation...${NC}"
-	$(UV) run --extra docs mkdocs gh-deploy --force
+	$(UV) run --group docs mkdocs gh-deploy --force
 
 .DEFAULT_GOAL := help

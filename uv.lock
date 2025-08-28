@@ -179,29 +179,6 @@ cache = [
 dependency-injection = [
     { name = "dependency-injector" },
 ]
-dev = [
-    { name = "add-trailing-comma" },
-    { name = "bandit" },
-    { name = "black" },
-    { name = "codespell" },
-    { name = "mypy" },
-    { name = "pre-commit" },
-    { name = "pre-commit-hooks" },
-    { name = "private-package" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "ruff" },
-    { name = "types-cachetools" },
-    { name = "validate-pyproject" },
-]
-docs = [
-    { name = "mkdocs" },
-    { name = "mkdocs-autorefs" },
-    { name = "mkdocs-material" },
-    { name = "mkdocstrings" },
-    { name = "mkdocstrings-python" },
-    { name = "pymdown-extensions" },
-]
 elastic-apm = [
     { name = "elastic-apm" },
 ]
@@ -275,22 +252,45 @@ testcontainers = [
     { name = "testcontainers" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "add-trailing-comma" },
+    { name = "bandit" },
+    { name = "black" },
+    { name = "codespell" },
+    { name = "mypy" },
+    { name = "pre-commit" },
+    { name = "pre-commit-hooks" },
+    { name = "ruff" },
+    { name = "types-cachetools" },
+    { name = "types-grpcio" },
+    { name = "types-protobuf" },
+    { name = "types-pymysql" },
+    { name = "types-regex" },
+    { name = "types-requests" },
+    { name = "validate-pyproject" },
+]
+docs = [
+    { name = "mkdocs" },
+    { name = "mkdocs-autorefs" },
+    { name = "mkdocs-material" },
+    { name = "mkdocstrings" },
+    { name = "mkdocstrings-python" },
+    { name = "pymdown-extensions" },
+]
+
 [package.metadata]
 requires-dist = [
-    { name = "add-trailing-comma", marker = "extra == 'dev'", specifier = ">=3.2.0" },
     { name = "aiomysql", marker = "extra == 'starrocks-async'", specifier = ">=0.2.0,<0.3.0" },
     { name = "aiosqlite", marker = "extra == 'aiosqlite'", specifier = ">=0.21.0" },
     { name = "apscheduler", marker = "extra == 'scheduler'", specifier = ">=3.11.0" },
     { name = "async-lru", marker = "extra == 'cache'", specifier = ">=2.0.5,<3.0.0" },
     { name = "async-lru", marker = "extra == 'keycloak'", specifier = ">=2.0.5,<3.0.0" },
     { name = "async-lru", marker = "extra == 'minio'", specifier = ">=2.0.5,<3.0.0" },
-    { name = "bandit", marker = "extra == 'dev'", specifier = ">=1.7.8" },
-    { name = "behave", marker = "extra == 'behave'", specifier = ">=1.3.0" },
-    { name = "black", marker = "extra == 'dev'", specifier = ">=24.10.0" },
+    { name = "behave", marker = "extra == 'behave'", specifier = ">=1.3.1" },
     { name = "cachetools", marker = "extra == 'cache'", specifier = ">=5.5.2,<6.0.0" },
     { name = "cachetools", marker = "extra == 'keycloak'", specifier = ">=5.5.2,<6.0.0" },
     { name = "cachetools", marker = "extra == 'minio'", specifier = ">=5.5.2,<6.0.0" },
-    { name = "codespell", marker = "extra == 'dev'", specifier = ">=2.4.1" },
     { name = "confluent-kafka", marker = "extra == 'kafka'", specifier = ">=2.11.0,<3.0.0" },
     { name = "dependency-injector", marker = "extra == 'dependency-injection'", specifier = ">=4.48.1" },
     { name = "elastic-apm", marker = "extra == 'elastic-apm'", specifier = ">=6.23.0" },
@@ -303,40 +303,52 @@ requires-dist = [
     { name = "jdatetime", specifier = ">=5.2.0,<6.0.0" },
     { name = "kavenegar", marker = "extra == 'kavenegar'", specifier = ">=1.1.2" },
     { name = "minio", marker = "extra == 'minio'", specifier = ">=7.2.15,<8.0.0" },
-    { name = "mkdocs", marker = "extra == 'docs'", specifier = ">=1.6.1" },
-    { name = "mkdocs-autorefs", marker = "extra == 'docs'", specifier = ">=1.4.0" },
-    { name = "mkdocs-material", marker = "extra == 'docs'", specifier = ">=9.6.7" },
-    { name = "mkdocstrings", marker = "extra == 'docs'", specifier = ">=0.28.2" },
-    { name = "mkdocstrings-python", marker = "extra == 'docs'", specifier = ">=1.16.2" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.17.0" },
-    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.8.0" },
-    { name = "pre-commit-hooks", marker = "extra == 'dev'", specifier = ">=4.6.0" },
-    { name = "private-package", marker = "extra == 'dev'", specifier = ">=1.1.0" },
     { name = "prometheus-client", marker = "extra == 'prometheus'", specifier = ">=0.22.1" },
     { name = "protobuf", marker = "extra == 'grpc'", specifier = ">=6.31.1" },
     { name = "psycopg", extras = ["binary", "pool"], marker = "extra == 'postgres'", specifier = ">=3.2.9" },
     { name = "pydantic", specifier = ">=2.11.7" },
     { name = "pydantic-settings", specifier = ">=2.10.1" },
     { name = "pyjwt", marker = "extra == 'jwt'", specifier = ">=2.10.1" },
-    { name = "pymdown-extensions", marker = "extra == 'docs'", specifier = ">=10.14.3" },
     { name = "pymysql", marker = "extra == 'starrocks'", specifier = ">=1.1.1,<2.0.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.4.1" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23.8" },
     { name = "python-keycloak", marker = "extra == 'keycloak'", specifier = ">=5.7.0,<6.0.0" },
     { name = "redis", marker = "extra == 'redis'", specifier = ">=6.2.0" },
     { name = "requests", specifier = ">=2.32.4,<3.0.0" },
     { name = "requests", extras = ["socks"], marker = "extra == 'parsian-ipg'", specifier = ">=2.32.4,<3.0.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.7.4" },
     { name = "sentry-sdk", marker = "extra == 'sentry'", specifier = ">=2.33.0" },
     { name = "sqlalchemy", marker = "extra == 'sqlalchemy'", specifier = ">=2.0.41" },
     { name = "starrocks", marker = "extra == 'starrocks'", specifier = ">=1.2.2,<2.0.0" },
     { name = "starrocks", marker = "extra == 'starrocks-async'", specifier = ">=1.2.2,<2.0.0" },
     { name = "testcontainers", marker = "extra == 'testcontainers'", specifier = ">=4.12.0,<5.0.0" },
-    { name = "types-cachetools", marker = "extra == 'dev'", specifier = ">=5.5.0.20240820" },
-    { name = "validate-pyproject", marker = "extra == 'dev'", specifier = ">=0.18" },
     { name = "zeep", marker = "extra == 'parsian-ipg'", specifier = ">=4.3.1,<5.0.0" },
 ]
-provides-extras = ["aiosqlite", "cache", "dependency-injection", "elastic-apm", "fakeredis", "fastapi", "grpc", "jwt", "kafka", "kavenegar", "keycloak", "minio", "parsian-ipg", "postgres", "prometheus", "redis", "scheduler", "sentry", "sqlalchemy", "starrocks", "starrocks-async", "elasticsearch", "elasticsearch-async", "testcontainers", "behave", "dev", "docs"]
+provides-extras = ["aiosqlite", "cache", "dependency-injection", "elastic-apm", "fakeredis", "fastapi", "grpc", "jwt", "kafka", "kavenegar", "keycloak", "minio", "parsian-ipg", "postgres", "prometheus", "redis", "scheduler", "sentry", "sqlalchemy", "starrocks", "starrocks-async", "elasticsearch", "elasticsearch-async", "testcontainers", "behave"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "add-trailing-comma", specifier = ">=3.2.0" },
+    { name = "bandit", specifier = ">=1.7.8" },
+    { name = "black", specifier = ">=24.10.0" },
+    { name = "codespell", specifier = ">=2.4.1" },
+    { name = "mypy", specifier = ">=1.17.0" },
+    { name = "pre-commit", specifier = ">=3.8.0" },
+    { name = "pre-commit-hooks", specifier = ">=4.6.0" },
+    { name = "ruff", specifier = ">=0.7.4" },
+    { name = "types-cachetools", specifier = ">=5.5.0.20240820" },
+    { name = "types-grpcio", specifier = ">=1.0.0.20250703" },
+    { name = "types-protobuf", specifier = ">=6.30.2.20250822" },
+    { name = "types-pymysql", specifier = ">=1.1.0.20250822" },
+    { name = "types-regex", specifier = ">=2025.7.34.20250809" },
+    { name = "types-requests", specifier = ">=2.32.4.20250809" },
+    { name = "validate-pyproject", specifier = ">=0.18" },
+]
+docs = [
+    { name = "mkdocs", specifier = ">=1.6.1" },
+    { name = "mkdocs-autorefs", specifier = ">=1.4.0" },
+    { name = "mkdocs-material", specifier = ">=9.6.7" },
+    { name = "mkdocstrings", specifier = ">=0.28.2" },
+    { name = "mkdocstrings-python", specifier = ">=1.16.2" },
+    { name = "pymdown-extensions", specifier = ">=10.14.3" },
+]
 
 [[package]]
 name = "argon2-cffi"
@@ -1108,15 +1120,6 @@ wheels = [
 ]
 
 [[package]]
-name = "iniconfig"
-version = "2.1.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f2/97/ebf4da567aa6827c909642694d71c9fcf53e5b504f2d96afea02718862f3/iniconfig-2.1.0.tar.gz", hash = "sha256:3abbd2e30b36733fee78f9c7f7308f2d0050e88f0087fd25c2645f63c773e1c7", size = 4793, upload-time = "2025-03-19T20:09:59.721Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/2c/e1/e6716421ea10d38022b952c159d5161ca1193197fb744506875fbb87ea7b/iniconfig-2.1.0-py3-none-any.whl", hash = "sha256:9deba5723312380e77435581c6bf4935c94cbfab9b1ed33ef8d238ea168eb760", size = 6050, upload-time = "2025-03-19T20:10:01.071Z" },
-]
-
-[[package]]
 name = "isodate"
 version = "0.7.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1617,15 +1620,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pluggy"
-version = "1.6.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f9/e2/3e91f31a7d2b083fe6ef3fa267035b518369d9511ffab804f839851d2779/pluggy-1.6.0.tar.gz", hash = "sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3", size = 69412, upload-time = "2025-05-15T12:30:07.975Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl", hash = "sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746", size = 20538, upload-time = "2025-05-15T12:30:06.134Z" },
-]
-
-[[package]]
 name = "pre-commit"
 version = "4.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1651,15 +1645,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/36/4d/93e63e48f8fd16d6c1e4cef5dabadcade4d1325c7fd6f29f075a4d2284f3/pre_commit_hooks-6.0.0.tar.gz", hash = "sha256:76d8370c006f5026cdd638a397a678d26dda735a3c88137e05885a020f824034", size = 28293, upload-time = "2025-08-09T19:25:04.6Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/12/46/eba9be9daa403fa94854ce16a458c29df9a01c6c047931c3d8be6016cd9a/pre_commit_hooks-6.0.0-py2.py3-none-any.whl", hash = "sha256:76161b76d321d2f8ee2a8e0b84c30ee8443e01376121fd1c90851e33e3bd7ee2", size = 41338, upload-time = "2025-08-09T19:25:03.513Z" },
-]
-
-[[package]]
-name = "private-package"
-version = "1.1.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/1d/3b/9f42ea89ecd065495c617ef7a91bb1f12fdc30d5899b2225118189907258/private_package-1.1.1.tar.gz", hash = "sha256:003ac2dab96bf3990809b2f936f0f90da48dceecda81bc00efa96c747fad5274", size = 2860, upload-time = "2024-06-25T10:41:26.485Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/37/30/310c4cb2ba664118ba1a945d9f7e372af679881f532dfd07da8b8bc443df/private_package-1.1.1-py3-none-any.whl", hash = "sha256:fb4c6b0aab159d6272437edf467da61bc5c2f8e6b7b37c9a7fc5d0e3523e348e", size = 3799, upload-time = "2024-06-25T10:41:24.498Z" },
 ]
 
 [[package]]
@@ -1937,34 +1922,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/bd/11/293dd436aea955d45fc4e8a35b6ae7270f5b8e00b53cf6c024c83b657a11/PySocks-1.7.1.tar.gz", hash = "sha256:3f8804571ebe159c380ac6de37643bb4685970655d3bba243530d6558b799aa0", size = 284429, upload-time = "2019-09-20T02:07:35.714Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8d/59/b4572118e098ac8e46e399a1dd0f2d85403ce8bbaad9ec79373ed6badaf9/PySocks-1.7.1-py3-none-any.whl", hash = "sha256:2725bd0a9925919b9b51739eea5f9e2bae91e83288108a9ad338b2e3a4435ee5", size = 16725, upload-time = "2019-09-20T02:06:22.938Z" },
-]
-
-[[package]]
-name = "pytest"
-version = "8.4.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32'" },
-    { name = "iniconfig" },
-    { name = "packaging" },
-    { name = "pluggy" },
-    { name = "pygments" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/08/ba/45911d754e8eba3d5a841a5ce61a65a685ff1798421ac054f85aa8747dfb/pytest-8.4.1.tar.gz", hash = "sha256:7c67fd69174877359ed9371ec3af8a3d2b04741818c51e5e99cc1742251fa93c", size = 1517714, upload-time = "2025-06-18T05:48:06.109Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/29/16/c8a903f4c4dffe7a12843191437d7cd8e32751d5de349d45d3fe69544e87/pytest-8.4.1-py3-none-any.whl", hash = "sha256:539c70ba6fcead8e78eebbf1115e8b589e7565830d7d006a8723f19ac8a0afb7", size = 365474, upload-time = "2025-06-18T05:48:03.955Z" },
-]
-
-[[package]]
-name = "pytest-asyncio"
-version = "1.1.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pytest" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/4e/51/f8794af39eeb870e87a8c8068642fc07bce0c854d6865d7dd0f2a9d338c2/pytest_asyncio-1.1.0.tar.gz", hash = "sha256:796aa822981e01b68c12e4827b8697108f7205020f24b5793b3c41555dab68ea", size = 46652, upload-time = "2025-07-16T04:29:26.393Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/c7/9d/bf86eddabf8c6c9cb1ea9a869d6873b46f105a5d292d3a6f7071f5b07935/pytest_asyncio-1.1.0-py3-none-any.whl", hash = "sha256:5fe2d69607b0bd75c656d1211f969cadba035030156745ee09e7d71740e58ecf", size = 15157, upload-time = "2025-07-16T04:29:24.929Z" },
 ]
 
 [[package]]
@@ -2410,6 +2367,54 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/5a/14/e98ea3b3fda81787659268bbf09dec56961c39db060fdca74cb521df0515/types_cachetools-6.1.0.20250717.tar.gz", hash = "sha256:4acc8e25de9f5f84dd176ea81dcffa7cb24393869bb2e59e692dfd0139a1e66f", size = 9105, upload-time = "2025-07-17T03:20:48.482Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/61/bb/554208964e901e9e1992a7ea0bcab1590a4b2e94d20a9e6200826110ec89/types_cachetools-6.1.0.20250717-py3-none-any.whl", hash = "sha256:bba4b8d42262460d24e570097d2d9040e60311934603caa642efd971f3658ed0", size = 8940, upload-time = "2025-07-17T03:20:47.375Z" },
+]
+
+[[package]]
+name = "types-grpcio"
+version = "1.0.0.20250703"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/59/17/c80b7231e337993b808aef32bcc556aad60810ca51eeb7acd1204eefe518/types_grpcio-1.0.0.20250703.tar.gz", hash = "sha256:baf100184e5353cb60f045fb4fd47f37a360bedf0f19581535e4c3a3a1f7912b", size = 14552, upload-time = "2025-07-03T03:14:01.923Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b9/e2/9c682ba59a7f9cf477bc7954c25ce1c20f881693651f354d15df577996c0/types_grpcio-1.0.0.20250703-py3-none-any.whl", hash = "sha256:78d1bfc33b58a56697ef99e666e34be4c6887631341c75fdd28d58587aef5d9f", size = 15274, upload-time = "2025-07-03T03:14:00.907Z" },
+]
+
+[[package]]
+name = "types-protobuf"
+version = "6.30.2.20250822"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/61/68/0c7144be5c6dc16538e79458839fc914ea494481c7e64566de4ecc0c3682/types_protobuf-6.30.2.20250822.tar.gz", hash = "sha256:faacbbe87bd8cba4472361c0bd86f49296bd36f7761e25d8ada4f64767c1bde9", size = 62379, upload-time = "2025-08-22T03:01:56.572Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/52/64/b926a6355993f712d7828772e42b9ae942f2d306d25072329805c374e729/types_protobuf-6.30.2.20250822-py3-none-any.whl", hash = "sha256:5584c39f7e36104b5f8bdfd31815fa1d5b7b3455a79ddddc097b62320f4b1841", size = 76523, upload-time = "2025-08-22T03:01:55.157Z" },
+]
+
+[[package]]
+name = "types-pymysql"
+version = "1.1.0.20250822"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/9d/33/e4ea1c4a0aa4c8580cf493ad2369d6b4230e49b1e92bd31cd500eea07b41/types_pymysql-1.1.0.20250822.tar.gz", hash = "sha256:18448c957360b3d21dea75a651e81209b75c1d647ad58a9984af8b2b1b255a5c", size = 21735, upload-time = "2025-08-22T03:02:55.903Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ab/c0/fcfc61e43c7dc59106092b5cb39e6d5613ff594f51d5fed0d1e19a7bcf26/types_pymysql-1.1.0.20250822-py3-none-any.whl", hash = "sha256:d506556cbb0d4b5122e4b209c2d6c1156b408f5b89a2d958b85b5b89ada01bc6", size = 22816, upload-time = "2025-08-22T03:02:54.908Z" },
+]
+
+[[package]]
+name = "types-regex"
+version = "2025.7.34.20250809"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ed/fe/ca3cec9d4cac358fbce49eb4624b8c6db8749643ee3698b72fa578cddc5a/types_regex-2025.7.34.20250809.tar.gz", hash = "sha256:fe446ef8f973f05b7f4779e0d4dc00d0725bfc3c60d6c1013586a6e10970bab6", size = 12336, upload-time = "2025-08-09T03:15:32.427Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/06/06/aa3a630ce5e63ec0ae74260a0657e08f17bcccbb505c809b8cb3b47487fd/types_regex-2025.7.34.20250809-py3-none-any.whl", hash = "sha256:a9015eed9f51e0de3ce8fc14d84593378b157142f66421c58f043c6ef30ba68b", size = 10344, upload-time = "2025-08-09T03:15:31.516Z" },
+]
+
+[[package]]
+name = "types-requests"
+version = "2.32.4.20250809"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ed/b0/9355adb86ec84d057fea765e4c49cce592aaf3d5117ce5609a95a7fc3dac/types_requests-2.32.4.20250809.tar.gz", hash = "sha256:d8060de1c8ee599311f56ff58010fb4902f462a1470802cf9f6ed27bc46c4df3", size = 23027, upload-time = "2025-08-09T03:17:10.664Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2b/6f/ec0012be842b1d888d46884ac5558fd62aeae1f0ec4f7a581433d890d4b5/types_requests-2.32.4.20250809-py3-none-any.whl", hash = "sha256:f73d1832fb519ece02c85b1f09d5f0dd3108938e7d47e7f94bbfa18a6782b163", size = 20644, upload-time = "2025-08-09T03:17:09.716Z" },
 ]
 
 [[package]]
