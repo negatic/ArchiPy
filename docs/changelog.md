@@ -2,147 +2,176 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [3.10.0] - 2025-09-04
+
+### Added
+
+#### gRPC Interceptor Enhancements
+
+- **Sentry Support in gRPC Trace Interceptors** - Enhanced gRPC trace interceptors with dual APM support
+    - Added Sentry span creation for both sync and async gRPC client interceptors
+    - Added Sentry transaction creation for both sync and async gRPC server interceptors
+    - Maintained backward compatibility with existing Elastic APM functionality
+    - Support for simultaneous Elastic APM and Sentry tracing in gRPC services
+    - Proper error handling and span status management for both APM systems
+    - Configuration-driven tracing with graceful degradation when APM systems are unavailable
+
 ## [3.9.0] - 2025-09-04
 
 ### Added
 
 #### Tracing Decorators
+
 - **Pure Python APM Tracing** - Added `@capture_transaction` and `@capture_span` decorators for pure Python applications
-  - `@capture_transaction` decorator for top-level transaction tracing without FastAPI/gRPC dependencies
-  - `@capture_span` decorator for nested span tracking within existing transactions
-  - Seamless integration with existing Sentry and Elastic APM configuration system
-  - Conditional tracing based on `config.SENTRY.IS_ENABLED` and `config.ELASTIC_APM.IS_ENABLED` settings
-  - Proper error handling and graceful fallbacks when APM libraries are unavailable
-  - Automatic initialization of Sentry with full config parameters for transactions
-  - Uses existing APM clients for spans to work within transaction context
+    - `@capture_transaction` decorator for top-level transaction tracing without FastAPI/gRPC dependencies
+    - `@capture_span` decorator for nested span tracking within existing transactions
+    - Seamless integration with existing Sentry and Elastic APM configuration system
+    - Conditional tracing based on `config.SENTRY.IS_ENABLED` and `config.ELASTIC_APM.IS_ENABLED` settings
+    - Proper error handling and graceful fallbacks when APM libraries are unavailable
+    - Automatic initialization of Sentry with full config parameters for transactions
+    - Uses existing APM clients for spans to work within transaction context
 
 #### Developer Experience
+
 - **Comprehensive Decorator Exports** - Enhanced `archipy.helpers.decorators` module accessibility
-  - Exported all 17 decorators in `__init__.py` for easy discovery and import
-  - Includes tracing, caching, retry, database atomic operations, deprecation, and utility decorators
-  - Simplified import syntax for all decorator functionality
+    - Exported all 17 decorators in `__init__.py` for easy discovery and import
+    - Includes tracing, caching, retry, database atomic operations, deprecation, and utility decorators
+    - Simplified import syntax for all decorator functionality
 
 ## [3.8.1] - 2025-09-04
 
 ### Changed
 
 #### Dependency Updates
+
 - **Elasticsearch Version Bump** - Updated Elasticsearch Docker image from 9.1.2 to 9.1.3 in test configuration
-  - Enhanced test reliability with latest Elasticsearch stable version
-  - Improved test container compatibility and performance
+    - Enhanced test reliability with latest Elasticsearch stable version
+    - Improved test container compatibility and performance
 
 #### Code Quality Improvements
+
 - **Enhanced Keycloak Utils Type Safety** - Improved type handling in Keycloak utilities for gRPC metadata
-  - Fixed handling of both bytes and string metadata values in gRPC authentication
-  - Enhanced type conversion safety with proper string/bytes compatibility
-  - Improved authentication reliability across different gRPC implementations
+    - Fixed handling of both bytes and string metadata values in gRPC authentication
+    - Enhanced type conversion safety with proper string/bytes compatibility
+    - Improved authentication reliability across different gRPC implementations
 - **MyPy Configuration Enhancements** - Expanded MyPy overrides for better type checking coverage
-  - Added comprehensive overrides for Keycloak utilities, MinIO, Kafka, and payment gateway adapters
-  - Enhanced type checking for optional imports with proper type placeholders
-  - Improved development experience with more accurate type checking
+    - Added comprehensive overrides for Keycloak utilities, MinIO, Kafka, and payment gateway adapters
+    - Enhanced type checking for optional imports with proper type placeholders
+    - Improved development experience with more accurate type checking
 
 #### Library Updates
+
 - **Development Tools** - Updated multiple development dependencies for improved tooling
-  - Updated Ruff from 0.7.4 to 0.12.11 for enhanced linting capabilities
-  - Updated various type stubs packages for better IDE support and type checking
-  - Enhanced MkDocs Material theme from 9.6.7 to 9.6.18 for improved documentation
+    - Updated Ruff from 0.7.4 to 0.12.11 for enhanced linting capabilities
+    - Updated various type stubs packages for better IDE support and type checking
+    - Enhanced MkDocs Material theme from 9.6.7 to 9.6.18 for improved documentation
 - **Core Dependencies** - Updated runtime dependencies for better performance and security
-  - Updated fakeredis from 2.30.1 to 2.31.1 for improved Redis mocking
-  - Updated sentry-sdk from 2.33.0 to 2.36.0 for better error tracking
-  - Updated pymysql from 1.1.1 to 1.1.2 for enhanced MySQL compatibility
-  - Updated behave from 1.3.1 to 1.3.2 for improved BDD testing
+    - Updated fakeredis from 2.30.1 to 2.31.1 for improved Redis mocking
+    - Updated sentry-sdk from 2.33.0 to 2.36.0 for better error tracking
+    - Updated pymysql from 1.1.1 to 1.1.2 for enhanced MySQL compatibility
+    - Updated behave from 1.3.1 to 1.3.2 for improved BDD testing
 
 #### Documentation and Code Structure
+
 - **Enhanced CLAUDE.md** - Comprehensive documentation improvements for Claude Code integration
-  - Added detailed architecture overview with module descriptions
-  - Enhanced code style guidelines with Python 3.13+ requirements
-  - Improved command reference with complete development workflow
-  - Added comprehensive MyPy configuration documentation
+    - Added detailed architecture overview with module descriptions
+    - Enhanced code style guidelines with Python 3.13+ requirements
+    - Improved command reference with complete development workflow
+    - Added comprehensive MyPy configuration documentation
 
 ### Bug Fixes
 
 #### Type Safety
+
 - **Optional Import Handling** - Fixed type assignments for optional gRPC imports
-  - Resolved type compatibility issues when gRPC dependencies are not available
-  - Enhanced graceful degradation with proper type placeholders
-  - Improved development experience with better error messages
+    - Resolved type compatibility issues when gRPC dependencies are not available
+    - Enhanced graceful degradation with proper type placeholders
+    - Improved development experience with better error messages
 
 #### Configuration
+
 - **Workflow Permissions** - Fixed potential security issues in GitHub Actions workflows
-  - Added proper permissions configuration to prevent unauthorized access
-  - Enhanced CI/CD security with explicit permission declarations
-  - Resolved code scanning alerts for workflow security best practices
+    - Added proper permissions configuration to prevent unauthorized access
+    - Enhanced CI/CD security with explicit permission declarations
+    - Resolved code scanning alerts for workflow security best practices
 
 ## [3.8.0] - 2025-08-21
 
 ### Changed
 
 #### Build System Migration
+
 - **Poetry to UV Migration** - Migrated from Poetry to UV for improved performance and modern toolchain
-  - Replaced Poetry with UV for dependency management and virtual environment handling
-  - Updated all GitHub Actions workflows to use `astral-sh/setup-uv@v4`
-  - Converted `pyproject.toml` to use standard `[project]` format with UV-compatible optional dependencies
-  - Updated Makefile commands to use UV equivalents (`uv sync`, `uv run`, `uv build`)
-  - Updated pre-commit hooks to use UV for tool execution
-  - Migrated from Poetry build backend to Hatchling for better flexibility
-  - Updated all documentation to reflect UV usage instead of Poetry
-  - Significant performance improvements in dependency resolution and installation
+    - Replaced Poetry with UV for dependency management and virtual environment handling
+    - Updated all GitHub Actions workflows to use `astral-sh/setup-uv@v4`
+    - Converted `pyproject.toml` to use standard `[project]` format with UV-compatible optional dependencies
+    - Updated Makefile commands to use UV equivalents (`uv sync`, `uv run`, `uv build`)
+    - Updated pre-commit hooks to use UV for tool execution
+    - Migrated from Poetry build backend to Hatchling for better flexibility
+    - Updated all documentation to reflect UV usage instead of Poetry
+    - Significant performance improvements in dependency resolution and installation
 
 #### Python 3.13 Compatibility
+
 - **Modern Type Hints** - Updated codebase to use Python 3.13 generic syntax and modern type annotations
-  - Migrated from `Union[T, None]` to `T | None` syntax throughout the codebase
-  - Updated Generic syntax to use modern Python 3.13 patterns (UP046, UP047)
-  - Enhanced type safety with improved generic type operations and Comparable protocol
-  - Fixed type assignment issues in error classes and DTO implementations
-  - Added comprehensive mypy overrides for flexible data dictionary assignments
+    - Migrated from `Union[T, None]` to `T | None` syntax throughout the codebase
+    - Updated Generic syntax to use modern Python 3.13 patterns (UP046, UP047)
+    - Enhanced type safety with improved generic type operations and Comparable protocol
+    - Fixed type assignment issues in error classes and DTO implementations
+    - Added comprehensive mypy overrides for flexible data dictionary assignments
 
 #### Code Quality Improvements
+
 - **Linting and Type Checking** - Resolved all ruff and mypy issues across the codebase
-  - Fixed type annotations and imports across configs, models, and decorators
-  - Added missing error classes (DeadlineExceededError, DeprecationError)
-  - Enhanced SQLAlchemy column type compatibility with mapped_column
-  - Resolved import conflicts and improved code organization
-  - Added missing docstrings and type hints for better code documentation
+    - Fixed type annotations and imports across configs, models, and decorators
+    - Added missing error classes (DeadlineExceededError, DeprecationError)
+    - Enhanced SQLAlchemy column type compatibility with mapped_column
+    - Resolved import conflicts and improved code organization
+    - Added missing docstrings and type hints for better code documentation
 - **Test Infrastructure Cleanup** - Streamlined test helper functions for better maintainability
-  - Removed unused imports and dependencies from test_helpers.py
-  - Cleaned up test infrastructure to reduce code duplication
-  - Improved test execution efficiency and maintainability
+    - Removed unused imports and dependencies from test_helpers.py
+    - Cleaned up test infrastructure to reduce code duplication
+    - Improved test execution efficiency and maintainability
 
 #### CI/CD Enhancements
+
 - **GitHub Actions Updates** - Updated all GitHub Actions workflows to latest versions
-  - Bumped actions/setup-python from 4 to 5 for improved Python support
-  - Bumped actions/cache from 3 to 4 for enhanced caching capabilities
-  - Bumped actions/checkout from 4 to 5 for better repository access
-  - Improved workflow reliability and performance across all CI/CD pipelines
+    - Bumped actions/setup-python from 4 to 5 for improved Python support
+    - Bumped actions/cache from 3 to 4 for enhanced caching capabilities
+    - Bumped actions/checkout from 4 to 5 for better repository access
+    - Improved workflow reliability and performance across all CI/CD pipelines
 
 #### Testing Framework Updates
+
 - **Behave Version Upgrade** - Updated Behave testing framework to version 1.3.1
-  - Enhanced test execution capabilities with latest Behave features
-  - Improved test reliability and performance across all test suites
-  - Better compatibility with modern Python development practices
+    - Enhanced test execution capabilities with latest Behave features
+    - Improved test reliability and performance across all test suites
+    - Better compatibility with modern Python development practices
 - **MyPy Version Upgrade** - Updated MyPy type checker to version 1.17.1
-  - Enhanced type checking capabilities with latest MyPy features
-  - Improved type safety and error detection across the codebase
-  - Better support for Python 3.13 type annotations and modern type patterns
+    - Enhanced type checking capabilities with latest MyPy features
+    - Improved type safety and error detection across the codebase
+    - Better support for Python 3.13 type annotations and modern type patterns
 
 ### Bug Fixes
 
 #### Type System
+
 - **Generic Type Operations** - Fixed generic type operations with Comparable protocol in DTO classes
 - **SQLAlchemy Compatibility** - Resolved SQLAlchemy column type compatibility issues with mapped_column
 - **Error Class Initialization** - Fixed type assignment issues in error classes for better type safety
 
 #### Configuration
+
 - **Type Annotations** - Resolved type annotation and inheritance issues in configuration classes
 - **Validator Documentation** - Added missing docstrings to validators for better code documentation
 
 ### Known Issues
 
 - **Remaining Linting Issues** - Some minor linting issues remain that are planned for future releases
-  - 13 ANN401 (any-type) violations for flexible data handling
-  - 11 ANN201 (missing return type annotations) for public functions
-  - 8 D415 (missing terminal punctuation) for docstrings
-  - These issues are intentionally allowed for specific use cases and will be addressed incrementally
+    - 13 ANN401 (any-type) violations for flexible data handling
+    - 11 ANN201 (missing return type annotations) for public functions
+    - 8 D415 (missing terminal punctuation) for docstrings
+    - These issues are intentionally allowed for specific use cases and will be addressed incrementally
 
 ## [3.7.0] - 2025-08-16
 
@@ -151,56 +180,56 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 #### Elasticsearch Index Management
 
 - **Index Existence Check** - Added `index_exists` method to Elasticsearch adapters for improved index management
-  - New `index_exists()` method in both synchronous and asynchronous Elasticsearch ports
-  - Enhanced index lifecycle management with proper existence validation
-  - Improved error handling and index operation safety
-  - Better support for index-dependent operations and workflows
+    - New `index_exists()` method in both synchronous and asynchronous Elasticsearch ports
+    - Enhanced index lifecycle management with proper existence validation
+    - Improved error handling and index operation safety
+    - Better support for index-dependent operations and workflows
 
 #### CI/CD Pipeline Enhancement
 
 - **Dedicated Test Workflow** - Implemented comprehensive CI/CD pipeline for automated testing
-  - Added dedicated GitHub Actions workflow for Behave BDD tests
-  - Automated test execution on push to main branch and pull requests
-  - Python 3.13 matrix testing with Poetry dependency management
-  - Enhanced test reliability and continuous integration capabilities
+    - Added dedicated GitHub Actions workflow for Behave BDD tests
+    - Automated test execution on push to main branch and pull requests
+    - Python 3.13 matrix testing with Poetry dependency management
+    - Enhanced test reliability and continuous integration capabilities
 
 ### Improvements
 
 #### Testing Framework
 
 - **Kafka Test Reliability** - Enhanced Kafka adapter tests with retry mechanism for improved stability
-  - Implemented retry logic for Kafka connection tests to handle transient network issues
-  - Improved test reliability in CI/CD environments with better error handling
-  - Enhanced test coverage for Kafka adapter functionality
+    - Implemented retry logic for Kafka connection tests to handle transient network issues
+    - Improved test reliability in CI/CD environments with better error handling
+    - Enhanced test coverage for Kafka adapter functionality
 
 #### Configuration Management
 
 - **PostgreSQL DSN Type Safety** - Fixed PostgresDsn type instantiation for improved configuration validation
-  - Corrected PostgresDsn type handling in configuration templates
-  - Enhanced type safety for database connection string validation
-  - Improved configuration error handling and validation
+    - Corrected PostgresDsn type handling in configuration templates
+    - Enhanced type safety for database connection string validation
+    - Improved configuration error handling and validation
 
 #### Development Tools
 
 - **Dependency Updates** - Updated development dependencies for improved tooling and security
-  - Enhanced Poetry dependency management with latest package versions
-  - Improved development environment setup and tooling
-  - Better compatibility with Python 3.13 and modern development practices
+    - Enhanced Poetry dependency management with latest package versions
+    - Improved development environment setup and tooling
+    - Better compatibility with Python 3.13 and modern development practices
 
 ### Bug Fixes
 
 #### Test Infrastructure
 
 - **Image Version Compatibility** - Fixed test container image versions for improved test reliability
-  - Updated Elasticsearch, Keycloak, and Kafka test container images
-  - Resolved test environment compatibility issues
-  - Enhanced test stability across different environments
+    - Updated Elasticsearch, Keycloak, and Kafka test container images
+    - Resolved test environment compatibility issues
+    - Enhanced test stability across different environments
 
 #### Error Handling
 
 - **Exception Utility Assertions** - Fixed error assertion logic in exception utilities
-  - Corrected error handling in test scenarios for better validation
-  - Improved error message consistency and debugging capabilities
+    - Corrected error handling in test scenarios for better validation
+    - Improved error message consistency and debugging capabilities
 
 ### Dependencies
 
@@ -221,54 +250,54 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 #### Security Scanning Integration
 
 - **Bandit Security Tool** - Added comprehensive security vulnerability scanning to the development workflow
-  - Integrated Bandit 1.7.8 for automated security analysis of Python code
-  - Added security scanning to CI/CD pipeline with configurable rules and exclusions
-  - Enhanced security posture with automated detection of common security issues
-  - Improved code quality through proactive security vulnerability identification
+    - Integrated Bandit 1.7.8 for automated security analysis of Python code
+    - Added security scanning to CI/CD pipeline with configurable rules and exclusions
+    - Enhanced security posture with automated detection of common security issues
+    - Improved code quality through proactive security vulnerability identification
 
 #### Enhanced Testing Framework
 
 - **Behave 1.3.0 Upgrade** - Updated BDD testing framework to latest version with improved async support
-  - Enhanced async test handling capabilities for better performance and reliability
-  - Improved test execution efficiency with optimized async context management
-  - Streamlined test infrastructure with cleaner step definitions and scenario management
-  - Enhanced test coverage and reliability across all adapter test suites
+    - Enhanced async test handling capabilities for better performance and reliability
+    - Improved test execution efficiency with optimized async context management
+    - Streamlined test infrastructure with cleaner step definitions and scenario management
+    - Enhanced test coverage and reliability across all adapter test suites
 
 ### Improvements
 
 #### SQLAlchemy Type Safety
 
 - **Generic TypeVar Support** - Enhanced SQLAlchemy adapters with improved generic type preservation
-  - Added TypeVar support to preserve concrete entity types in adapter operations
-  - Improved type safety for database operations with better generic type handling
-  - Enhanced IDE support and type checking for database adapter usage
-  - Maintained backward compatibility while improving type inference capabilities
+    - Added TypeVar support to preserve concrete entity types in adapter operations
+    - Improved type safety for database operations with better generic type handling
+    - Enhanced IDE support and type checking for database adapter usage
+    - Maintained backward compatibility while improving type inference capabilities
 
 #### Test Infrastructure
 
 - **Streamlined Test Helpers** - Refactored and optimized test infrastructure for better maintainability
-  - Removed redundant test helper functions to reduce code duplication
-  - Enhanced step definitions with cleaner, more focused implementations
-  - Improved test scenario context management for better test isolation
-  - Optimized test execution with reduced overhead and improved performance
+    - Removed redundant test helper functions to reduce code duplication
+    - Enhanced step definitions with cleaner, more focused implementations
+    - Improved test scenario context management for better test isolation
+    - Optimized test execution with reduced overhead and improved performance
 
 ### Code Quality
 
 #### Security Enhancements
 
 - **Automated Security Checks** - Integrated security scanning into development workflow
-  - Added Bandit configuration with customizable security rules and exclusions
-  - Enhanced CI/CD pipeline with automated security vulnerability detection
-  - Improved security posture through proactive code analysis
-  - Standardized security practices across development team
+    - Added Bandit configuration with customizable security rules and exclusions
+    - Enhanced CI/CD pipeline with automated security vulnerability detection
+    - Improved security posture through proactive code analysis
+    - Standardized security practices across development team
 
 #### Testing Improvements
 
 - **Enhanced Test Coverage** - Improved test reliability and maintainability
-  - Updated all adapter test suites to work with Behave 1.3.0
-  - Streamlined test step definitions for better readability and maintenance
-  - Enhanced test context management for improved test isolation
-  - Optimized test execution performance and reliability
+    - Updated all adapter test suites to work with Behave 1.3.0
+    - Streamlined test step definitions for better readability and maintenance
+    - Enhanced test context management for improved test isolation
+    - Optimized test execution performance and reliability
 
 ### Dependencies
 
@@ -280,6 +309,7 @@ All notable changes to ArchiPy are documented in this changelog, organized by ve
 
 - **@younesious** - Enhanced SQLAlchemy adapters with generic TypeVar support for improved type safety
 - **@itsnegaar** - Upgraded Behave testing framework to version 1.3.0 with enhanced async support
+
 ## [3.6.0] - 2025-07-29
 
 ### New Features
