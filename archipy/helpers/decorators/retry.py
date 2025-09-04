@@ -26,7 +26,6 @@ def retry_decorator(
         ignore (Optional[Tuple[Type[Exception], ...]]): A tuple of errors to ignore (not retry on).
             If None, no errors are ignored. Defaults to None.
         resource_type (Optional[str]): The type of resource being exhausted. Defaults to None.
-        lang (str): The language for the error message (default: "fa").
 
     Returns:
         Callable: The decorated function with retry logic.

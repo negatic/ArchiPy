@@ -325,3 +325,85 @@ For detailed examples and usage guidelines, see the [Parsian Payment Gateway Exa
 options:
 show_root_heading: true
 show_source: true
+
+### Temporal {#temporal}
+
+Temporal workflow orchestration adapter for durable workflow execution and activity coordination.
+
+```python
+from archipy.adapters.temporal.adapters import TemporalAdapter
+from archipy.adapters.temporal.worker import TemporalWorkerManager
+from archipy.adapters.temporal.base import BaseWorkflow, BaseActivity
+
+# Create a Temporal adapter
+temporal_adapter = TemporalAdapter()  # Uses global config by default
+
+# Start a workflow execution
+workflow_handle = await temporal_adapter.start_workflow(
+    workflow="MyWorkflow",
+    arg={"input": "data"},
+    workflow_id="unique-workflow-id",
+    task_queue="my-task-queue"
+)
+
+# Execute a workflow and wait for completion
+result = await temporal_adapter.execute_workflow(
+    workflow="MyWorkflow",
+    arg={"input": "data"},
+    workflow_id="unique-workflow-id-2",
+    task_queue="my-task-queue"
+)
+
+# Signal a workflow
+await temporal_adapter.signal_workflow(
+    workflow_id="unique-workflow-id",
+    signal_name="update_signal",
+    arg={"update": "data"}
+)
+
+# Query a workflow
+query_result = await temporal_adapter.query_workflow(
+    workflow_id="unique-workflow-id",
+    query_name="get_status"
+)
+
+# Worker management
+worker_manager = TemporalWorkerManager()
+
+# Start a worker
+worker_handle = await worker_manager.start_worker(
+    task_queue="my-task-queue",
+    workflows=[MyWorkflow],
+    activities=[my_activity_instance]
+)
+```
+
+For detailed examples and usage guidelines, see the [Temporal Examples](../examples/adapters/temporal.md).
+
+#### Temporal Adapter
+
+::: archipy.adapters.temporal.adapters
+options:
+show_root_heading: true
+show_source: true
+
+#### Temporal Ports
+
+::: archipy.adapters.temporal.ports
+options:
+show_root_heading: true
+show_source: true
+
+#### Temporal Worker Manager
+
+::: archipy.adapters.temporal.worker
+options:
+show_root_heading: true
+show_source: true
+
+#### Temporal Base Classes
+
+::: archipy.adapters.temporal.base
+options:
+show_root_heading: true
+show_source: true

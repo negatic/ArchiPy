@@ -1369,7 +1369,7 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
             return False
 
     @override
-    def create_realm(self, realm_name: str, skip_exists: bool = True, **kwargs) -> dict[str, Any] | None:
+    def create_realm(self, realm_name: str, skip_exists: bool = True, **kwargs: Any) -> dict[str, Any] | None:
         """Create a Keycloak realm with minimum required fields and optional additional config.
 
         Args:
@@ -1433,7 +1433,7 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
         client_id: str,
         realm: str | None = None,
         skip_exists: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ) -> dict[str, Any] | None:
         """Create a Keycloak client with minimum required fields and optional additional config.
 
@@ -2650,7 +2650,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
             return False
 
     @override
-    async def create_realm(self, realm_name: str, skip_exists: bool = True, **kwargs) -> dict[str, Any] | None:
+    async def create_realm(self, realm_name: str, skip_exists: bool = True, **kwargs: Any) -> dict[str, Any] | None:
         """Create a Keycloak realm with minimum required fields and optional additional config.
 
         Args:
@@ -2720,7 +2720,7 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
         client_id: str,
         realm: str | None = None,
         skip_exists: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ) -> dict[str, Any] | None:
         """Create a Keycloak client with minimum required fields and optional additional config.
 

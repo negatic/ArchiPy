@@ -72,7 +72,6 @@ class PasswordUtils:
         Args:
             password (str): The password to validate.
             auth_config (AuthConfig | None): Optional auth configuration override. If not provided, uses the global config.
-            lang (LanguageType): The language to use for error messages. Defaults to Persian.
 
         Raises:
             InvalidPasswordError: If the password does not meet the policy requirements.

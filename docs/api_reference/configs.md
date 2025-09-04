@@ -27,7 +27,7 @@ class AppConfig(BaseConfig):
 
 ## Core Classes
 
-### BaseConfig
+### BaseConfig {#base-config}
 
 The main configuration class that provides environment variable support, type validation, and global configuration access.
 
@@ -37,7 +37,7 @@ The main configuration class that provides environment variable support, type va
 - Global configuration access
 - Nested configuration support
 
-### SQLAlchemyConfig
+### SQLAlchemyConfig {#config-templates}
 
 Database configuration template with connection settings, pool configuration, and debug options.
 
