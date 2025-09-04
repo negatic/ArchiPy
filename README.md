@@ -1,4 +1,4 @@
-<img src="docs/assets/logo.jpg" alt="ArchiPy Logo" width="150"/>
+<img src="https://raw.githubusercontent.com/SyntaxArc/ArchiPy/master/docs/assets/logo.jpg" alt="ArchiPy Logo" width="150"/>
 
 # ArchiPy - Architecture + Python
 
