@@ -43,6 +43,7 @@ elasticsearch = ["elasticsearch (>=9.0.2,<10.0.0)"]
 elasticsearch-async = ["elasticsearch[async] (>=9.0.2,<10.0.0)"]
 testcontainers = ["testcontainers (>=4.12.0,<5.0.0)"]
 behave = ["behave (>=1.3.2)"]
+temporalio = ["temporalio>=1.12.0"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -217,6 +218,7 @@ target-version = "py313"
 "archipy//helpers/utils/keycloak_utils.py" = ["B008"]
 "archipy/adapters/keycloak/adapters.py" = ["BLE001"]
 "archipy/adapters/kafka/adapters.py" = ["BLE001"]
+"archipy/adapters/temporal/*" = ["ANN401", "TRY300", "RUF006"]  # Allow Any types for Temporal's dynamic system, else blocks, and asyncio task handling
 "features/steps/*" = ["F811"]
 "scripts/*" = ["S603", "S607"]
 
@@ -379,6 +381,14 @@ disable_error_code = ["dict-item", "return", "call-arg"]  # Allow kafka configur
 [[tool.mypy.overrides]]
 module = "archipy.adapters.internet_payment_gateways.*"
 disable_error_code = ["no-untyped-call", "call-arg"]  # Allow zeep and payment gateway integrations
+
+[[tool.mypy.overrides]]
+module = "archipy.adapters.temporal.*"
+disable_error_code = ["no-any-return", "misc", "return-value", "arg-type", "var-annotated", "override", "attr-defined"]  # Allow Temporal's dynamic types and workflow patterns
+
+[[tool.mypy.overrides]]
+module = "archipy.models.errors.temporal_errors"
+disable_error_code = ["attr-defined"]  # Allow BaseConfig issue until global_config() is fixed
 
 [tool.config]
 pyproject_root_var = "pyproject"

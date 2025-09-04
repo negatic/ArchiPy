@@ -16,6 +16,7 @@ your business logic and external dependencies.
 | [SQLite](sqlite.md)       | Database access                | SQLAlchemy integration for SQLite                    | [API](../../api_reference/adapters.md#sqlite)     |
 | [StarRocks](starrocks.md) | Database access                | SQLAlchemy integration for StarRocks                 | [API](../../api_reference/adapters.md#starrocks)  |
 | [Redis](redis.md)         | Key-value store                | Caching, pub/sub, and data storage with Redis        | [API](../../api_reference/adapters.md#redis)      |
+| [Temporal](temporal.md)   | Workflow orchestration     | Durable workflow execution and activity coordination  | [API](../../api_reference/adapters.md#temporal)   |
 
 ## Adapter Architecture
 

@@ -29,6 +29,7 @@ from archipy.configs.config_template import (
     SQLAlchemyConfig,
     SQLiteSQLAlchemyConfig,
     StarRocksSQLAlchemyConfig,
+    TemporalConfig,
 )
 from archipy.configs.environment_type import EnvironmentType
 from archipy.models.types import LanguageType
@@ -82,6 +83,7 @@ class BaseConfig[R](BaseSettings):
         SQLALCHEMY (SQLAlchemyConfig): Database ORM configuration
         SQLITE_SQLALCHEMY (SqliteSQLAlchemyConfig): SQLite SQLAlchemy configuration
         STARROCKS_SQLALCHEMY (StarrocksSQLAlchemyConfig): Starrocks SQLAlchemy configuration
+        TEMPORAL (TemporalConfig): Temporal workflow orchestration configuration
 
     Examples:
         >>> from archipy.configs.base_config import BaseConfig
@@ -172,6 +174,7 @@ class BaseConfig[R](BaseSettings):
     STARROCKS_SQLALCHEMY: StarRocksSQLAlchemyConfig = StarRocksSQLAlchemyConfig()
     POSTGRES_SQLALCHEMY: PostgresSQLAlchemyConfig = PostgresSQLAlchemyConfig()
     SQLITE_SQLALCHEMY: SQLiteSQLAlchemyConfig = SQLiteSQLAlchemyConfig()
+    TEMPORAL: TemporalConfig = TemporalConfig()
     LANGUAGE: LanguageType = LanguageType.FA
 
     def customize(self) -> None:

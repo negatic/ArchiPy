@@ -725,3 +725,106 @@ class ParsianShaparakConfig(BaseModel):
         default=None,
         description="Optional HTTP/HTTPS proxy configuration dictionary",
     )
+
+
+class TemporalConfig(BaseModel):
+    """Configuration settings for Temporal workflow engine integration.
+
+    Controls connection parameters, security settings, and timeout configurations
+    for Temporal workflow orchestration services.
+
+    Attributes:
+        HOST (str): Temporal server host address.
+        PORT (int): Temporal server port number.
+        NAMESPACE (str): Temporal namespace for workflow isolation.
+        TASK_QUEUE (str): Default task queue for workflow and activity execution.
+        TLS_CA_CERT (str | None): Path to TLS CA certificate for secure connections.
+        TLS_CLIENT_CERT (str | None): Path to TLS client certificate for mutual authentication.
+        TLS_CLIENT_KEY (str | None): Path to TLS client private key.
+        WORKFLOW_EXECUTION_TIMEOUT (int): Maximum workflow execution time in seconds.
+        WORKFLOW_RUN_TIMEOUT (int): Maximum single workflow run time in seconds.
+        WORKFLOW_TASK_TIMEOUT (int): Maximum workflow task processing time in seconds.
+        ACTIVITY_START_TO_CLOSE_TIMEOUT (int): Maximum activity execution time in seconds.
+        ACTIVITY_HEARTBEAT_TIMEOUT (int): Activity heartbeat timeout in seconds.
+        RETRY_MAXIMUM_ATTEMPTS (int): Maximum retry attempts for failed activities.
+        RETRY_BACKOFF_COEFFICIENT (float): Backoff multiplier for retry delays.
+        RETRY_MAXIMUM_INTERVAL (int): Maximum retry interval in seconds.
+    """
+
+    HOST: str = Field(default="localhost", description="Temporal server host address")
+    PORT: int = Field(default=7233, ge=1, le=65535, description="Temporal server port number")
+    NAMESPACE: str = Field(default="default", description="Temporal namespace for workflow isolation")
+    TASK_QUEUE: str = Field(default="task-queue", description="Default task queue name")
+
+    # TLS Configuration
+    TLS_CA_CERT: str | None = Field(default=None, description="Path to TLS CA certificate")
+    TLS_CLIENT_CERT: str | None = Field(default=None, description="Path to TLS client certificate")
+    TLS_CLIENT_KEY: str | None = Field(default=None, description="Path to TLS client private key")
+
+    # Workflow Timeout Settings
+    WORKFLOW_EXECUTION_TIMEOUT: int = Field(
+        default=300,
+        ge=1,
+        description="Maximum workflow execution time in seconds",
+    )
+    WORKFLOW_RUN_TIMEOUT: int = Field(
+        default=60,
+        ge=1,
+        description="Maximum single workflow run time in seconds",
+    )
+    WORKFLOW_TASK_TIMEOUT: int = Field(
+        default=30,
+        ge=1,
+        description="Maximum workflow task processing time in seconds",
+    )
+
+    # Activity Timeout Settings
+    ACTIVITY_START_TO_CLOSE_TIMEOUT: int = Field(
+        default=30,
+        ge=1,
+        description="Maximum activity execution time in seconds",
+    )
+    ACTIVITY_HEARTBEAT_TIMEOUT: int = Field(
+        default=10,
+        ge=1,
+        description="Activity heartbeat timeout in seconds",
+    )
+
+    # Retry Configuration
+    RETRY_MAXIMUM_ATTEMPTS: int = Field(
+        default=3,
+        ge=1,
+        description="Maximum retry attempts for failed activities",
+    )
+    RETRY_BACKOFF_COEFFICIENT: float = Field(
+        default=2.0,
+        ge=1.0,
+        description="Backoff multiplier for retry delays",
+    )
+    RETRY_MAXIMUM_INTERVAL: int = Field(
+        default=60,
+        ge=1,
+        description="Maximum retry interval in seconds",
+    )
+
+    @model_validator(mode="after")
+    def validate_tls_configuration(self) -> Self:
+        """Validate TLS configuration consistency."""
+        tls_fields = [self.TLS_CA_CERT, self.TLS_CLIENT_CERT, self.TLS_CLIENT_KEY]
+        tls_provided = [field for field in tls_fields if field is not None]
+
+        if len(tls_provided) > 0 and len(tls_provided) != 3:
+            raise InvalidArgumentError()
+
+        return self
+
+    @model_validator(mode="after")
+    def validate_timeout_hierarchy(self) -> Self:
+        """Validate timeout configuration hierarchy."""
+        if self.WORKFLOW_RUN_TIMEOUT >= self.WORKFLOW_EXECUTION_TIMEOUT:
+            raise InvalidArgumentError()
+
+        if self.WORKFLOW_TASK_TIMEOUT >= self.WORKFLOW_RUN_TIMEOUT:
+            raise InvalidArgumentError()
+
+        return self
