@@ -179,7 +179,7 @@ To run the documentation locally:
 
 ```bash
 # Install documentation dependencies
-uv sync --extra docs
+uv sync --group docs
 
 # Serve documentation locally
 make docs-serve

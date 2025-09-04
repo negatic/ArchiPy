@@ -30,7 +30,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv sync --extra dev
+        uv sync --group dev
 
     - name: Run Ruff on changed files
       run: |

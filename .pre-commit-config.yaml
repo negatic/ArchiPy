@@ -47,7 +47,7 @@ repos:
           - post-merge
       - id: uv-sync
         name: uv-sync
-        entry: uv sync --extra dev
+        entry: uv sync --group dev
         language: system
         pass_filenames: false
         stages:
