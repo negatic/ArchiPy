@@ -2,6 +2,27 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [3.11.0] - 2025-09-04
+
+### Added
+
+#### Temporal Workflow Orchestration
+
+- **Comprehensive Temporal Integration** - Added complete Temporal workflow orchestration support
+    - Full Temporal integration with atomic transaction support for activities
+    - Comprehensive configuration management for Temporal workflow execution
+    - Clean architecture separation between workflow orchestration and activity execution
+    - Support for distributed workflow patterns with reliable activity execution
+    - Enhanced error handling and transaction management for Temporal workflows
+
+### Changed
+
+#### Documentation Assets
+
+- **Logo Path Update** - Updated logo path reference for improved asset management
+    - Enhanced documentation asset organization
+    - Improved logo accessibility and display consistency
+
 ## [3.10.0] - 2025-09-04
 
 ### Added
