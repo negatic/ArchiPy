@@ -67,17 +67,20 @@ class KeycloakExceptionHandlerMixin:
             try:
                 body = exception.response_body
                 if isinstance(body, bytes):
-                    body = body.decode("utf-8")
+                    body_str = body.decode("utf-8")
+                elif isinstance(body, str):
+                    body_str = body
+                else:
+                    body_str = str(body)
 
-                if isinstance(body, str):
-                    parsed = json.loads(body)
-                    if isinstance(parsed, dict):
-                        error_message = (
-                            parsed.get("errorMessage")
-                            or parsed.get("error_description")
-                            or parsed.get("error")
-                            or error_message
-                        )
+                parsed = json.loads(body_str)
+                if isinstance(parsed, dict):
+                    error_message = (
+                        parsed.get("errorMessage")
+                        or parsed.get("error_description")
+                        or parsed.get("error")
+                        or error_message
+                    )
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
 
@@ -330,8 +333,8 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
         self._openid_adapter = self._get_openid_client(self.configs)
 
         # Cache for admin client to avoid unnecessary re-authentication
-        self._admin_adapter = None
-        self._admin_token_expiry = 0
+        self._admin_adapter: KeycloakAdmin | None = None
+        self._admin_token_expiry: float = 0.0
 
         # Initialize admin client if admin mode is enabled and credentials are provided
         if self.configs.IS_ADMIN_MODE_ENABLED and (
@@ -1609,8 +1612,8 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
         self.openid_adapter = self._get_openid_client(self.configs)
 
         # Cache for admin client to avoid unnecessary re-authentication
-        self._admin_adapter = None
-        self._admin_token_expiry = 0
+        self._admin_adapter: KeycloakAdmin | None = None
+        self._admin_token_expiry: float = 0.0
 
         # Initialize admin client if admin mode is enabled and credentials are provided
         if self.configs.IS_ADMIN_MODE_ENABLED and (

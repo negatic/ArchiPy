@@ -225,7 +225,7 @@ class KeycloakPort:
         raise NotImplementedError
 
     @abstractmethod
-    def create_realm(self, realm_name: str, skip_exists: bool = True, **kwargs) -> dict[str, Any]:
+    def create_realm(self, realm_name: str, skip_exists: bool = True, **kwargs: Any) -> dict[str, Any]:
         """Create a new Keycloak realm."""
         raise NotImplementedError
 
@@ -240,7 +240,7 @@ class KeycloakPort:
         client_id: str,
         realm: str | None = None,
         skip_exists: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ) -> dict[str, Any] | None:
         """Create a new client in the specified realm."""
         raise NotImplementedError
@@ -481,7 +481,7 @@ class AsyncKeycloakPort:
         raise NotImplementedError
 
     @abstractmethod
-    async def create_realm(self, realm_name: str, skip_exists: bool = True, **kwargs) -> dict[str, Any] | None:
+    async def create_realm(self, realm_name: str, skip_exists: bool = True, **kwargs: Any) -> dict[str, Any] | None:
         """Create a new Keycloak realm."""
         raise NotImplementedError
 
@@ -496,7 +496,7 @@ class AsyncKeycloakPort:
         client_id: str,
         realm: str | None = None,
         skip_exists: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ) -> dict[str, Any] | None:
         """Create a new client in the specified realm."""
         raise NotImplementedError
