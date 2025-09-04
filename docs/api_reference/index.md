@@ -19,6 +19,7 @@ The adapters module provides standardized interfaces to external systems:
 - [Keycloak Adapters](adapters.md#keycloak)
 - [MinIO Adapters](adapters.md#minio)
 - [Kafka Adapters](adapters.md#kafka)
+- [Temporal Adapters](adapters.md#temporal)
 - [Payment Gateway Adapters](adapters.md#payment-gateways)
     - [Parsian Shaparak](adapters.md#parsian-shaparak)
 
@@ -71,8 +72,9 @@ archipy/
 │   ├── redis/         # Redis adapters
 │   ├── sqlite/        # SQLite database adapters
 │   │   └── sqlalchemy/  # SQLite SQLAlchemy components
-│   └── starrocks/     # StarRocks database adapters
-│       └── sqlalchemy/  # StarRocks SQLAlchemy components
+│   ├── starrocks/     # StarRocks database adapters
+│   │   └── sqlalchemy/  # StarRocks SQLAlchemy components
+│   └── temporal/      # Temporal workflow orchestration adapters
 ├── configs/           # Configuration management
 │   ├── base_config.py
 │   └── templates/

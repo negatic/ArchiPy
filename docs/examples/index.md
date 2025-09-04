@@ -12,6 +12,7 @@ This section contains practical examples of using ArchiPy components.
 - [Keycloak](adapters/keycloak.md)
 - [MinIO](adapters/minio.md)
 - [Kafka](adapters/kafka.md)
+- [Temporal](adapters/temporal.md)
 - [Payment Gateways](adapters/parsian_payment.md)
 
 ## Helpers
