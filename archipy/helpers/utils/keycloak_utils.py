@@ -9,8 +9,8 @@ try:
     from grpc.aio import ServicerContext as AsyncServicerContext
 
 except ImportError:
-    ServicerContext = None
-    AsyncServicerContext = None
+    ServicerContext = type(None)  # type: ignore[misc,assignment]
+    AsyncServicerContext = type(None)  # type: ignore[misc,assignment]
 
 from fastapi import Depends, Request, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -308,12 +308,18 @@ class KeycloakUtils:
         for key in auth_keys:
             if key in metadata:
                 auth_value = metadata[key]
-                if auth_value.startswith("Bearer "):
-                    return str(auth_value[7:])
-                elif auth_value.startswith("bearer "):
-                    return str(auth_value[7:])
+                # Handle both bytes and string values
+                if isinstance(auth_value, bytes):
+                    auth_value_str = auth_value.decode("utf-8")
                 else:
-                    return str(auth_value)
+                    auth_value_str = str(auth_value)
+
+                if auth_value_str.startswith("Bearer "):
+                    return auth_value_str[7:]
+                elif auth_value_str.startswith("bearer "):
+                    return auth_value_str[7:]
+                else:
+                    return auth_value_str
 
         return None
 

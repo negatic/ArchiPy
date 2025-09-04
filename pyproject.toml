@@ -22,7 +22,7 @@ aiosqlite = ["aiosqlite (>=0.21.0)"]
 cache = ["cachetools (>=5.5.2,<6.0.0)", "async-lru (>=2.0.5,<3.0.0)"]
 dependency-injection = ["dependency-injector (>=4.48.1)"]
 elastic-apm = ["elastic-apm (>=6.23.0)"]
-fakeredis = ["fakeredis (>=2.30.1,<3.0.0)"]
+fakeredis = ["fakeredis (>=2.31.1,<3.0.0)"]
 fastapi = ["fastapi[all] (>=0.115.14)"]
 grpc = ["grpcio (>=1.73.1)", "grpcio-health-checking (>=1.73.1)", "protobuf (>=6.31.1)"]
 jwt = ["pyjwt (>=2.10.1)"]
@@ -35,14 +35,14 @@ postgres = ["psycopg[binary,pool] (>=3.2.9)"]
 prometheus = ["prometheus-client (>=0.22.1)"]
 redis = ["redis (>=6.2.0)"]
 scheduler = ["apscheduler (>=3.11.0)"]
-sentry = ["sentry-sdk (>=2.33.0)"]
+sentry = ["sentry-sdk (>=2.36.0)"]
 sqlalchemy = ["sqlalchemy (>=2.0.41)"]
-starrocks = ["starrocks (>=1.2.2,<2.0.0)", "pymysql (>=1.1.1,<2.0.0)"]
+starrocks = ["starrocks (>=1.2.2,<2.0.0)", "pymysql (>=1.1.2,<2.0.0)"]
 starrocks-async = ["starrocks (>=1.2.2,<2.0.0)", "aiomysql (>=0.2.0,<0.3.0)"]
 elasticsearch = ["elasticsearch (>=9.0.2,<10.0.0)"]
 elasticsearch-async = ["elasticsearch[async] (>=9.0.2,<10.0.0)"]
 testcontainers = ["testcontainers (>=4.12.0,<5.0.0)"]
-behave = ["behave (>=1.3.1)"]
+behave = ["behave (>=1.3.2)"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -65,27 +65,27 @@ dev = [
     "pre-commit>=3.8.0",
     "pre-commit-hooks>=4.6.0",
     "codespell>=2.4.1",
-    "ruff>=0.7.4",
+    "ruff>=0.12.11",
     "black>=24.10.0",
     "add-trailing-comma>=3.2.0",
     "validate-pyproject>=0.18",
     "mypy>=1.17.0",
-    "types-cachetools>=5.5.0.20240820",
+    "types-cachetools>=6.2.0.20250827",
     "bandit>=1.7.8",
     "types-protobuf>=6.30.2.20250822",
     "types-requests>=2.32.4.20250809",
-    "types-regex>=2025.7.34.20250809",
+    "types-regex>=2025.9.1.20250903",
     "types-grpcio>=1.0.0.20250703",
     "types-pymysql>=1.1.0.20250822",
 ]
 
 docs = [
     "mkdocs>=1.6.1",
-    "mkdocs-material>=9.6.7",
+    "mkdocs-material>=9.6.18",
     "pymdown-extensions>=10.14.3",
     "mkdocstrings>=0.28.2",
-    "mkdocstrings-python>=1.16.2",
-    "mkdocs-autorefs>=1.4.0",
+    "mkdocstrings-python>=1.18.2",
+    "mkdocs-autorefs>=1.4.3",
 ]
 
 
@@ -325,16 +325,18 @@ module = [
     "features.*", # Apply overrides to features files
     "jdatetime.*", # Apply overrides to jdatetime
     "jwcrypto.*", # Apply overrides to jwcrypto
+    "minio.*", # Apply overrides to minio
     "redis.*", # Apply overrides to Redis
     "scripts.*", # Apply overrides to script files
     "sentry_sdk.*", # Apply overrides to sentry-sdk
+    "zeep.*", # Apply overrides to zeep
 ]
 ignore_missing_imports = true
 disable_error_code = ["no-any-return", "misc", "return-value", "arg-type", "type-var", "unused-ignore", "no-untyped-call"]
 
 [[tool.mypy.overrides]]
 module = "archipy.models.errors.*"
-disable_error_code = ["assignment"]  # Allow flexible data dictionary assignments
+disable_error_code = ["assignment", "misc"]  # Allow flexible data dictionary assignments and type assignments for optional imports
 
 [[tool.mypy.overrides]]
 module = "archipy.models.dtos.range_dtos"
@@ -350,11 +352,33 @@ disable_error_code = ["arg-type"]  # Allow kwargs in elasticsearch client calls
 
 [[tool.mypy.overrides]]
 module = "archipy.helpers.interceptors.grpc.*"
-disable_error_code = ["misc", "no-any-return", "attr-defined", "no-untyped-call", "var-annotated"]  # Allow grpc and elasticapm untyped usage
+disable_error_code = ["misc", "no-any-return", "attr-defined", "no-untyped-call", "var-annotated", "override", "arg-type"]  # Allow grpc and elasticapm untyped usage
 
 [[tool.mypy.overrides]]
 module = "archipy.adapters.keycloak.*"
 disable_error_code = ["return", "override", "assignment", "unreachable", "union-attr", "no-untyped-def", "arg-type", "return-value", "no-any-return"]  # Allow Keycloak adapter complex patterns
+
+[[tool.mypy.overrides]]
+module = "archipy.helpers.utils.keycloak_utils"
+disable_error_code = ["arg-type"]  # Allow grpc ServicerContext type compatibility
+
+
+[[tool.mypy.overrides]]
+module = "archipy.models.dtos.base_protobuf_dto"
+disable_error_code = ["misc", "assignment"]  # Allow protobuf type placeholders
+
+[[tool.mypy.overrides]]
+module = "archipy.adapters.minio.*"
+ignore_missing_imports = true
+disable_error_code = ["import-untyped", "call-arg", "return", "override", "no-any-return"]  # Allow minio adapter patterns
+
+[[tool.mypy.overrides]]
+module = "archipy.adapters.kafka.*"
+disable_error_code = ["dict-item", "return", "call-arg"]  # Allow kafka configuration patterns
+
+[[tool.mypy.overrides]]
+module = "archipy.adapters.internet_payment_gateways.*"
+disable_error_code = ["no-untyped-call", "call-arg"]  # Allow zeep and payment gateway integrations
 
 [tool.config]
 pyproject_root_var = "pyproject"
