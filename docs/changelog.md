@@ -2,6 +2,35 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [3.11.1] - 2025-09-06
+
+### Added
+
+#### Temporal Worker Management Enhancement
+
+- **Wait Until Stopped Method** - Added `wait_until_stopped()` method to Temporal WorkerHandle class
+    - Enhanced worker lifecycle management with ability to wait for worker completion
+    - Improved synchronization capabilities for worker shutdown scenarios
+    - Better control over worker background task lifecycle in long-running applications
+    - Enhanced debugging and monitoring capabilities for Temporal worker operations
+
+### Changed
+
+#### CI/CD Infrastructure
+
+- **GitHub Actions Updates** - Updated Python setup action across all workflows for improved CI/CD reliability
+    - Updated actions/setup-python from version 5 to 6 in all GitHub Actions workflows
+    - Enhanced Python environment setup with latest action features and security improvements
+    - Improved workflow performance and compatibility with latest GitHub Actions infrastructure
+    - Updated workflows: deploy-docs.yml, lint.yml, publish.yml, and tests.yml
+
+#### Documentation
+
+- **Documentation Build Fixes** - Resolved documentation generation and deployment issues
+    - Fixed documentation builds for improved reliability and consistency
+    - Enhanced documentation index organization and navigation
+    - Improved documentation deployment pipeline stability
+
 ## [3.11.0] - 2025-09-04
 
 ### Added
