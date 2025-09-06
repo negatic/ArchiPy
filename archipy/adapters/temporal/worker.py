@@ -173,6 +173,10 @@ class WorkerHandle:
                 },
             ) from error
 
+    async def wait_until_stopped(self) -> None:
+        """Wait until the worker is stopped."""
+        await self._background_task
+
     @property
     def is_running(self) -> bool:
         """Check if the worker is currently running.
