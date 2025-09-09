@@ -33,7 +33,7 @@ minio = ["minio (>=7.2.15,<8.0.0)", "cachetools (>=5.5.2,<6.0.0)", "async-lru (>
 parsian-ipg = ["zeep (>=4.3.1,<5.0.0)", "requests[socks] (>=2.32.4,<3.0.0)"]
 postgres = ["psycopg[binary,pool] (>=3.2.9)"]
 prometheus = ["prometheus-client (>=0.22.1)"]
-redis = ["redis (>=6.2.0)"]
+redis = ["redis[hiredis] (>=6.2.0)"]
 scheduler = ["apscheduler (>=3.11.0)"]
 sentry = ["sentry-sdk (>=2.36.0)"]
 sqlalchemy = ["sqlalchemy (>=2.0.41)"]
