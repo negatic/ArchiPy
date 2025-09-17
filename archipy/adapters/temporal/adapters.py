@@ -10,7 +10,14 @@ from datetime import timedelta
 from typing import Any, TypeVar, override
 from uuid import uuid4
 
-from temporalio.client import Client, Schedule, ScheduleActionStartWorkflow, ScheduleSpec, TLSConfig, WorkflowHandle
+from temporalio.client import (
+    Client,
+    Schedule,
+    ScheduleActionStartWorkflow,
+    ScheduleSpec,
+    TLSConfig,
+    WorkflowHandle,
+)
 from temporalio.common import RetryPolicy
 
 from archipy.configs.base_config import BaseConfig
@@ -397,7 +404,7 @@ class TemporalAdapter(TemporalPort):
             self._client = None
 
     @override
-    async def create_schedule(self, schedule_id: str, workflow_class: Any, spec: ScheduleSpec, task_queue: str):
+    async def create_schedule(self, schedule_id: str, workflow_class: Any, spec: ScheduleSpec, task_queue: str) -> None:
         """Create a schedule for a workflow."""
         client = await self.get_client()
 
@@ -410,7 +417,7 @@ class TemporalAdapter(TemporalPort):
             spec=spec,
         )
 
-        return await client.create_schedule(schedule_id, sched)
+        await client.create_schedule(schedule_id, sched)
 
     @override
     async def stop_schedule(self, schedule_id: str) -> None:
