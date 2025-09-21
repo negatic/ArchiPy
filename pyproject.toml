@@ -334,7 +334,7 @@ module = [
     "zeep.*", # Apply overrides to zeep
 ]
 ignore_missing_imports = true
-disable_error_code = ["no-any-return", "misc", "return-value", "arg-type", "type-var", "unused-ignore", "no-untyped-call"]
+disable_error_code = ["no-any-return", "misc", "return-value", "arg-type", "type-var", "unused-ignore", "no-untyped-call", "assignment", "call-arg"]
 
 [[tool.mypy.overrides]]
 module = "archipy.models.errors.*"
@@ -389,6 +389,10 @@ disable_error_code = ["no-any-return", "misc", "return-value", "arg-type", "var-
 [[tool.mypy.overrides]]
 module = "archipy.models.errors.temporal_errors"
 disable_error_code = ["attr-defined"]  # Allow BaseConfig issue until global_config() is fixed
+
+[[tool.mypy.overrides]]
+module = "archipy.adapters.redis.mocks"
+disable_error_code = ["attr-defined"]  # Allow dynamic cluster method assignments to FakeRedis
 
 [tool.config]
 pyproject_root_var = "pyproject"

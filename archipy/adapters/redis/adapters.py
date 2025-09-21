@@ -1,6 +1,8 @@
 from collections.abc import Awaitable, Iterable, Iterator, Mapping
 from typing import Any, override
 
+from redis import RedisCluster, Sentinel
+from redis.asyncio import RedisCluster as AsyncRedisCluster, Sentinel as AsyncSentinel
 from redis.asyncio.client import Pipeline as AsyncPipeline, PubSub as AsyncPubSub, Redis as AsyncRedis
 from redis.client import Pipeline, PubSub, Redis
 
@@ -19,7 +21,7 @@ from archipy.adapters.redis.ports import (
     RedisSetType,
 )
 from archipy.configs.base_config import BaseConfig
-from archipy.configs.config_template import RedisConfig
+from archipy.configs.config_template import RedisConfig, RedisMode
 
 
 class RedisAdapter(RedisPort):
@@ -49,7 +51,23 @@ class RedisAdapter(RedisPort):
         self._set_clients(configs)
 
     def _set_clients(self, configs: RedisConfig) -> None:
-        """Set up Redis clients for master and slave connections.
+        """Set up Redis clients based on the configured mode.
+
+        Args:
+            configs (RedisConfig): Configuration settings for Redis.
+        """
+        match configs.MODE:
+            case RedisMode.CLUSTER:
+                self._set_cluster_clients(configs)
+            case RedisMode.SENTINEL:
+                self._set_sentinel_clients(configs)
+            case RedisMode.STANDALONE:
+                self._set_standalone_clients(configs)
+            case _:
+                raise ValueError(f"Unsupported Redis mode: {configs.MODE}")
+
+    def _set_standalone_clients(self, configs: RedisConfig) -> None:
+        """Set up standalone Redis clients.
 
         Args:
             configs (RedisConfig): Configuration settings for Redis.
@@ -60,6 +78,110 @@ class RedisAdapter(RedisPort):
             self.read_only_client: Redis = self._get_client(redis_slave_host, configs)
         else:
             self.read_only_client = self.client
+
+    def _set_cluster_clients(self, configs: RedisConfig) -> None:
+        """Set up Redis cluster clients.
+
+        Args:
+            configs (RedisConfig): Configuration settings for Redis cluster.
+        """
+        from redis.cluster import ClusterNode
+
+        startup_nodes = []
+        for node in configs.CLUSTER_NODES:
+            if ":" in node:
+                host, port = node.split(":", 1)
+                startup_nodes.append(ClusterNode(host, int(port)))
+            else:
+                startup_nodes.append(ClusterNode(node, configs.PORT))
+
+        cluster_client = RedisCluster(
+            startup_nodes=startup_nodes,
+            password=configs.PASSWORD,
+            decode_responses=configs.DECODE_RESPONSES,
+            skip_full_coverage_check=configs.CLUSTER_SKIP_FULL_COVERAGE_CHECK,
+            max_connections=configs.MAX_CONNECTIONS,
+            retry_on_timeout=configs.RETRY_ON_TIMEOUT,
+            socket_connect_timeout=configs.SOCKET_CONNECT_TIMEOUT,
+            socket_timeout=configs.SOCKET_TIMEOUT,
+            health_check_interval=configs.HEALTH_CHECK_INTERVAL,
+            read_from_replicas=configs.CLUSTER_READ_FROM_REPLICAS,
+        )
+
+        # In cluster mode, both clients point to the cluster
+        self.client = cluster_client
+        self.read_only_client = cluster_client
+
+    def _set_sentinel_clients(self, configs: RedisConfig) -> None:
+        """Set up Redis sentinel clients.
+
+        Args:
+            configs (RedisConfig): Configuration settings for Redis sentinel.
+        """
+        sentinel_nodes = [(node.split(":")[0], int(node.split(":")[1])) for node in configs.SENTINEL_NODES]
+
+        sentinel = Sentinel(
+            sentinel_nodes,
+            socket_timeout=configs.SENTINEL_SOCKET_TIMEOUT,
+            password=configs.PASSWORD,
+        )
+
+        self.client = sentinel.master_for(
+            configs.SENTINEL_SERVICE_NAME,
+            socket_timeout=configs.SOCKET_TIMEOUT,
+            password=configs.PASSWORD,
+            decode_responses=configs.DECODE_RESPONSES,
+        )
+
+        self.read_only_client = sentinel.slave_for(
+            configs.SENTINEL_SERVICE_NAME,
+            socket_timeout=configs.SOCKET_TIMEOUT,
+            password=configs.PASSWORD,
+            decode_responses=configs.DECODE_RESPONSES,
+        )
+
+    # Override cluster methods to work when in cluster mode
+    @override
+    def cluster_info(self) -> RedisResponseType:
+        """Get cluster information."""
+        if hasattr(self.client, "cluster_info"):
+            return self.client.cluster_info()
+        return None
+
+    @override
+    def cluster_nodes(self) -> RedisResponseType:
+        """Get cluster nodes information."""
+        if hasattr(self.client, "cluster_nodes"):
+            return self.client.cluster_nodes()
+        return None
+
+    @override
+    def cluster_slots(self) -> RedisResponseType:
+        """Get cluster slots mapping."""
+        if hasattr(self.client, "cluster_slots"):
+            return self.client.cluster_slots()
+        return None
+
+    @override
+    def cluster_keyslot(self, key: str) -> RedisResponseType:
+        """Get the hash slot for a key."""
+        if hasattr(self.client, "cluster_keyslot"):
+            return self.client.cluster_keyslot(key)
+        return None
+
+    @override
+    def cluster_countkeysinslot(self, slot: int) -> RedisResponseType:
+        """Count keys in a specific slot."""
+        if hasattr(self.client, "cluster_countkeysinslot"):
+            return self.client.cluster_countkeysinslot(slot)
+        return None
+
+    @override
+    def cluster_getkeysinslot(self, slot: int, count: int) -> RedisResponseType:
+        """Get keys in a specific slot."""
+        if hasattr(self.client, "cluster_getkeysinslot"):
+            return self.client.cluster_getkeysinslot(slot, count)
+        return None
 
     @staticmethod
     def _get_client(host: str, configs: RedisConfig) -> Redis:
@@ -1001,7 +1123,23 @@ class AsyncRedisAdapter(AsyncRedisPort):
         self._set_clients(configs)
 
     def _set_clients(self, configs: RedisConfig) -> None:
-        """Set up async Redis clients for master and slave connections.
+        """Set up async Redis clients based on the configured mode.
+
+        Args:
+            configs (RedisConfig): Configuration settings for Redis.
+        """
+        match configs.MODE:
+            case RedisMode.CLUSTER:
+                self._set_cluster_clients(configs)
+            case RedisMode.SENTINEL:
+                self._set_sentinel_clients(configs)
+            case RedisMode.STANDALONE:
+                self._set_standalone_clients(configs)
+            case _:
+                raise ValueError(f"Unsupported Redis mode: {configs.MODE}")
+
+    def _set_standalone_clients(self, configs: RedisConfig) -> None:
+        """Set up standalone async Redis clients.
 
         Args:
             configs (RedisConfig): Configuration settings for Redis.
@@ -1012,6 +1150,110 @@ class AsyncRedisAdapter(AsyncRedisPort):
             self.read_only_client: AsyncRedis = self._get_client(redis_slave_host, configs)
         else:
             self.read_only_client = self.client
+
+    def _set_cluster_clients(self, configs: RedisConfig) -> None:
+        """Set up async Redis cluster clients.
+
+        Args:
+            configs (RedisConfig): Configuration settings for Redis cluster.
+        """
+        from redis.cluster import ClusterNode
+
+        startup_nodes = []
+        for node in configs.CLUSTER_NODES:
+            if ":" in node:
+                host, port = node.split(":", 1)
+                startup_nodes.append(ClusterNode(host, int(port)))
+            else:
+                startup_nodes.append(ClusterNode(node, configs.PORT))
+
+        cluster_client = AsyncRedisCluster(
+            startup_nodes=startup_nodes,
+            password=configs.PASSWORD,
+            decode_responses=configs.DECODE_RESPONSES,
+            skip_full_coverage_check=configs.CLUSTER_SKIP_FULL_COVERAGE_CHECK,
+            max_connections=configs.MAX_CONNECTIONS,
+            retry_on_timeout=configs.RETRY_ON_TIMEOUT,
+            socket_connect_timeout=configs.SOCKET_CONNECT_TIMEOUT,
+            socket_timeout=configs.SOCKET_TIMEOUT,
+            health_check_interval=configs.HEALTH_CHECK_INTERVAL,
+            read_from_replicas=configs.CLUSTER_READ_FROM_REPLICAS,
+        )
+
+        # In cluster mode, both clients point to the cluster
+        self.client = cluster_client
+        self.read_only_client = cluster_client
+
+    def _set_sentinel_clients(self, configs: RedisConfig) -> None:
+        """Set up async Redis sentinel clients.
+
+        Args:
+            configs (RedisConfig): Configuration settings for Redis sentinel.
+        """
+        sentinel_nodes = [(node.split(":")[0], int(node.split(":")[1])) for node in configs.SENTINEL_NODES]
+
+        sentinel = AsyncSentinel(
+            sentinel_nodes,
+            socket_timeout=configs.SENTINEL_SOCKET_TIMEOUT,
+            password=configs.PASSWORD,
+        )
+
+        self.client = sentinel.master_for(
+            configs.SENTINEL_SERVICE_NAME,
+            socket_timeout=configs.SOCKET_TIMEOUT,
+            password=configs.PASSWORD,
+            decode_responses=configs.DECODE_RESPONSES,
+        )
+
+        self.read_only_client = sentinel.slave_for(
+            configs.SENTINEL_SERVICE_NAME,
+            socket_timeout=configs.SOCKET_TIMEOUT,
+            password=configs.PASSWORD,
+            decode_responses=configs.DECODE_RESPONSES,
+        )
+
+    # Override cluster methods to work when in cluster mode
+    @override
+    async def cluster_info(self) -> RedisResponseType:
+        """Get cluster information asynchronously."""
+        if hasattr(self.client, "cluster_info"):
+            return await self.client.cluster_info()
+        return None
+
+    @override
+    async def cluster_nodes(self) -> RedisResponseType:
+        """Get cluster nodes information asynchronously."""
+        if hasattr(self.client, "cluster_nodes"):
+            return await self.client.cluster_nodes()
+        return None
+
+    @override
+    async def cluster_slots(self) -> RedisResponseType:
+        """Get cluster slots mapping asynchronously."""
+        if hasattr(self.client, "cluster_slots"):
+            return await self.client.cluster_slots()
+        return None
+
+    @override
+    async def cluster_keyslot(self, key: str) -> RedisResponseType:
+        """Get the hash slot for a key asynchronously."""
+        if hasattr(self.client, "cluster_keyslot"):
+            return await self.client.cluster_keyslot(key)
+        return None
+
+    @override
+    async def cluster_countkeysinslot(self, slot: int) -> RedisResponseType:
+        """Count keys in a specific slot asynchronously."""
+        if hasattr(self.client, "cluster_countkeysinslot"):
+            return await self.client.cluster_countkeysinslot(slot)
+        return None
+
+    @override
+    async def cluster_getkeysinslot(self, slot: int, count: int) -> RedisResponseType:
+        """Get keys in a specific slot asynchronously."""
+        if hasattr(self.client, "cluster_getkeysinslot"):
+            return await self.client.cluster_getkeysinslot(slot, count)
+        return None
 
     @staticmethod
     def _get_client(host: str, configs: RedisConfig) -> AsyncRedis:

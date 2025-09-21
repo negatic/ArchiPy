@@ -6,12 +6,21 @@ and more.
 """
 
 import logging
+from enum import StrEnum
 from typing import Literal, Self
 from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field, PostgresDsn, SecretStr, model_validator
 
 from archipy.models.errors import FailedPreconditionError, InvalidArgumentError
+
+
+class RedisMode(StrEnum):
+    """Redis deployment mode."""
+
+    STANDALONE = "standalone"
+    SENTINEL = "sentinel"
+    CLUSTER = "cluster"
 
 
 class ElasticsearchConfig(BaseModel):
@@ -549,17 +558,59 @@ class PrometheusConfig(BaseModel):
 class RedisConfig(BaseModel):
     """Configuration settings for Redis cache integration.
 
-    Controls Redis server connection parameters and client behavior settings.
+    Supports standalone, sentinel, and cluster deployments.
     """
 
-    MASTER_HOST: str | None = Field(default=None, description="Redis master host")
-    SLAVE_HOST: str | None = Field(default=None, description="Redis slave host")
-    PORT: int = Field(default=6379, description="Redis server port")
-    DATABASE: int = Field(default=0, description="Redis database number")
+    # Deployment mode
+    MODE: RedisMode = Field(default=RedisMode.STANDALONE, description="Redis deployment mode")
+
+    # Standalone mode settings (existing)
+    MASTER_HOST: str | None = Field(default="localhost", description="Redis master host (standalone/sentinel)")
+    SLAVE_HOST: str | None = Field(default=None, description="Redis slave host (standalone)")
+
+    # Cluster mode settings
+    CLUSTER_NODES: list[str] = Field(default=[], description="List of cluster node addresses (host:port)")
+    CLUSTER_REQUIRE_FULL_COVERAGE: bool = Field(default=True, description="Require full cluster coverage")
+    CLUSTER_READ_FROM_REPLICAS: bool = Field(default=True, description="Allow reading from replica nodes")
+    CLUSTER_SKIP_FULL_COVERAGE_CHECK: bool = Field(default=False, description="Skip full coverage check for testing")
+
+    # Sentinel mode settings
+    SENTINEL_NODES: list[str] = Field(default=[], description="List of sentinel addresses (host:port)")
+    SENTINEL_SERVICE_NAME: str | None = Field(default=None, description="Master service name for sentinel")
+    SENTINEL_SOCKET_TIMEOUT: float = Field(default=0.1, description="Sentinel socket timeout")
+
+    # Common settings
+    PORT: int = Field(default=6379, description="Default Redis server port")
+    DATABASE: int = Field(default=0, description="Redis database number (not used in cluster)")
     PASSWORD: str | None = Field(default=None, description="Redis password")
     DECODE_RESPONSES: Literal[True] = Field(default=True, description="Whether to decode responses")
     VERSION: int = Field(default=7, description="Redis protocol version")
     HEALTH_CHECK_INTERVAL: int = Field(default=10, description="Health check interval in seconds")
+
+    # Connection pooling
+    MAX_CONNECTIONS: int = Field(default=50, description="Maximum connections per node")
+    RETRY_ON_TIMEOUT: bool = Field(default=True, description="Retry operations on timeout")
+    SOCKET_CONNECT_TIMEOUT: float = Field(default=5.0, description="Socket connection timeout")
+    SOCKET_TIMEOUT: float = Field(default=5.0, description="Socket operation timeout")
+
+    @model_validator(mode="after")
+    def validate_mode_configuration(self) -> Self:
+        """Validate mode-specific configuration."""
+        if self.MODE == RedisMode.CLUSTER:
+            if not self.CLUSTER_NODES:
+                raise ValueError("CLUSTER_NODES must be provided when MODE is 'cluster'")
+            if self.DATABASE != 0:
+                logging.warning("DATABASE setting ignored in cluster mode")
+
+        elif self.MODE == RedisMode.SENTINEL:
+            if not self.SENTINEL_NODES or not self.SENTINEL_SERVICE_NAME:
+                raise ValueError("SENTINEL_NODES and SENTINEL_SERVICE_NAME required for sentinel mode")
+
+        elif self.MODE == RedisMode.STANDALONE:
+            if not self.MASTER_HOST:
+                raise ValueError("MASTER_HOST required for standalone mode")
+
+        return self
 
 
 class SentryConfig(BaseModel):

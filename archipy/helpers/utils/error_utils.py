@@ -155,7 +155,7 @@ class ErrorUtils:
         """
         if not GRPC_AVAILABLE:
             raise NotImplementedError
-        return (exception.grpc_status_code or StatusCode.UNKNOWN.value[0], exception.get_message())
+        return exception.grpc_status_code or StatusCode.UNKNOWN.value[0], exception.get_message()
 
     @staticmethod
     def get_fastapi_exception_responses(exceptions: list[type[BaseError]]) -> dict[int, dict[str, Any]]:

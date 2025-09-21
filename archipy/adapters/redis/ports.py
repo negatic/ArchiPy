@@ -1084,6 +1084,65 @@ class RedisPort:
         """
         raise NotImplementedError
 
+    # Cluster-specific methods (no-op for standalone mode)
+    def cluster_info(self) -> RedisResponseType:
+        """Get cluster information.
+
+        Returns:
+            RedisResponseType: Cluster information or None for standalone mode.
+        """
+        return None
+
+    def cluster_nodes(self) -> RedisResponseType:
+        """Get cluster nodes information.
+
+        Returns:
+            RedisResponseType: Cluster nodes info or None for standalone mode.
+        """
+        return None
+
+    def cluster_slots(self) -> RedisResponseType:
+        """Get cluster slots mapping.
+
+        Returns:
+            RedisResponseType: Slots mapping or None for standalone mode.
+        """
+        return None
+
+    def cluster_keyslot(self, key: str) -> RedisResponseType:
+        """Get the hash slot for a key.
+
+        Args:
+            key (str): The key to get slot for.
+
+        Returns:
+            RedisResponseType: Key slot or None for standalone mode.
+        """
+        return None
+
+    def cluster_countkeysinslot(self, slot: int) -> RedisResponseType:
+        """Count keys in a specific slot.
+
+        Args:
+            slot (int): The slot number.
+
+        Returns:
+            RedisResponseType: Key count or None for standalone mode.
+        """
+        return None
+
+    def cluster_getkeysinslot(self, slot: int, count: int) -> RedisResponseType:
+        """Get keys in a specific slot.
+
+        Args:
+            slot (int): The slot number.
+            count (int): Maximum number of keys to return.
+
+        Returns:
+            RedisResponseType: List of keys or None for standalone mode.
+        """
+        return None
+
 
 class AsyncRedisPort:
     """Interface for asynchronous Redis operations providing a standardized access pattern.
@@ -2152,3 +2211,62 @@ class AsyncRedisPort:
             NotImplementedError: If not implemented by the subclass.
         """
         raise NotImplementedError
+
+    # Cluster-specific methods (no-op for standalone mode)
+    async def cluster_info(self) -> RedisResponseType:
+        """Get cluster information asynchronously.
+
+        Returns:
+            RedisResponseType: Cluster information or None for standalone mode.
+        """
+        return None
+
+    async def cluster_nodes(self) -> RedisResponseType:
+        """Get cluster nodes information asynchronously.
+
+        Returns:
+            RedisResponseType: Cluster nodes info or None for standalone mode.
+        """
+        return None
+
+    async def cluster_slots(self) -> RedisResponseType:
+        """Get cluster slots mapping asynchronously.
+
+        Returns:
+            RedisResponseType: Slots mapping or None for standalone mode.
+        """
+        return None
+
+    async def cluster_keyslot(self, key: str) -> RedisResponseType:
+        """Get the hash slot for a key asynchronously.
+
+        Args:
+            key (str): The key to get slot for.
+
+        Returns:
+            RedisResponseType: Key slot or None for standalone mode.
+        """
+        return None
+
+    async def cluster_countkeysinslot(self, slot: int) -> RedisResponseType:
+        """Count keys in a specific slot asynchronously.
+
+        Args:
+            slot (int): The slot number.
+
+        Returns:
+            RedisResponseType: Key count or None for standalone mode.
+        """
+        return None
+
+    async def cluster_getkeysinslot(self, slot: int, count: int) -> RedisResponseType:
+        """Get keys in a specific slot asynchronously.
+
+        Args:
+            slot (int): The slot number.
+            count (int): Maximum number of keys to return.
+
+        Returns:
+            RedisResponseType: List of keys or None for standalone mode.
+        """
+        return None
