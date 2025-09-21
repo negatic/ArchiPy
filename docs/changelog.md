@@ -2,6 +2,36 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
+## [3.12.0] - 2025-09-21
+
+### Added
+
+#### Temporal Workflow Scheduling Enhancement
+
+- **Schedule Management Methods** - Added comprehensive schedule management capabilities to Temporal adapter
+    - Added `create_schedule()` method for creating workflow schedules with configurable specifications
+    - Added `stop_schedule()` method for deleting and stopping existing schedules
+    - Enhanced Temporal integration with ScheduleActionStartWorkflow support
+    - Improved workflow scheduling capabilities with ScheduleSpec configuration
+    - Enhanced temporal workflow orchestration with automated scheduling support
+
+#### Performance Optimization
+
+- **Redis Hiredis Extension** - Enhanced Redis performance with native C extension support
+    - Updated Redis dependency to include hiredis extension for improved performance
+    - Added high-performance Redis protocol parsing with native C implementation
+    - Enhanced Redis connection speed and throughput for better scalability
+    - Improved Redis adapter performance with reduced memory usage and faster operations
+
+### Changed
+
+#### CI/CD Infrastructure
+
+- **GitHub Actions Updates** - Updated workflow dependencies for improved reliability
+    - Updated tj-actions/changed-files from version 46 to 47 for enhanced file change detection
+    - Improved CI/CD pipeline reliability with latest action features
+    - Enhanced workflow performance with optimized file change tracking
+
 ## [3.11.1] - 2025-09-06
 
 ### Added
