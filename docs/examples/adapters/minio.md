@@ -60,19 +60,35 @@ import logging
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# Check if bucket exists
-if not minio.bucket_exists("my-bucket"):
-    # Create bucket
-    minio.make_bucket("my-bucket")
+# Check if bucket exists and create if needed
+try:
+    if not minio.bucket_exists("my-bucket"):
+        # Create bucket
+        minio.make_bucket("my-bucket")
+except Exception as e:
+    logger.error(f"Failed to check/create bucket: {e}")
+    raise
+else:
     logger.info("Bucket created successfully")
 
 # List all buckets
-buckets = minio.list_buckets()
-for bucket in buckets:
-    logger.info(f"Bucket: {bucket['name']}, Created: {bucket['creation_date']}")
+try:
+    buckets = minio.list_buckets()
+except Exception as e:
+    logger.error(f"Failed to list buckets: {e}")
+    raise
+else:
+    for bucket in buckets:
+        logger.info(f"Bucket: {bucket['name']}, Created: {bucket['creation_date']}")
 
 # Remove bucket
-minio.remove_bucket("my-bucket")
+try:
+    minio.remove_bucket("my-bucket")
+except Exception as e:
+    logger.error(f"Failed to remove bucket: {e}")
+    raise
+else:
+    logger.info("Bucket removed successfully")
 ```
 
 ### Working with Objects
@@ -167,14 +183,17 @@ logger = logging.getLogger(__name__)
 
 try:
     minio.make_bucket("existing-bucket")
-except AlreadyExistsError:
-    logger.warning("Bucket already exists")
-except PermissionDeniedError:
-    logger.exception("Permission denied to create bucket")
+except AlreadyExistsError as e:
+    logger.warning(f"Bucket already exists: {e}")
+except PermissionDeniedError as e:
+    logger.error(f"Permission denied to create bucket: {e}")
+    raise
 except InvalidArgumentError as e:
-    logger.exception(f"Invalid argument: {e}")
+    logger.error(f"Invalid argument: {e}")
+    raise
 except InternalError as e:
-    logger.exception(f"Internal error: {e}")
+    logger.error(f"Internal error: {e}")
+    raise
 ```
 
 ## Performance Optimization
@@ -197,19 +216,24 @@ minio.clear_all_caches()
 ### FastAPI Example
 
 ```python
+import logging
+import os
+import tempfile
+
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import RedirectResponse
-import tempfile
-import os
 
 from archipy.adapters.minio.adapters import MinioAdapter
-from archipy.models.errors import NotFoundError, PermissionDeniedError
+from archipy.models.errors import NotFoundError, PermissionDeniedError, InternalError
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 minio = MinioAdapter()
 
 @app.post("/upload/{bucket_name}")
-async def upload_file(bucket_name: str, file: UploadFile):
+async def upload_file(bucket_name: str, file: UploadFile) -> dict[str, str]:
     try:
         # Save uploaded file to temporary location
         with tempfile.NamedTemporaryFile(delete=False) as temp:
@@ -220,24 +244,37 @@ async def upload_file(bucket_name: str, file: UploadFile):
         # Upload to MinIO
         try:
             minio.put_object(bucket_name, file.filename, temp_path)
+        except InternalError as e:
+            logger.error(f"Failed to upload file: {e}")
+            raise HTTPException(status_code=500, detail=str(e)) from e
+        else:
+            logger.info(f"File {file.filename} uploaded to {bucket_name}")
             return {"message": f"File {file.filename} uploaded successfully"}
         finally:
             os.unlink(temp_path)  # Clean up temp file
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Unexpected error during upload: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 @app.get("/download/{bucket_name}/{object_name}")
 async def download_file(bucket_name: str, object_name: str):
     try:
         # Generate presigned URL
         url = minio.presigned_get_object(bucket_name, object_name, expires=3600)
+    except NotFoundError as e:
+        logger.error(f"File not found: {e}")
+        raise HTTPException(status_code=404, detail="File not found") from e
+    except PermissionDeniedError as e:
+        logger.error(f"Permission denied: {e}")
+        raise HTTPException(status_code=403, detail="Permission denied") from e
+    except InternalError as e:
+        logger.error(f"Internal error: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    else:
+        logger.info(f"Generated download URL for {object_name}")
         return RedirectResponse(url)
-    except NotFoundError:
-        raise HTTPException(status_code=404, detail="File not found")
-    except PermissionDeniedError:
-        raise HTTPException(status_code=403, detail="Permission denied")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 ```
 
 ## Testing with BDD
@@ -264,3 +301,11 @@ Feature: MinIO Operations Testing
     Then the object "test.txt" should exist in bucket "test-bucket"
     And downloading "test.txt" from "test-bucket" should return content "Hello World"
 ```
+
+## See Also
+
+- [Error Handling](../error_handling.md) - Exception handling patterns with proper chaining
+- [Configuration Management](../config_management.md) - MinIO configuration setup
+- [BDD Testing](../bdd_testing.md) - Testing MinIO operations
+- [MinIO Adapter Feature](../../features/minio_adapter.feature) - BDD test scenarios for MinIO
+- [API Reference](../../api_reference/adapters.md) - Full MinIO adapter API documentation

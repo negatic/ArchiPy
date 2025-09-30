@@ -17,10 +17,13 @@ uv add "archipy[redis]"
 ### Synchronous Redis Adapter
 
 ```python
-
+import logging
 
 from archipy.adapters.redis.adapters import RedisAdapter
 from archipy.models.errors import CacheError
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 try:
     # Create a Redis adapter with connection details
@@ -34,7 +37,7 @@ try:
     # Set and get values
     redis.set("user:123:name", "John Doe")
     name = redis.get("user:123:name")
-    print(f"User name: {name}")  # Output: User name: John Doe
+    logger.info(f"User name: {name}")  # Output: User name: John Doe
 
     # Set with expiration (seconds)
     redis.set("session:456", "active", ex=3600)  # Expires in 1 hour
@@ -44,19 +47,23 @@ try:
 
     # Check if key exists
     if redis.exists("session:456"):
-        print("Session exists")
+        logger.info("Session exists")
 except CacheError as e:
-    print(f"Redis operation failed: {str(e)}")
+    logger.error(f"Redis operation failed: {e}")
+    raise
 ```
 
 ### Asynchronous Redis Adapter
 
 ```python
 import asyncio
-from typing import Optional
+import logging
 
 from archipy.adapters.redis.adapters import AsyncRedisAdapter
 from archipy.models.errors import CacheError
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 async def main() -> None:
@@ -72,12 +79,13 @@ async def main() -> None:
         await redis.set("counter", "1")
         await redis.incr("counter")  # Increment
         count = await redis.get("counter")
-        print(f"Counter: {count}")  # Output: Counter: 2
+        logger.info(f"Counter: {count}")  # Output: Counter: 2
 
         # Cleanup
         await redis.close()
     except CacheError as e:
-        print(f"Redis operation failed: {str(e)}")
+        logger.error(f"Redis operation failed: {e}")
+        raise
 
 
 # Run the async function
@@ -90,12 +98,17 @@ asyncio.run(main())
 
 ```python
 import json
+import logging
 import time
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 from archipy.adapters.redis.adapters import RedisAdapter
 from archipy.models.errors import CacheError, CacheMissError
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # Define a type variable for generic function types
 T = TypeVar('T', bound=Callable[..., Any])
@@ -138,11 +151,11 @@ def cache_result(key_prefix: str, ttl: int = 300) -> Callable[[T], T]:
                     redis.set(cache_key, json.dumps(result), ex=ttl)
                 except CacheError as e:
                     # Log but don't fail if caching fails
-                    print(f"Failed to cache result: {e}")
+                    logger.warning(f"Failed to cache result: {e}")
                 return result
             except CacheError as e:
                 # Execute function if Redis fails
-                print(f"Redis error: {e}")
+                logger.warning(f"Redis error: {e}")
                 return func(*args, **kwargs)
 
         return cast(T, wrapper)
@@ -152,7 +165,7 @@ def cache_result(key_prefix: str, ttl: int = 300) -> Callable[[T], T]:
 
 # Example usage
 @cache_result("api", ttl=60)
-def expensive_api_call(item_id: int) -> dict[str, Any]:
+def expensive_api_call(item_id: int) -> dict[str, str | int]:
     """Simulate an expensive API call.
 
     Args:
@@ -161,18 +174,18 @@ def expensive_api_call(item_id: int) -> dict[str, Any]:
     Returns:
         Item data dictionary
     """
-    print("Executing expensive operation...")
+    logger.info("Executing expensive operation...")
     time.sleep(1)  # Simulate expensive operation
     return {"id": item_id, "name": f"Item {item_id}", "data": "Some data"}
 
 
 # First call will execute the function
 result1 = expensive_api_call(123)
-print("First call:", result1)
+logger.info(f"First call: {result1}")
 
 # Second call will retrieve from cache
 result2 = expensive_api_call(123)
-print("Second call:", result2)
+logger.info(f"Second call: {result2}")
 ```
 
 ## Mock Redis for Testing
@@ -180,12 +193,15 @@ print("Second call:", result2)
 ArchiPy provides a Redis mock for unit testing that doesn't require a real Redis server:
 
 ```python
+import logging
 import unittest
-from typing import Optional
 
 from archipy.adapters.redis.adapters import RedisAdapter
 from archipy.adapters.redis.mocks import RedisMock
 from archipy.models.errors import CacheError, CacheMissError
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class UserService:
@@ -251,17 +267,100 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
+### Async Redis Mock
+
+For async code, use the async variant:
+
+```python
+import asyncio
+import logging
+import unittest
+
+from archipy.adapters.redis.adapters import AsyncRedisAdapter
+from archipy.adapters.redis.mocks import AsyncRedisMock
+from archipy.models.errors import CacheError
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+
+class AsyncUserService:
+    def __init__(self, redis_adapter: AsyncRedisAdapter) -> None:
+        self.redis = redis_adapter
+
+    async def get_user(self, user_id: int) -> str:
+        """Get user data asynchronously, either from cache or backend.
+
+        Args:
+            user_id: User ID to look up
+
+        Returns:
+            User data as a string
+
+        Raises:
+            CacheError: If Redis operation fails
+        """
+        try:
+            cache_key = f"user:{user_id}"
+            cached = await self.redis.get(cache_key)
+        except CacheError as e:
+            logger.error(f"Cache error: {e}")
+            raise
+        else:
+            if cached:
+                return cached
+
+            # In real code, we'd fetch from database if not in cache
+            user_data = f"User {user_id} data"
+            try:
+                await self.redis.set(cache_key, user_data, ex=300)
+            except CacheError as e:
+                logger.warning(f"Failed to cache user data: {e}")
+            return user_data
+
+
+class TestAsyncUserService(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self) -> None:
+        # Use the AsyncRedisMock instead of a real Redis connection
+        self.redis_mock = AsyncRedisMock()
+        self.user_service = AsyncUserService(self.redis_mock)
+
+    async def test_get_user(self) -> None:
+        # Test first fetch (not cached)
+        user_data = await self.user_service.get_user(123)
+        self.assertEqual(user_data, "User 123 data")
+
+        # Test that it was cached
+        cached = await self.redis_mock.get("user:123")
+        self.assertEqual(cached, "User 123 data")
+
+        # Change the cached value to test cache hit
+        await self.redis_mock.set("user:123", "Modified data")
+
+        # Test cached fetch
+        user_data = await self.user_service.get_user(123)
+        self.assertEqual(user_data, "Modified data")
+
+
+# Run the async test
+if __name__ == "__main__":
+    unittest.main()
+```
+
 ## Advanced Redis Features
 
 ### Publish/Subscribe
 
 ```python
+import logging
 import threading
 import time
-from typing import Dict, Any
 
 from archipy.adapters.redis.adapters import RedisAdapter
 from archipy.models.errors import CacheError
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 # Subscriber thread
@@ -270,9 +369,9 @@ def subscribe_thread() -> None:
         subscriber = RedisAdapter(host="localhost", port=6379, db=0)
         pubsub = subscriber.pubsub()
 
-        def message_handler(message: Dict[str, Any]) -> None:
+        def message_handler(message: dict[str, str]) -> None:
             if message["type"] == "message":
-                print(f"Received message: {message['data']}")
+                logger.info(f"Received message: {message['data']}")
 
         pubsub.subscribe(**{"channel:notifications": message_handler})
         pubsub.run_in_thread(sleep_time=0.5)
@@ -281,7 +380,8 @@ def subscribe_thread() -> None:
         time.sleep(10)
         pubsub.close()
     except CacheError as e:
-        print(f"Redis subscription error: {e}")
+        logger.error(f"Redis subscription error: {e}")
+        raise
 
 
 try:
@@ -304,18 +404,23 @@ try:
     # Wait for thread to complete
     thread.join()
 except CacheError as e:
-    print(f"Redis publisher error: {e}")
+    logger.error(f"Redis publisher error: {e}")
+    raise
 except Exception as e:
-    print(f"General error: {e}")
+    logger.error(f"General error: {e}")
+    raise
 ```
 
 ### Pipeline for Multiple Operations
 
 ```python
-from typing import List
+import logging
 
 from archipy.adapters.redis.adapters import RedisAdapter
 from archipy.models.errors import CacheError
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 try:
     redis = RedisAdapter(host="localhost", port=6379, db=0)
@@ -331,8 +436,18 @@ try:
     pipe = redis.pipeline()
     pipe.incr("stats:visits")
     pipe.incr("stats:unique_users")
-    results: List[int] = pipe.execute()
-    print(f"Visits: {results[0]}, Unique users: {results[1]}")
+    results: list[int] = pipe.execute()
+    logger.info(f"Visits: {results[0]}, Unique users: {results[1]}")
 except CacheError as e:
-    print(f"Redis pipeline error: {e}")
+    logger.error(f"Redis pipeline error: {e}")
+    raise
 ```
+
+## See Also
+
+- [Error Handling](../error_handling.md) - Exception handling patterns with proper chaining
+- [Configuration Management](../config_management.md) - Redis configuration setup
+- [BDD Testing](../bdd_testing.md) - Testing Redis operations
+- [Redis Mock Feature](../../features/redis_mock.feature) - BDD test scenarios for Redis mock
+- [Cache Decorator](../helpers/decorators.md#cache-decorator) - TTL cache decorator usage
+- [API Reference](../../api_reference/adapters.md) - Full Redis adapter API documentation

@@ -7,7 +7,12 @@ Examples of ArchiPy's utility functions:
 Work with dates and times consistently:
 
 ```python
+import logging
+
 from archipy.helpers.utils.datetime_utils import DatetimeUtils
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # Get current UTC time
 now = DatetimeUtils.get_datetime_utc_now()
@@ -23,6 +28,7 @@ jalali_date = DatetimeUtils.convert_to_jalali(now)
 
 # Check if date is a holiday in Iran
 is_holiday = DatetimeUtils.is_holiday_in_iran(now)
+logger.info(f"Is holiday: {is_holiday}")
 ```
 
 ## jwt_utils
@@ -48,9 +54,11 @@ refresh_token = JWTUtils.create_refresh_token(user_id, additional_claims=additio
 # Verify a token
 try:
     payload = JWTUtils.verify_access_token(access_token)
-    logger.info(f"Token valid for user: {payload['sub']}")
 except (InvalidTokenError, TokenExpiredError) as e:
-    logger.exception(f"Invalid token: {e}")
+    logger.error(f"Invalid token: {e}")
+    raise
+else:
+    logger.info(f"Token valid for user: {payload['sub']}")
 
 # Get token expiration time
 expiry = JWTUtils.get_token_expiry(access_token)
@@ -66,6 +74,7 @@ Secure password handling:
 
 ```python
 import logging
+
 from archipy.helpers.utils.password_utils import PasswordUtils
 from archipy.models.types.language_type import LanguageType
 from archipy.models.errors import InvalidPasswordError
@@ -88,17 +97,21 @@ logger.info(f"Generated password: {secure_password}")
 # Validate a password against policy
 try:
     PasswordUtils.validate_password(password, lang=LanguageType.EN)
-    logger.info("Password meets policy requirements")
 except InvalidPasswordError as e:
     logger.warning(f"Invalid password: {e.requirements}")
+    raise
+else:
+    logger.info("Password meets policy requirements")
 
 # Check password against history
 password_history = [hashed]  # Previous password hashes
 try:
     PasswordUtils.validate_password_history("NewSecureP@ssword123", password_history)
-    logger.info("Password not previously used")
 except InvalidPasswordError as e:
     logger.warning("Password has been used recently")
+    raise
+else:
+    logger.info("Password not previously used")
 ```
 
 ## file_utils
@@ -107,6 +120,7 @@ Handle files securely:
 
 ```python
 import logging
+
 from archipy.helpers.utils.file_utils import FileUtils
 from archipy.models.errors import InvalidArgumentError, OutOfRangeError
 
@@ -116,16 +130,20 @@ logger = logging.getLogger(__name__)
 # Create a secure link to a file with expiration
 try:
     link = FileUtils.create_secure_link("/path/to/document.pdf", minutes=60)
-    logger.info(f"Secure link: {link}")
 except (InvalidArgumentError, OutOfRangeError) as e:
-    logger.exception(f"Error creating link: {e}")
+    logger.error(f"Error creating link: {e}")
+    raise
+else:
+    logger.info(f"Secure link: {link}")
 
 # Validate file name against allowed extensions
 try:
     is_valid = FileUtils.validate_file_name("document.pdf")
-    logger.info(f"File is valid: {is_valid}")
 except InvalidArgumentError as e:
-    logger.exception(f"Error validating file: {e}")
+    logger.error(f"Error validating file: {e}")
+    raise
+else:
+    logger.info(f"File is valid: {is_valid}")
 ```
 
 ## base_utils
@@ -134,7 +152,9 @@ Validate and sanitize data:
 
 ```python
 import logging
+
 from archipy.helpers.utils.base_utils import BaseUtils
+from archipy.models.errors import InvalidArgumentError
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -146,9 +166,11 @@ logger.info(f"Sanitized phone: {phone}")  # 09123456789
 # Validate Iranian national code
 try:
     BaseUtils.validate_iranian_national_code_pattern("1234567891")
+except InvalidArgumentError as e:
+    logger.error(f"Invalid national code: {e}")
+    raise
+else:
     logger.info("National code is valid")
-except Exception as e:
-    logger.exception(f"Invalid national code: {e}")
 ```
 
 ## error_utils
@@ -160,8 +182,13 @@ Standardized exception handling:
 FastAPI application utilities:
 
 ```python
+import logging
+
 from archipy.helpers.utils.app_utils import AppUtils, FastAPIUtils
 from archipy.configs.base_config import BaseConfig
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # Create a FastAPI app with standard config
 app = AppUtils.create_fastapi_app(BaseConfig.global_config())
@@ -175,6 +202,8 @@ FastAPIUtils.setup_cors(
     app,
     allowed_origins=["https://example.com"]
 )
+
+logger.info("FastAPI app configured successfully")
 ```
 
 ## string_utils

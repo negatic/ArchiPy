@@ -55,15 +55,32 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Create a topic
-kafka.create_topic("my-topic", num_partitions=3, replication_factor=1)
+try:
+    kafka.create_topic("my-topic", num_partitions=3, replication_factor=1)
+except Exception as e:
+    logger.error(f"Failed to create topic: {e}")
+    raise
+else:
+    logger.info("Topic created successfully")
 
 # List all topics
-topics = kafka.list_topics()
-for topic in topics:
-    logger.info(f"Topic: {topic}")
+try:
+    topics = kafka.list_topics()
+except Exception as e:
+    logger.error(f"Failed to list topics: {e}")
+    raise
+else:
+    for topic in topics:
+        logger.info(f"Topic: {topic}")
 
 # Delete a topic
-kafka.delete_topic("my-topic")
+try:
+    kafka.delete_topic("my-topic")
+except Exception as e:
+    logger.error(f"Failed to delete topic: {e}")
+    raise
+else:
+    logger.info("Topic deleted successfully")
 ```
 
 ### Publishing Messages
@@ -76,18 +93,36 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 # Publish a simple message
-kafka.publish("my-topic", "Hello, Kafka!")
+try:
+    kafka.publish("my-topic", "Hello, Kafka!")
+except Exception as e:
+    logger.error(f"Failed to publish message: {e}")
+    raise
+else:
+    logger.info("Message published successfully")
 
 # Publish with key and headers
 headers = {"source": "my-app", "version": "1.0"}
-kafka.publish("my-topic", "Hello, Kafka!", key="message-1", headers=headers)
+try:
+    kafka.publish("my-topic", "Hello, Kafka!", key="message-1", headers=headers)
+except Exception as e:
+    logger.error(f"Failed to publish message with headers: {e}")
+    raise
+else:
+    logger.info("Message with headers published successfully")
 
 # Publish multiple messages
 messages = [
     {"key": "msg1", "value": "Message 1"},
     {"key": "msg2", "value": "Message 2"}
 ]
-kafka.publish_batch("my-topic", messages)
+try:
+    kafka.publish_batch("my-topic", messages)
+except Exception as e:
+    logger.error(f"Failed to publish batch: {e}")
+    raise
+else:
+    logger.info("Batch published successfully")
 ```
 
 ### Consuming Messages
@@ -146,6 +181,7 @@ The KafkaAdapter uses ArchiPy's domain-specific exceptions for consistent error 
 
 ```python
 import logging
+
 from archipy.models.errors import (
     AlreadyExistsError,
     InternalError,
@@ -159,14 +195,17 @@ logger = logging.getLogger(__name__)
 
 try:
     kafka.create_topic("existing-topic")
-except AlreadyExistsError:
-    logger.warning("Topic already exists")
-except PermissionDeniedError:
-    logger.exception("Permission denied to create topic")
+except AlreadyExistsError as e:
+    logger.warning(f"Topic already exists: {e}")
+except PermissionDeniedError as e:
+    logger.error(f"Permission denied to create topic: {e}")
+    raise
 except InvalidArgumentError as e:
-    logger.exception(f"Invalid argument: {e}")
+    logger.error(f"Invalid argument: {e}")
+    raise
 except InternalError as e:
-    logger.exception(f"Internal error: {e}")
+    logger.error(f"Internal error: {e}")
+    raise
 ```
 
 ## Consumer Group Management
@@ -195,11 +234,16 @@ kafka.delete_consumer_group("my-group")
 ### FastAPI Example
 
 ```python
+import logging
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from archipy.adapters.kafka.adapters import KafkaAdapter
 from archipy.models.errors import InternalError
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 kafka = KafkaAdapter()
@@ -209,20 +253,26 @@ class Message(BaseModel):
     key: str | None = None
 
 @app.post("/publish/{topic}")
-async def publish_message(topic: str, message: Message):
+async def publish_message(topic: str, message: Message) -> dict[str, str]:
     try:
         kafka.publish(topic, message.content, key=message.key)
+    except InternalError as e:
+        logger.error(f"Failed to publish message: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    else:
+        logger.info(f"Message published to {topic}")
         return {"message": "Message published successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/topics")
-async def list_topics():
+async def list_topics() -> dict[str, list[str]]:
     try:
         topics = kafka.list_topics()
+    except InternalError as e:
+        logger.error(f"Failed to list topics: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    else:
+        logger.info(f"Retrieved {len(topics)} topics")
         return {"topics": topics}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 ```
 
 ## Testing with BDD
@@ -240,3 +290,11 @@ Feature: Kafka Operations Testing
     When I publish a message "Hello, Kafka!" to "test-topic"
     Then I should be able to consume the message from "test-topic"
 ```
+
+## See Also
+
+- [Error Handling](../error_handling.md) - Exception handling patterns with proper chaining
+- [Configuration Management](../config_management.md) - Kafka configuration setup
+- [BDD Testing](../bdd_testing.md) - Testing Kafka operations
+- [Kafka Adapters Feature](../../features/kafka_adapters.feature) - BDD test scenarios for Kafka
+- [API Reference](../../api_reference/adapters.md) - Full Kafka adapter API documentation

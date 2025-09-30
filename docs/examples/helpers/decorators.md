@@ -7,11 +7,15 @@ This page demonstrates how to use ArchiPy's decorators for common cross-cutting 
 The retry decorator automatically retries a function when it encounters specific exceptions.
 
 ```python
-from typing import Any
+import logging
 import random
+
 from archipy.helpers.decorators.retry import retry_decorator
 from archipy.models.errors import ResourceExhaustedError
 from archipy.models.types.language_type import LanguageType
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 # Retry a function that might fail temporarily
@@ -52,13 +56,16 @@ def unreliable_api_call(item_id: int) -> dict[str, Any]:
 try:
     # This call might succeed after retries
     result = unreliable_api_call(42)
-    print(f"Request succeeded: {result}")
 except ResourceExhaustedError as e:
     # This happens when all retries fail
-    print(f"All retry attempts failed: {e}")
+    logger.error(f"All retry attempts failed: {e}")
+    raise
 except ValueError as e:
     # This happens for input validation failures (not retried)
-    print(f"Validation error: {e}")
+    logger.error(f"Validation error: {e}")
+    raise
+else:
+    logger.info(f"Request succeeded: {result}")
 ```
 
 ## Timeout Decorator
@@ -66,10 +73,14 @@ except ValueError as e:
 The timeout decorator ensures a function doesn't run longer than a specified duration.
 
 ```python
+import logging
 import time
-from typing import Any
+
 from archipy.helpers.decorators.timeout import timeout_decorator
 from archipy.models.errors import DeadlineExceededError
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 # Set a timeout for a potentially long-running function
@@ -93,13 +104,20 @@ def slow_operation(duration: float) -> str:
 try:
     # This will succeed because it completes within the timeout
     result = slow_operation(2)
-    print(result)  # "Operation completed"
+except DeadlineExceededError as e:
+    logger.error(f"Operation timed out: {e}")
+    raise
+else:
+    logger.info(result)  # "Operation completed"
 
+try:
     # This will raise a DeadlineExceededError because it exceeds the timeout
     result = slow_operation(5)
-    print("This won't be reached")
 except DeadlineExceededError as e:
-    print(f"Operation timed out: {e}")
+    logger.error(f"Operation timed out: {e}")
+    # Expected to timeout
+else:
+    logger.info("This won't be reached")
 ```
 
 ## Timing Decorator
@@ -107,14 +125,18 @@ except DeadlineExceededError as e:
 The timing decorator measures and logs the execution time of functions.
 
 ```python
+import logging
 import time
-from typing import List
+
 from archipy.helpers.decorators.timing import timing_decorator
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 # Measure and log how long a function takes to execute
 @timing_decorator
-def process_data(items: List[int]) -> int:
+def process_data(items: list[int]) -> int:
     """Process a list of items with time measurement.
 
     Args:
@@ -129,7 +151,7 @@ def process_data(items: List[int]) -> int:
 
 # This will log the execution time before returning
 result = process_data(list(range(100)))
-print(f"Result: {result}")  # Output: Result: 4950
+logger.info(f"Result: {result}")  # Output: Result: 4950
 # The decorator will log something like:
 # INFO - Function 'process_data' executed in 0.103 seconds
 ```
@@ -139,14 +161,18 @@ print(f"Result: {result}")  # Output: Result: 4950
 The TTL cache decorator caches function results with automatic expiration.
 
 ```python
+import logging
 import time
-from typing import Any, Dict
+
 from archipy.helpers.decorators.cache import ttl_cache_decorator
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 # Cache the results of an expensive function
 @ttl_cache_decorator(ttl_seconds=60, maxsize=100)
-def fetch_user_data(user_id: int) -> Dict[str, Any]:
+def fetch_user_data(user_id: int) -> dict[str, str | int]:
     """Fetch user data from a slow source with caching.
 
     Args:
@@ -155,7 +181,7 @@ def fetch_user_data(user_id: int) -> Dict[str, Any]:
     Returns:
         User data dictionary
     """
-    print(f"Fetching data for user {user_id}...")
+    logger.info(f"Fetching data for user {user_id}...")
     time.sleep(1)  # Simulate slow API call
     return {
         "id": user_id,
@@ -167,17 +193,17 @@ def fetch_user_data(user_id: int) -> Dict[str, Any]:
 # First call - will execute the function and cache the result
 start = time.time()
 data1 = fetch_user_data(123)
-print(f"First call took {time.time() - start:.3f} seconds")
+logger.info(f"First call took {time.time() - start:.3f} seconds")
 
 # Second call with same arguments - will use the cached result
 start = time.time()
 data2 = fetch_user_data(123)
-print(f"Second call took {time.time() - start:.3f} seconds")
+logger.info(f"Second call took {time.time() - start:.3f} seconds")
 
 # Different arguments - will execute the function
 start = time.time()
 data3 = fetch_user_data(456)
-print(f"Different user call took {time.time() - start:.3f} seconds")
+logger.info(f"Different user call took {time.time() - start:.3f} seconds")
 
 # Clear the cache if needed
 fetch_user_data.clear_cache()
@@ -188,10 +214,14 @@ fetch_user_data.clear_cache()
 These decorators automatically manage database transactions.
 
 ```python
-from typing import Optional
+import logging
 from uuid import UUID
+
 from archipy.helpers.decorators.sqlalchemy_atomic import postgres_sqlalchemy_atomic_decorator
 from archipy.models.errors import DatabaseQueryError, DatabaseConnectionError
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 @postgres_sqlalchemy_atomic_decorator
@@ -217,11 +247,14 @@ def create_user(username: str, email: str) -> User:
         # Get session from the adapter injected by the decorator
         session = adapter.get_session()
         session.add(user)
-        return user
     except Exception as e:
         # The decorator handles rolling back the transaction
         # and converting exceptions to appropriate types
-        raise
+        logger.error(f"Failed to create user: {e}")
+        raise DatabaseQueryError() from e
+    else:
+        logger.info(f"User created: {username}")
+        return user
 
 
 # For async operations
@@ -229,7 +262,7 @@ from archipy.helpers.decorators.sqlalchemy_atomic import async_postgres_sqlalche
 
 
 @async_postgres_sqlalchemy_atomic_decorator
-async def update_user_email(user_id: UUID, new_email: str) -> Optional[User]:
+async def update_user_email(user_id: UUID, new_email: str) -> User | None:
     """Update a user's email in an async transaction.
 
     Args:
@@ -246,12 +279,16 @@ async def update_user_email(user_id: UUID, new_email: str) -> Optional[User]:
         # Get async session from the adapter injected by the decorator
         session = adapter.get_session()
         user = await session.get(User, user_id)
+    except Exception as e:
+        # The decorator handles the error conversion and rollback
+        logger.error(f"Failed to update user email: {e}")
+        raise DatabaseQueryError() from e
+    else:
         if not user:
+            logger.warning(f"User not found: {user_id}")
             return None
 
         user.email = new_email
+        logger.info(f"Updated email for user: {user_id}")
         return user
-    except Exception as e:
-        # The decorator handles the error conversion and rollback
-        raise
 ```

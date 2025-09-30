@@ -57,20 +57,27 @@ db_url = f"postgresql://{current_config.DB_USER}:{current_config.DB_PASSWORD}@{c
 
 ArchiPy configurations automatically load values from environment variables with the same name:
 
-```python
+```bash
 # .env file
-APP_NAME = ProductionService
-DB_HOST = db.example.com
-DB_PASSWORD = secure - password
-ENVIRONMENT = PRODUCTION
+# WARNING: Never commit this file to version control!
+# Use environment-specific .env files and add .env to .gitignore
+APP_NAME=ProductionService
+DB_HOST=db.example.com
+DB_PASSWORD=your-secure-password-here  # Replace with actual secure password
+ENVIRONMENT=PRODUCTION
 ```
 
 The environment variables override the default values in your configuration class:
 
 ```python
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
 config = AppConfig()  # Will have values from environment variables
-print(config.APP_NAME)  # "ProductionService"
-print(config.ENVIRONMENT)  # EnvironmentType.PRODUCTION
+logger.info(f"App name: {config.APP_NAME}")  # "ProductionService"
+logger.info(f"Environment: {config.ENVIRONMENT}")  # EnvironmentType.PRODUCTION
 ```
 
 ## Environment-Specific Configurations
@@ -98,14 +105,21 @@ class ProductionConfig(BaseAppConfig):
 
 # Choose configuration based on environment
 import os
-env = os.getenv("ENVIRONMENT", "development").lower()
+import logging
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
+env: str = os.getenv("ENVIRONMENT", "development").lower()
+
+config: BaseAppConfig
 if env == "production":
     config = ProductionConfig()
 else:
     config = DevelopmentConfig()
 
 BaseConfig.set_global(config)
+logger.info(f"Configuration loaded for environment: {env}")
 ```
 
 ## Nested Configurations
@@ -166,13 +180,24 @@ print(config.ENVIRONMENT)  # Default value from BaseConfig (EnvironmentType.LOCA
 ### With FastAPI
 
 ```python
-from fastapi import FastAPI, Depends
+import logging
+from fastapi import FastAPI
+
 from archipy.helpers.utils.app_utils import AppUtils
 from archipy.configs.base_config import BaseConfig
+from archipy.models.errors import ConfigurationError
 
-# Initialize your configuration
-config = BaseConfig()
-BaseConfig.set_global(config)
+# Configure logging
+logger = logging.getLogger(__name__)
+
+try:
+    # Initialize your configuration
+    config = BaseConfig()
+    BaseConfig.set_global(config)
+except Exception as e:
+    raise ConfigurationError() from e
+else:
+    logger.info("Configuration initialized successfully")
 
 # Create a FastAPI app with configuration
 app = AppUtils.create_fastapi_app()  # Uses global config by default
@@ -182,13 +207,19 @@ app = AppUtils.create_fastapi_app()  # Uses global config by default
 
 # Access config in endpoint
 @app.get("/config")
-def get_config_info():
-    config = BaseConfig.global_config()
-    return {
-        "app_name": config.FASTAPI.PROJECT_NAME,
-        "environment": config.ENVIRONMENT.value,
-        "debug": config.FASTAPI.RELOAD
-    }
+def get_config_info() -> dict[str, str | bool]:
+    """Get current configuration information."""
+    try:
+        config = BaseConfig.global_config()
+    except Exception as e:
+        logger.error(f"Failed to get configuration: {e}")
+        raise ConfigurationError() from e
+    else:
+        return {
+            "app_name": config.FASTAPI.PROJECT_NAME,
+            "environment": config.ENVIRONMENT.value,
+            "debug": config.FASTAPI.RELOAD
+        }
 ```
 
 ### With Database Adapters

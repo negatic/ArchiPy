@@ -5,12 +5,16 @@ This example demonstrates how to use the PostgreSQL adapter for database operati
 ## Basic Usage
 
 ```python
-from typing import Any
+import logging
 from uuid import UUID
 
 from archipy.adapters.postgres.sqlalchemy.adapters import PostgresSQLAlchemyAdapter
 from archipy.models.entities.sqlalchemy.base_entities import BaseEntity
+from archipy.models.errors import DatabaseQueryError, DatabaseConnectionError
 from sqlalchemy import Column, String
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 # Define a model
@@ -38,7 +42,7 @@ try:
 
     # Read
     user = session.query(User).filter_by(username="john_doe").first()
-    print(user.email)  # john@example.com
+    logger.info(f"User email: {user.email}")  # john@example.com
 
     # Update
     user.email = "john.doe@example.com"
@@ -47,10 +51,11 @@ try:
     # Delete
     session.delete(user)
     session.commit()
-except Exception as e:
+except (DatabaseQueryError, DatabaseConnectionError) as e:
     # The adapter's SQLAlchemyExceptionHandlerMixin will handle
     # and convert common exceptions to application-specific ones
     # These will already preserve the original error context with `from e`
+    logger.error(f"Database operation failed: {e}")
     raise
 ```
 
@@ -62,7 +67,7 @@ from archipy.models.errors import DatabaseQueryError, AlreadyExistsError
 
 
 @postgres_sqlalchemy_atomic_decorator
-def create_user_with_profile(username: str, email: str, profile_data: dict[str, Any]) -> User:
+def create_user_with_profile(username: str, email: str, profile_data: dict[str, str]) -> User:
     """Create a user and associated profile in a transaction.
 
     If any part fails, the entire transaction is rolled back.
@@ -87,24 +92,27 @@ def create_user_with_profile(username: str, email: str, profile_data: dict[str, 
         # Create profile with user's UUID
         profile = Profile(user_id=user.uuid, **profile_data)
         adapter.create(profile)
-
-        return user
     except Exception as e:
         # The decorator will automatically handle the transaction,
         # rolling back on error and converting exceptions
-        raise
+        raise DatabaseQueryError() from e
+    else:
+        return user
 ```
 
 ## Async Operations
 
 ```python
 import asyncio
-from typing import Any
+import logging
 from uuid import UUID
 
 from archipy.adapters.postgres.sqlalchemy.adapters import AsyncPostgresSQLAlchemyAdapter
 from archipy.helpers.decorators.sqlalchemy_atomic import async_postgres_sqlalchemy_atomic_decorator
 from archipy.models.errors import DatabaseConnectionError, DatabaseQueryError
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 async def main() -> None:
@@ -125,30 +133,42 @@ async def main() -> None:
             DatabaseQueryError: If a database error occurs
             DatabaseConnectionError: If a connection error occurs
         """
-        user = User(username=username, email=email)
-        return await adapter.create(user)
+        try:
+            user = User(username=username, email=email)
+            result = await adapter.create(user)
+        except Exception as e:
+            raise DatabaseQueryError() from e
+        else:
+            return result
 
     try:
         user = await create_user_async("jane_doe", "jane@example.com")
-        print(user.username)  # jane_doe
     except (DatabaseConnectionError, DatabaseQueryError) as e:
-        print(f"Database error: {e}")
+        logger.error(f"Database error: {e}")
+        raise
+    else:
+        logger.info(f"User created: {user.username}")  # jane_doe
+        return user
 ```
 
 ## Error Handling
 
 ```python
+import logging
+from uuid import UUID
+
 from archipy.models.errors import (
     AlreadyExistsError,
     NotFoundError,
     DatabaseConnectionError,
     DatabaseQueryError
 )
-from typing import Optional
-from uuid import UUID
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
-def get_user_by_id(user_id: UUID) -> Optional[User]:
+def get_user_by_id(user_id: UUID) -> User | None:
     """Get a user by their UUID.
 
     Args:
@@ -164,19 +184,25 @@ def get_user_by_id(user_id: UUID) -> Optional[User]:
     """
     try:
         user = adapter.get_by_uuid(User, user_id)
+    except (DatabaseConnectionError, DatabaseQueryError) as e:
+        # The adapter's exception handler will have already
+        # converted common exceptions with proper chaining
+        logger.error(f"Database error: {e}")
+        raise
+    else:
         if not user:
             raise NotFoundError(
                 resource_type="user",
                 additional_data={"user_id": str(user_id)}
             )
         return user
-    except AlreadyExistsError as e:
-        # This would be unlikely for a get operation but included for example
-        print(f"User already exists: {e}")
-        raise
-    except (DatabaseConnectionError, DatabaseQueryError) as e:
-        # The adapter's exception handler will have already
-        # converted common exceptions with proper chaining
-        print(f"Database error: {e}")
-        raise
 ```
+
+## See Also
+
+- [Error Handling](../error_handling.md) - Exception handling patterns with proper chaining
+- [Configuration Management](../config_management.md) - PostgreSQL configuration setup
+- [BDD Testing](../bdd_testing.md) - Testing database operations
+- [Atomic Transactions](../../features/atomic_transactions.feature) - BDD test scenarios for transactions
+- [SQLAlchemy Decorators](../helpers/decorators.md#sqlalchemy-transaction-decorators) - Transaction decorator usage
+- [API Reference](../../api_reference/adapters.md) - Full PostgreSQL adapter API documentation

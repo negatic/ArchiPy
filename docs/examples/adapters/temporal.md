@@ -1,51 +1,71 @@
 # Temporal Adapter
 
-This example demonstrates how to use the Temporal adapter for workflow orchestration and activity execution.
+This example demonstrates how to use the Temporal adapter for workflow orchestration and activity execution with proper error handling and Python 3.13 type hints.
 
 ## Basic Usage
 
 ```python
-from typing import Any
+import asyncio
+import logging
+
 from archipy.adapters.temporal import TemporalAdapter, BaseWorkflow, BaseActivity
 from archipy.configs.config_template import TemporalConfig
+from archipy.models.errors import ConfigurationError, InternalError
 from temporalio import workflow, activity
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
 # Configure Temporal connection with all available settings
-temporal_config = TemporalConfig(
-    # Connection settings
-    HOST="localhost",
-    PORT=7233,
-    NAMESPACE="default",
-    TASK_QUEUE="my-task-queue",
+try:
+    temporal_config = TemporalConfig(
+        # Connection settings
+        HOST="localhost",
+        PORT=7233,
+        NAMESPACE="default",
+        TASK_QUEUE="my-task-queue",
 
-    # TLS settings (optional - for secure connections)
-    TLS_CA_CERT="/path/to/ca.crt",
-    TLS_CLIENT_CERT="/path/to/client.crt",
-    TLS_CLIENT_KEY="/path/to/client.key",
+        # TLS settings (optional - for secure connections)
+        TLS_CA_CERT="/path/to/ca.crt",
+        TLS_CLIENT_CERT="/path/to/client.crt",
+        TLS_CLIENT_KEY="/path/to/client.key",
 
-    # Workflow timeout settings (in seconds)
-    WORKFLOW_EXECUTION_TIMEOUT=300,  # Maximum total workflow execution time
-    WORKFLOW_RUN_TIMEOUT=60,         # Maximum single workflow run time
-    WORKFLOW_TASK_TIMEOUT=30,        # Maximum workflow task processing time
+        # Workflow timeout settings (in seconds)
+        WORKFLOW_EXECUTION_TIMEOUT=300,  # Maximum total workflow execution time
+        WORKFLOW_RUN_TIMEOUT=60,         # Maximum single workflow run time
+        WORKFLOW_TASK_TIMEOUT=30,        # Maximum workflow task processing time
 
-    # Activity timeout settings (in seconds)
-    ACTIVITY_START_TO_CLOSE_TIMEOUT=30,  # Maximum activity execution time
-    ACTIVITY_HEARTBEAT_TIMEOUT=10,       # Activity heartbeat timeout
+        # Activity timeout settings (in seconds)
+        ACTIVITY_START_TO_CLOSE_TIMEOUT=30,  # Maximum activity execution time
+        ACTIVITY_HEARTBEAT_TIMEOUT=10,       # Activity heartbeat timeout
 
-    # Retry configuration for failed activities
-    RETRY_MAXIMUM_ATTEMPTS=3,        # Maximum number of retry attempts
-    RETRY_BACKOFF_COEFFICIENT=2.0,   # Backoff multiplier between retries
-    RETRY_MAXIMUM_INTERVAL=60        # Maximum interval between retries
-)
+        # Retry configuration for failed activities
+        RETRY_MAXIMUM_ATTEMPTS=3,        # Maximum number of retry attempts
+        RETRY_BACKOFF_COEFFICIENT=2.0,   # Backoff multiplier between retries
+        RETRY_MAXIMUM_INTERVAL=60        # Maximum interval between retries
+    )
+except Exception as e:
+    logger.error(f"Invalid Temporal configuration: {e}")
+    raise ConfigurationError() from e
+else:
+    logger.info("Temporal configuration created successfully")
 
 # Create adapter
-temporal = TemporalAdapter(temporal_config)
+try:
+    temporal = TemporalAdapter(temporal_config)
+except Exception as e:
+    logger.error(f"Failed to create Temporal adapter: {e}")
+    raise InternalError() from e
+else:
+    logger.info("Temporal adapter created successfully")
 
 
 # Define a simple workflow
 class MyWorkflow(BaseWorkflow[dict, str]):
+    """Simple workflow example."""
+
     @workflow.run
-    async def run(self, workflow_input: dict) -> str:
+    async def run(self, workflow_input: dict[str, list[str]]) -> str:
         """Main workflow logic.
 
         Args:
@@ -57,20 +77,24 @@ class MyWorkflow(BaseWorkflow[dict, str]):
         self._log_workflow_event("workflow_started", {"input": workflow_input})
 
         # Execute an activity - configuration is automatically applied from TemporalConfig
-        result = await self._execute_activity_with_retry(
-            process_data_activity,
-            workflow_input
-            # start_to_close_timeout, heartbeat_timeout, retry_policy, task_queue
-            # are automatically set from TemporalConfig if not provided
-        )
-
-        self._log_workflow_event("workflow_completed", {"result": result})
-        return f"Workflow completed: {result}"
+        try:
+            result = await self._execute_activity_with_retry(
+                process_data_activity,
+                workflow_input
+                # start_to_close_timeout, heartbeat_timeout, retry_policy, task_queue
+                # are automatically set from TemporalConfig if not provided
+            )
+        except Exception as e:
+            self._log_workflow_event("activity_failed", {"error": str(e)})
+            raise
+        else:
+            self._log_workflow_event("workflow_completed", {"result": result})
+            return f"Workflow completed: {result}"
 
 
 # Define a simple activity function
 @activity.defn
-async def process_data_activity(data: dict) -> str:
+async def process_data_activity(data: dict[str, list[str]]) -> str:
     """Process data in an activity.
 
     Args:
@@ -79,14 +103,17 @@ async def process_data_activity(data: dict) -> str:
     Returns:
         Processed result
     """
-    # Simulate processing
     import time
-    time.sleep(1)
+
+    logger.info(f"Processing {len(data)} items")
+    time.sleep(1)  # Simulate processing
+
     return f"Processed {len(data)} items"
 
 
 # Execute workflow
-async def main():
+async def main() -> None:
+    """Execute the workflow and handle cleanup."""
     try:
         # Execute workflow and wait for result
         result = await temporal.execute_workflow(
@@ -95,143 +122,195 @@ async def main():
             workflow_id="my-workflow-123",
             task_queue="my-task-queue"
         )
-        print(f"Workflow result: {result}")
+    except InternalError as e:
+        logger.error(f"Workflow execution failed: {e}")
+        raise
+    else:
+        logger.info(f"Workflow result: {result}")
     finally:
         await temporal.close()
 
-# Run the workflow
-import asyncio
-asyncio.run(main())
 
+# Run the workflow
+asyncio.run(main())
+```
 
 ## Configuration Override Examples
 
 ```python
+import asyncio
+import logging
+import random
 from datetime import timedelta
+
 from temporalio.common import RetryPolicy
+from archipy.models.errors import InternalError
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
 
 class ConfigOverrideWorkflow(BaseWorkflow[dict, str]):
+    """Workflow showing how to override default configurations."""
+
     @workflow.run
-    async def run(self, workflow_input: dict) -> str:
-        """Workflow showing how to override default configurations."""
+    async def run(self, workflow_input: dict[str, str]) -> str:
+        """Workflow with custom timeouts and retry policies."""
 
-        # Override activity timeout for a long-running activity
-        long_result = await self._execute_activity_with_retry(
-            long_running_activity,
-            workflow_input,
-            start_to_close_timeout=timedelta(minutes=10),  # Override default 30 seconds
-            heartbeat_timeout=timedelta(seconds=30)        # Override default 10 seconds
-        )
-
-        # Override retry policy for a critical activity
-        critical_result = await self._execute_activity_with_retry(
-            critical_activity,
-            workflow_input,
-            retry_policy=RetryPolicy(
-                maximum_attempts=10,        # Override default 3 attempts
-                backoff_coefficient=1.5,   # Override default 2.0
-                maximum_interval=timedelta(seconds=30)  # Override default 60 seconds
+        try:
+            # Override activity timeout for a long-running activity
+            long_result = await self._execute_activity_with_retry(
+                long_running_activity,
+                workflow_input,
+                start_to_close_timeout=timedelta(minutes=10),  # Override default 30 seconds
+                heartbeat_timeout=timedelta(seconds=30)        # Override default 10 seconds
             )
-        )
+        except Exception as e:
+            logger.error(f"Long running activity failed: {e}")
+            raise
 
-        # Use custom task queue
-        special_result = await self._execute_activity_with_retry(
-            special_activity,
-            workflow_input,
-            task_queue="special-workers"  # Override default task queue
-        )
+        try:
+            # Override retry policy for a critical activity
+            critical_result = await self._execute_activity_with_retry(
+                critical_activity,
+                workflow_input,
+                retry_policy=RetryPolicy(
+                    maximum_attempts=10,        # Override default 3 attempts
+                    backoff_coefficient=1.5,   # Override default 2.0
+                    maximum_interval=timedelta(seconds=30)  # Override default 60 seconds
+                )
+            )
+        except Exception as e:
+            logger.error(f"Critical activity failed after retries: {e}")
+            raise
 
-        # Execute child workflow with custom timeout
-        child_result = await self._execute_child_workflow(
-            ChildWorkflow,
-            {"parent_data": workflow_input},
-            execution_timeout=timedelta(minutes=15)  # Override default 5 minutes
-        )
+        try:
+            # Use custom task queue
+            special_result = await self._execute_activity_with_retry(
+                special_activity,
+                workflow_input,
+                task_queue="special-workers"  # Override default task queue
+            )
+        except Exception as e:
+            logger.error(f"Special activity failed: {e}")
+            raise
 
-        return f"All results: {long_result}, {critical_result}, {special_result}, {child_result}"
+        try:
+            # Execute child workflow with custom timeout
+            child_result = await self._execute_child_workflow(
+                ChildWorkflow,
+                {"parent_data": workflow_input},
+                execution_timeout=timedelta(minutes=15)  # Override default 5 minutes
+            )
+        except Exception as e:
+            logger.error(f"Child workflow failed: {e}")
+            raise
+        else:
+            return f"All results: {long_result}, {critical_result}, {special_result}, {child_result}"
 
 
 @activity.defn
-async def long_running_activity(data: dict) -> str:
+async def long_running_activity(data: dict[str, str]) -> str:
     """Activity that takes a long time to complete."""
-    # Simulate long-running work
+    logger.info("Starting long running activity")
     await asyncio.sleep(300)  # 5 minutes
     return f"Long work completed: {data}"
 
 
 @activity.defn
-async def critical_activity(data: dict) -> str:
+async def critical_activity(data: dict[str, str]) -> str:
     """Critical activity that needs more retry attempts."""
-    # Simulate critical operation that might fail
     if random.random() < 0.8:  # 80% failure rate for demo
+        logger.warning("Critical operation failed, will retry")
         raise Exception("Critical operation failed")
     return f"Critical work completed: {data}"
 
 
 @activity.defn
-async def special_activity(data: dict) -> str:
+async def special_activity(data: dict[str, str]) -> str:
     """Activity that runs on special workers."""
+    logger.info("Processing on special worker")
     return f"Special work completed: {data}"
 
 
 class ChildWorkflow(BaseWorkflow[dict, str]):
+    """Child workflow with its own logic."""
+
     @workflow.run
-    async def run(self, workflow_input: dict) -> str:
+    async def run(self, workflow_input: dict[str, dict[str, str]]) -> str:
         """Child workflow with its own logic."""
+        logger.info(f"Child workflow processing: {workflow_input}")
         return f"Child workflow processed: {workflow_input['parent_data']}"
 ```
 
 ## Environment-Based Configuration
 
 ```python
+import logging
 import os
+
 from archipy.configs.config_template import TemporalConfig
+from archipy.models.errors import ConfigurationError
 
-# Production configuration
-production_config = TemporalConfig(
-    HOST=os.getenv("TEMPORAL_HOST", "temporal.production.com"),
-    PORT=int(os.getenv("TEMPORAL_PORT", "7233")),
-    NAMESPACE=os.getenv("TEMPORAL_NAMESPACE", "production"),
-    TASK_QUEUE=os.getenv("TEMPORAL_TASK_QUEUE", "production-queue"),
+# Configure logging
+logger = logging.getLogger(__name__)
 
-    # Production TLS settings
-    TLS_CA_CERT=os.getenv("TEMPORAL_TLS_CA_CERT"),
-    TLS_CLIENT_CERT=os.getenv("TEMPORAL_TLS_CLIENT_CERT"),
-    TLS_CLIENT_KEY=os.getenv("TEMPORAL_TLS_CLIENT_KEY"),
+try:
+    # Production configuration
+    production_config = TemporalConfig(
+        HOST=os.getenv("TEMPORAL_HOST", "temporal.production.com"),
+        PORT=int(os.getenv("TEMPORAL_PORT", "7233")),
+        NAMESPACE=os.getenv("TEMPORAL_NAMESPACE", "production"),
+        TASK_QUEUE=os.getenv("TEMPORAL_TASK_QUEUE", "production-queue"),
 
-    # Production timeout settings (longer timeouts)
-    WORKFLOW_EXECUTION_TIMEOUT=1800,  # 30 minutes
-    WORKFLOW_RUN_TIMEOUT=600,         # 10 minutes
-    ACTIVITY_START_TO_CLOSE_TIMEOUT=120,  # 2 minutes
+        # Production TLS settings
+        TLS_CA_CERT=os.getenv("TEMPORAL_TLS_CA_CERT"),
+        TLS_CLIENT_CERT=os.getenv("TEMPORAL_TLS_CLIENT_CERT"),
+        TLS_CLIENT_KEY=os.getenv("TEMPORAL_TLS_CLIENT_KEY"),
 
-    # Production retry settings (more aggressive)
-    RETRY_MAXIMUM_ATTEMPTS=5,
-    RETRY_BACKOFF_COEFFICIENT=1.5,
-    RETRY_MAXIMUM_INTERVAL=300  # 5 minutes
-)
+        # Production timeout settings (longer timeouts)
+        WORKFLOW_EXECUTION_TIMEOUT=1800,  # 30 minutes
+        WORKFLOW_RUN_TIMEOUT=600,         # 10 minutes
+        ACTIVITY_START_TO_CLOSE_TIMEOUT=120,  # 2 minutes
 
-# Development configuration
-development_config = TemporalConfig(
-    HOST="localhost",
-    PORT=7233,
-    NAMESPACE="development",
-    TASK_QUEUE="dev-queue",
+        # Production retry settings (more aggressive)
+        RETRY_MAXIMUM_ATTEMPTS=5,
+        RETRY_BACKOFF_COEFFICIENT=1.5,
+        RETRY_MAXIMUM_INTERVAL=300  # 5 minutes
+    )
+except Exception as e:
+    logger.error(f"Failed to create production config: {e}")
+    raise ConfigurationError() from e
+else:
+    logger.info("Production configuration created")
 
-    # Development timeout settings (shorter timeouts for faster feedback)
-    WORKFLOW_EXECUTION_TIMEOUT=120,  # 2 minutes
-    WORKFLOW_RUN_TIMEOUT=60,         # 1 minute
-    ACTIVITY_START_TO_CLOSE_TIMEOUT=30,  # 30 seconds
+try:
+    # Development configuration
+    development_config = TemporalConfig(
+        HOST="localhost",
+        PORT=7233,
+        NAMESPACE="development",
+        TASK_QUEUE="dev-queue",
 
-    # Development retry settings (fewer retries for faster failures)
-    RETRY_MAXIMUM_ATTEMPTS=2,
-    RETRY_BACKOFF_COEFFICIENT=2.0,
-    RETRY_MAXIMUM_INTERVAL=30  # 30 seconds
-)
+        # Development timeout settings (shorter timeouts for faster feedback)
+        WORKFLOW_EXECUTION_TIMEOUT=120,  # 2 minutes
+        WORKFLOW_RUN_TIMEOUT=60,         # 1 minute
+        ACTIVITY_START_TO_CLOSE_TIMEOUT=30,  # 30 seconds
+
+        # Development retry settings (fewer retries for faster failures)
+        RETRY_MAXIMUM_ATTEMPTS=2,
+        RETRY_BACKOFF_COEFFICIENT=2.0,
+        RETRY_MAXIMUM_INTERVAL=30  # 30 seconds
+    )
+except Exception as e:
+    logger.error(f"Failed to create development config: {e}")
+    raise ConfigurationError() from e
+else:
+    logger.info("Development configuration created")
 
 # Select config based on environment
 config = production_config if os.getenv("ENV") == "production" else development_config
 temporal = TemporalAdapter(config)
-```
 ```
 
 ## Using Atomic Activities
@@ -239,14 +318,21 @@ temporal = TemporalAdapter(config)
 Activities can use atomic transactions for database operations:
 
 ```python
+import logging
+
 from archipy.adapters.temporal import AtomicActivity
 from archipy.helpers.decorators.sqlalchemy_atomic import postgres_sqlalchemy_atomic_decorator
 from archipy.models.errors import DatabaseQueryError, DatabaseConnectionError
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
 
 # Define an activity with atomic transaction support
 class UserCreationActivity(AtomicActivity[dict, dict]):
-    def __init__(self, user_service):
+    """Activity for creating users with atomic database transactions."""
+
+    def __init__(self, user_service) -> None:
         """Initialize with your business logic service.
 
         Args:
@@ -254,7 +340,7 @@ class UserCreationActivity(AtomicActivity[dict, dict]):
         """
         super().__init__(user_service, db_type="postgres")
 
-    async def _do_execute(self, activity_input: dict) -> dict:
+    async def _do_execute(self, activity_input: dict[str, str]) -> dict[str, str]:
         """Create user with atomic transaction.
 
         Args:
@@ -277,24 +363,28 @@ class UserCreationActivity(AtomicActivity[dict, dict]):
                 user.uuid,
                 activity_input.get("profile", {})
             )
-
-            return {
-                "user_id": str(user.uuid),
-                "username": user.username,
-                "profile_id": str(profile.uuid)
-            }
-        except Exception as e:
+        except (DatabaseQueryError, DatabaseConnectionError) as e:
             self._log_activity_event("user_creation_failed", {
                 "error": str(e),
                 "input": activity_input
             })
             raise
+        else:
+            result = {
+                "user_id": str(user.uuid),
+                "username": user.username,
+                "profile_id": str(profile.uuid)
+            }
+            logger.info(f"User created successfully: {user.username}")
+            return result
 
 
 # Use in workflow
 class UserOnboardingWorkflow(BaseWorkflow[dict, dict]):
+    """User onboarding workflow."""
+
     @workflow.run
-    async def run(self, workflow_input: dict) -> dict:
+    async def run(self, workflow_input: dict[str, dict[str, str]]) -> dict[str, dict[str, str] | bool]:
         """User onboarding workflow.
 
         Args:
@@ -305,21 +395,32 @@ class UserOnboardingWorkflow(BaseWorkflow[dict, dict]):
         """
         self._log_workflow_event("onboarding_started")
 
-        # Execute atomic user creation activity
-        user_result = await self._execute_activity_with_retry(
-            UserCreationActivity.execute_atomic,
-            workflow_input["user_data"],
-            start_to_close_timeout=timedelta(seconds=60)
-        )
+        try:
+            # Execute atomic user creation activity
+            user_result = await self._execute_activity_with_retry(
+                UserCreationActivity.execute_atomic,
+                workflow_input["user_data"],
+                start_to_close_timeout=timedelta(seconds=60)
+            )
+        except Exception as e:
+            logger.error(f"User creation failed: {e}")
+            raise
+        else:
+            logger.info(f"User created: {user_result['user_id']}")
 
-        # Execute welcome email activity
-        email_result = await self._execute_activity_with_retry(
-            send_welcome_email_activity,
-            {
-                "user_id": user_result["user_id"],
-                "email": workflow_input["user_data"]["email"]
-            }
-        )
+        try:
+            # Execute welcome email activity
+            email_result = await self._execute_activity_with_retry(
+                send_welcome_email_activity,
+                {
+                    "user_id": user_result["user_id"],
+                    "email": workflow_input["user_data"]["email"]
+                }
+            )
+        except Exception as e:
+            logger.error(f"Welcome email failed: {e}")
+            # Don't fail the workflow if email fails
+            email_result = False
 
         self._log_workflow_event("onboarding_completed", {
             "user_id": user_result["user_id"]
@@ -334,11 +435,17 @@ class UserOnboardingWorkflow(BaseWorkflow[dict, dict]):
 ## Async Operations with Workers
 
 ```python
+import asyncio
+import logging
+
 from archipy.adapters.temporal import TemporalWorkerManager
 from archipy.models.errors.temporal_errors import WorkerConnectionError, WorkerShutdownError
 
+# Configure logging
+logger = logging.getLogger(__name__)
 
-async def run_worker():
+
+async def run_worker() -> None:
     """Start a Temporal worker to execute workflows and activities."""
     worker_manager = TemporalWorkerManager()
 
@@ -351,26 +458,26 @@ async def run_worker():
             max_concurrent_workflow_tasks=10,
             max_concurrent_activities=20
         )
-
-        print(f"Worker started: {worker_handle.identity}")
-
-        # Keep worker running
-        await worker_handle.wait_until_stopped()
-
     except WorkerConnectionError as e:
-        print(f"Failed to start worker: {e}")
+        logger.error(f"Failed to start worker: {e}")
         raise
-    except WorkerShutdownError as e:
-        print(f"Worker shutdown error: {e}")
-        raise
-    finally:
-        # Graceful shutdown
-        await worker_manager.shutdown_all_workers()
+    else:
+        logger.info(f"Worker started: {worker_handle.identity}")
+
+        try:
+            # Keep worker running
+            await worker_handle.wait_until_stopped()
+        except WorkerShutdownError as e:
+            logger.error(f"Worker shutdown error: {e}")
+            raise
+        finally:
+            # Graceful shutdown
+            await worker_manager.shutdown_all_workers()
 
 
 # Activity with business logic integration
 @activity.defn
-async def send_welcome_email_activity(data: dict) -> bool:
+async def send_welcome_email_activity(data: dict[str, str]) -> bool:
     """Send welcome email activity.
 
     Args:
@@ -379,14 +486,17 @@ async def send_welcome_email_activity(data: dict) -> bool:
     Returns:
         True if email sent successfully
     """
+    logger.info(f"Sending welcome email to {data['email']}")
     # This would integrate with your email service
-    print(f"Sending welcome email to {data['email']}")
     return True
 ```
 
 ## Error Handling
 
 ```python
+import asyncio
+import logging
+
 from archipy.models.errors.temporal_errors import (
     TemporalError,
     WorkerConnectionError,
@@ -398,8 +508,11 @@ from archipy.models.errors import (
     NotFoundError
 )
 
+# Configure logging
+logger = logging.getLogger(__name__)
 
-async def robust_workflow_execution():
+
+async def robust_workflow_execution() -> None:
     """Example of proper error handling with Temporal operations."""
     temporal = TemporalAdapter()
 
@@ -418,30 +531,29 @@ async def robust_workflow_execution():
             execution_timeout=300,  # 5 minutes
             run_timeout=120         # 2 minutes per run
         )
-
-        # Wait for result with timeout
-        result = await workflow_handle.result()
-        print(f"User onboarded successfully: {result}")
-
     except WorkerConnectionError as e:
-        print(f"Worker connection failed: {e}")
-        # Handle worker connectivity issues
+        logger.error(f"Worker connection failed: {e}")
         raise
-    except WorkerShutdownError as e:
-        print(f"Worker shutdown error: {e}")
-        # Handle worker shutdown issues
+    except InternalError as e:
+        logger.error(f"Failed to start workflow: {e}")
         raise
-    except TemporalError as e:
-        print(f"Temporal operation failed: {e}")
-        # Handle other temporal-specific errors
-        raise
-    except (DatabaseQueryError, DatabaseConnectionError) as e:
-        print(f"Database error in workflow: {e}")
-        # Handle database errors from activities
-        raise
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        raise
+    else:
+        logger.info(f"Workflow started: {workflow_handle.id}")
+
+        try:
+            # Wait for result with timeout
+            result = await workflow_handle.result()
+        except (DatabaseQueryError, DatabaseConnectionError) as e:
+            logger.error(f"Database error in workflow: {e}")
+            raise
+        except TemporalError as e:
+            logger.error(f"Temporal operation failed: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error: {e}")
+            raise
+        else:
+            logger.info(f"User onboarded successfully: {result}")
     finally:
         # Always cleanup
         await temporal.close()
@@ -449,13 +561,15 @@ async def robust_workflow_execution():
 
 # Activity-level error handling
 class RobustUserActivity(AtomicActivity[dict, dict]):
-    def __init__(self, user_service, db_type: str = "postgres"):
+    """Activity with comprehensive error handling."""
+
+    def __init__(self, user_service, db_type: str = "postgres") -> None:
         super().__init__(user_service, db_type)
 
-    async def _do_execute(self, activity_input: dict) -> dict:
+    async def _do_execute(self, activity_input: dict[str, str]) -> dict[str, str]:
         """Execute with comprehensive error handling."""
         try:
-            return await self._execute_with_atomic("process_user_data", activity_input)
+            result = await self._execute_with_atomic("process_user_data", activity_input)
         except DatabaseQueryError as e:
             self._log_activity_event("database_query_failed", {
                 "error": str(e),
@@ -481,8 +595,11 @@ class RobustUserActivity(AtomicActivity[dict, dict]):
                 "error_type": type(e).__name__
             })
             raise
+        else:
+            logger.info("Activity executed successfully")
+            return result
 
-    async def _handle_error(self, activity_input: dict, error: Exception) -> None:
+    async def _handle_error(self, activity_input: dict[str, str], error: Exception) -> None:
         """Custom error handling for this activity."""
         # Log specific error details
         self._log_activity_event("activity_error_handler", {
@@ -495,144 +612,21 @@ class RobustUserActivity(AtomicActivity[dict, dict]):
         await super()._handle_error(activity_input, error)
 ```
 
-## Advanced Configuration
-
-```python
-from archipy.adapters.temporal import TemporalAdapter
-from temporalio.client import TLSConfig
-
-
-async def configure_temporal_with_tls():
-    """Configure Temporal with TLS and advanced settings."""
-    # TLS Configuration (files should exist)
-    temporal_config = TemporalConfig(
-        HOST="temporal.example.com",
-        PORT=7233,
-        NAMESPACE="production",
-        TASK_QUEUE="production-queue",
-        TLS_CA_CERT="/path/to/ca.crt",
-        TLS_CLIENT_CERT="/path/to/client.crt",
-        TLS_CLIENT_KEY="/path/to/client.key",
-        # Retry configuration
-        RETRY_MAXIMUM_ATTEMPTS=5,
-        RETRY_BACKOFF_COEFFICIENT=2.0,
-        RETRY_MAXIMUM_INTERVAL=60,
-        # Timeout configuration
-        WORKFLOW_EXECUTION_TIMEOUT=1800,  # 30 minutes
-        WORKFLOW_RUN_TIMEOUT=600,         # 10 minutes
-        WORKFLOW_TASK_TIMEOUT=30          # 30 seconds
-    )
-
-    temporal = TemporalAdapter(temporal_config)
-
-    try:
-        # Query workflow status
-        workflow_handle = await temporal.get_workflow_handle("user-onboarding-001")
-        description = await workflow_handle.describe()
-
-        print(f"Workflow status: {description.status}")
-        print(f"Started at: {description.start_time}")
-
-        # Send signal to workflow
-        await temporal.signal_workflow(
-            "user-onboarding-001",
-            "update_user_status",
-            {"status": "verified"}
-        )
-
-        # Query workflow for information
-        result = await temporal.query_workflow(
-            "user-onboarding-001",
-            "get_current_status"
-        )
-        print(f"Current status: {result}")
-
-    finally:
-        await temporal.close()
-```
-
-## Testing with Mocks
-
-```python
-import pytest
-from unittest.mock import AsyncMock, MagicMock
-from archipy.adapters.temporal import TemporalAdapter
-
-
-class MockTemporalAdapter(TemporalAdapter):
-    """Mock Temporal adapter for testing."""
-
-    def __init__(self):
-        # Skip the real initialization
-        self.config = MagicMock()
-        self._client = AsyncMock()
-
-    async def execute_workflow(self, workflow, arg=None, **kwargs):
-        """Mock workflow execution."""
-        # Simulate workflow execution
-        if workflow == UserOnboardingWorkflow:
-            return {
-                "user": {"user_id": "test-123", "username": "test_user"},
-                "email_sent": True
-            }
-        return "mock_result"
-
-
-@pytest.mark.asyncio
-async def test_user_onboarding_workflow():
-    """Test user onboarding workflow with mock adapter."""
-    mock_temporal = MockTemporalAdapter()
-
-    result = await mock_temporal.execute_workflow(
-        UserOnboardingWorkflow,
-        {
-            "user_data": {
-                "username": "test_user",
-                "email": "test@example.com"
-            }
-        }
-    )
-
-    assert result["user"]["username"] == "test_user"
-    assert result["email_sent"] is True
-
-
-# Mock activity for testing
-class MockUserActivity(AtomicActivity[dict, dict]):
-    def __init__(self):
-        # Initialize with mock logic
-        mock_service = MagicMock()
-        super().__init__(mock_service)
-
-    async def _do_execute(self, activity_input: dict) -> dict:
-        """Mock activity execution."""
-        return {
-            "user_id": "mock-user-123",
-            "username": activity_input["username"]
-        }
-
-
-@pytest.mark.asyncio
-async def test_atomic_activity():
-    """Test atomic activity with mock."""
-    activity = MockUserActivity()
-
-    result = await activity.execute({
-        "username": "test_user",
-        "email": "test@example.com"
-    })
-
-    assert result["username"] == "test_user"
-    assert "user_id" in result
-```
-
 ## Best Practices
 
 1. **Workflow Design**: Keep workflows as coordinators - let activities handle business logic
-2. **Error Handling**: Use specific error types and proper error chains
-3. **Transactions**: Use `AtomicActivity` for database operations requiring consistency or use Atomic decorators
+2. **Error Handling**: Use specific error types and proper error chains with `raise ... from e`
+3. **Transactions**: Use `AtomicActivity` for database operations requiring consistency
 4. **Testing**: Mock adapters and activities for unit testing
 5. **Configuration**: Use environment-specific configurations for different deployments
 6. **Monitoring**: Leverage workflow logging and error tracking
 7. **Timeouts**: Set appropriate timeouts for workflows and activities
 8. **Retries**: Configure retry policies based on error types and business requirements
+
+## See Also
+
+- [Error Handling](../error_handling.md) - Exception handling patterns with proper chaining
+- [Configuration Management](../config_management.md) - Temporal configuration setup
+- [BDD Testing](../bdd_testing.md) - Testing workflow operations
+- [SQLAlchemy Decorators](../helpers/decorators.md#sqlalchemy-transaction-decorators) - Atomic transaction usage
+- [API Reference](../../api_reference/adapters.md) - Full Temporal adapter API documentation

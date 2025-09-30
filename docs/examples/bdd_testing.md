@@ -30,43 +30,62 @@ Implement the steps in Python files under `features/steps`:
 
 ```python
 # features/steps/user_steps.py
+import logging
 from typing import Any
+
 from behave import given, when, then
+
 from app.models import User
 from app.services import UserService
 from archipy.models.errors import NotFoundError, DatabaseQueryError
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
 @given('I have admin privileges')
 def step_impl(context: Any) -> None:
+    """Set admin privileges in context."""
     context.is_admin = True
+    logger.info("Admin privileges set")
 
 @when('I create a user with username "{username}" and email "{email}"')
 def step_impl(context: Any, username: str, email: str) -> None:
+    """Create a user with the given username and email."""
     service = UserService()
     try:
-        context.user = service.create_user(username, email)
+        user = service.create_user(username, email)
     except Exception as e:
-        # Proper exception chaining
+        # Proper exception chaining without operation message
+        logger.error(f"Failed to create user: {e}")
         raise DatabaseQueryError(
             additional_data={"username": username, "email": email}
         ) from e
+    else:
+        context.user = user
+        logger.info(f"User created: {username}")
 
 @then('the user should be saved in the database')
 def step_impl(context: Any) -> None:
-    # Check user exists in DB
+    """Verify user exists in the database."""
     try:
         db_user = User.query.filter_by(username=context.user.username).first()
-        assert db_user is not None
     except Exception as e:
-        raise NotFoundError(
-            resource_type="user",
-            additional_data={"username": context.user.username}
-        ) from e
+        logger.error(f"Database query failed: {e}")
+        raise DatabaseQueryError() from e
+    else:
+        if db_user is None:
+            raise NotFoundError(
+                resource_type="user",
+                additional_data={"username": context.user.username}
+            )
+        logger.info(f"User verified in database: {context.user.username}")
 
 @then('the user should have default permissions')
 def step_impl(context: Any) -> None:
-    assert len(context.user.permissions) > 0
-    assert 'user:read' in context.user.permissions
+    """Verify user has default permissions."""
+    assert len(context.user.permissions) > 0, "User should have at least one permission"
+    assert 'user:read' in context.user.permissions, "User should have user:read permission"
+    logger.info(f"User has {len(context.user.permissions)} permissions")
 ```
 
 ### Running Tests
@@ -109,6 +128,7 @@ Then all users should be saved in the database
 ```python
 @when('I create the following users')
 def step_impl(context: Any) -> None:
+    """Create multiple users from table data."""
     service = UserService()
     context.users = []
     for row in context.table:
@@ -118,9 +138,13 @@ def step_impl(context: Any) -> None:
                 email=row['email'],
                 role=row['role']
             )
-            context.users.append(user)
         except Exception as e:
+            logger.error(f"Failed to create user {row['username']}: {e}")
             raise DatabaseQueryError(
                 additional_data={"username": row['username'], "email": row['email']}
             ) from e
+        else:
+            context.users.append(user)
+            logger.info(f"Created user: {row['username']}")
+    logger.info(f"Created {len(context.users)} users total")
 ```

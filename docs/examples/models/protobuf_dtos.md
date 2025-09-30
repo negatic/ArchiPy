@@ -60,11 +60,15 @@ This creates `user_pb2.py` with your `User` message class.
 ### 3. Create Your DTO
 
 ```python
+import logging
 from datetime import datetime
 from typing import ClassVar
 
 from archipy.models.dtos.base_protobuf_dto import BaseProtobufDTO
 from user_pb2 import User as UserProto
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class UserProtobufDTO(BaseProtobufDTO):
@@ -97,13 +101,24 @@ proto_user = UserProto(
 )
 
 # Convert protobuf to DTO
-user_dto = UserProtobufDTO.from_proto(proto_user)
-print(f"User: {user_dto.first_name} {user_dto.last_name}")
-print(f"Email: {user_dto.email}")
+try:
+    user_dto = UserProtobufDTO.from_proto(proto_user)
+except Exception as e:
+    logger.error(f"Failed to convert from proto: {e}")
+    raise
+else:
+    logger.info(f"User: {user_dto.first_name} {user_dto.last_name}")
+    logger.info(f"Email: {user_dto.email}")
 
 # Convert DTO back to protobuf
-converted_proto = user_dto.to_proto()
-assert converted_proto.id == proto_user.id
+try:
+    converted_proto = user_dto.to_proto()
+except Exception as e:
+    logger.error(f"Failed to convert to proto: {e}")
+    raise
+else:
+    assert converted_proto.id == proto_user.id
+    logger.info("Round-trip conversion successful")
 ```
 
 ## Advanced Usage
@@ -113,11 +128,15 @@ assert converted_proto.id == proto_user.id
 You can customize field mapping by overriding the conversion methods:
 
 ```python
+import logging
 from datetime import datetime
 from typing import ClassVar
 
 from archipy.models.dtos.base_protobuf_dto import BaseProtobufDTO
 from user_pb2 import User as UserProto
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class UserProtobufDTO(BaseProtobufDTO):
@@ -167,10 +186,14 @@ class UserProtobufDTO(BaseProtobufDTO):
 For complex nested structures:
 
 ```python
-from typing import ClassVar, List
+import logging
+from typing import ClassVar
 
 from archipy.models.dtos.base_protobuf_dto import BaseProtobufDTO
 from user_pb2 import User as UserProto, UserList as UserListProto
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class UserProtobufDTO(BaseProtobufDTO):
@@ -188,7 +211,7 @@ class UserListProtobufDTO(BaseProtobufDTO):
 
     _proto_class: ClassVar[type[UserListProto] | None] = UserListProto
 
-    users: List[UserProtobufDTO]
+    users: list[UserProtobufDTO]
     total_count: int
 
     @classmethod
@@ -220,8 +243,9 @@ The `BaseProtobufDTO` includes built-in error handling:
 try:
     user_dto = UserProtobufDTO(id="123", username="test")
 except RuntimeError as e:
-    print(f"Protobuf not available: {e}")
+    logger.error(f"Protobuf not available: {e}")
     # Handle gracefully - maybe use regular DTOs
+    raise
 
 # When _proto_class is not set
 class IncompleteProtobufDTO(BaseProtobufDTO):
@@ -232,7 +256,8 @@ try:
     dto = IncompleteProtobufDTO(id="123")
     proto = dto.to_proto()  # Raises NotImplementedError
 except NotImplementedError as e:
-    print(f"Proto class not configured: {e}")
+    logger.error(f"Proto class not configured: {e}")
+    raise
 ```
 
 ## Best Practices
@@ -293,10 +318,14 @@ class UserProtobufDTO(BaseProtobufDTO):
 ### gRPC Service Example
 
 ```python
+import logging
 from typing import ClassVar
 
 from archipy.models.dtos.base_protobuf_dto import BaseProtobufDTO
 from user_pb2 import User as UserProto
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class UserProtobufDTO(BaseProtobufDTO):
@@ -309,21 +338,37 @@ class UserProtobufDTO(BaseProtobufDTO):
 
 class UserService:
     def create_user(self, user_dto: UserProtobufDTO) -> UserProtobufDTO:
-        # Convert DTO to protobuf for gRPC call
-        proto_user = user_dto.to_proto()
+        """Create a user via gRPC."""
+        try:
+            # Convert DTO to protobuf for gRPC call
+            proto_user = user_dto.to_proto()
 
-        # Make gRPC call
-        response_proto = self.grpc_client.CreateUser(proto_user)
+            # Make gRPC call
+            response_proto = self.grpc_client.CreateUser(proto_user)
 
-        # Convert response back to DTO
-        return UserProtobufDTO.from_proto(response_proto)
+            # Convert response back to DTO
+            result = UserProtobufDTO.from_proto(response_proto)
+        except Exception as e:
+            logger.error(f"Failed to create user: {e}")
+            raise
+        else:
+            logger.info(f"User created: {result.username}")
+            return result
 
     def get_user(self, user_id: str) -> UserProtobufDTO:
-        # Make gRPC call
-        proto_user = self.grpc_client.GetUser(user_id)
+        """Get a user via gRPC."""
+        try:
+            # Make gRPC call
+            proto_user = self.grpc_client.GetUser(user_id)
 
-        # Convert to DTO
-        return UserProtobufDTO.from_proto(proto_user)
+            # Convert to DTO
+            result = UserProtobufDTO.from_proto(proto_user)
+        except Exception as e:
+            logger.error(f"Failed to get user: {e}")
+            raise
+        else:
+            logger.info(f"User retrieved: {result.username}")
+            return result
 ```
 
 ## Testing

@@ -30,7 +30,18 @@ class AppConfig(BaseConfig):
 The synchronous adapter provides a blocking API for Keycloak operations.
 
 ```python
+import logging
+
 from archipy.adapters.keycloak.adapters import KeycloakAdapter
+from archipy.models.errors import (
+    AuthenticationError,
+    NotFoundError,
+    PermissionDeniedError,
+    InternalError
+)
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # Using global configuration
 keycloak = KeycloakAdapter()
@@ -48,37 +59,91 @@ keycloak = KeycloakAdapter(custom_config)
 try:
     # Get token with username/password
     token = keycloak.get_token("username", "password")
+except AuthenticationError as e:
+    logger.error(f"Authentication failed: {e}")
+    raise
+else:
     access_token = token["access_token"]
     refresh_token = token["refresh_token"]
+    logger.info("Authentication successful")
 
+try:
     # Refresh an existing token
     new_token = keycloak.refresh_token(refresh_token)
+except AuthenticationError as e:
+    logger.error(f"Token refresh failed: {e}")
+    raise
+else:
+    logger.info("Token refreshed successfully")
 
+try:
     # Validate a token
     is_valid = keycloak.validate_token(access_token)
+except AuthenticationError as e:
+    logger.error(f"Token validation failed: {e}")
+    raise
+else:
+    logger.info(f"Token valid: {is_valid}")
 
+try:
     # Get user info from token
     user_info = keycloak.get_userinfo(access_token)
+except (AuthenticationError, InternalError) as e:
+    logger.error(f"Failed to get user info: {e}")
+    raise
+else:
+    logger.info(f"User info retrieved: {user_info.get('preferred_username')}")
 
+try:
     # Get token using client credentials
     client_token = keycloak.get_client_credentials_token()
+except AuthenticationError as e:
+    logger.error(f"Client credentials authentication failed: {e}")
+    raise
+else:
+    logger.info("Client token obtained")
 
+try:
     # Logout (invalidate refresh token)
     keycloak.logout(refresh_token)
-except ValueError as e:
-    print(f"Keycloak error: {e}")
+except InternalError as e:
+    logger.error(f"Logout failed: {e}")
+    raise
+else:
+    logger.info("Logout successful")
 
 # User operations (requires admin privileges)
 try:
     # Get user by ID
     user = keycloak.get_user_by_id("user-uuid")
+except NotFoundError as e:
+    logger.error(f"User not found: {e}")
+    raise
+except PermissionDeniedError as e:
+    logger.error(f"Permission denied: {e}")
+    raise
+else:
+    logger.info(f"User retrieved: {user.get('username')}")
 
+try:
     # Get user by username
     user = keycloak.get_user_by_username("johndoe")
+except NotFoundError as e:
+    logger.error(f"User not found: {e}")
+    raise
+else:
+    logger.info(f"User retrieved by username: {user.get('username')}")
 
+try:
     # Get user by email
     user = keycloak.get_user_by_email("john@example.com")
+except NotFoundError as e:
+    logger.error(f"User not found by email: {e}")
+    raise
+else:
+    logger.info(f"User retrieved by email: {user.get('username')}")
 
+try:
     # Create a new user
     user_data = {
         "username": "newuser",
@@ -93,29 +158,72 @@ try:
         }]
     }
     user_id = keycloak.create_user(user_data)
+except PermissionDeniedError as e:
+    logger.error(f"Permission denied to create user: {e}")
+    raise
+except InternalError as e:
+    logger.error(f"Failed to create user: {e}")
+    raise
+else:
+    logger.info(f"User created with ID: {user_id}")
 
+try:
     # Update a user
     update_data = {"firstName": "Updated", "email": "updated@example.com"}
     keycloak.update_user(user_id, update_data)
+except (NotFoundError, PermissionDeniedError, InternalError) as e:
+    logger.error(f"Failed to update user: {e}")
+    raise
+else:
+    logger.info(f"User updated: {user_id}")
 
+try:
     # Reset password
     keycloak.reset_password(user_id, "new-password", temporary=True)
+except (NotFoundError, PermissionDeniedError, InternalError) as e:
+    logger.error(f"Failed to reset password: {e}")
+    raise
+else:
+    logger.info(f"Password reset for user: {user_id}")
 
+try:
     # Search for users
     users = keycloak.search_users("john", max_results=10)
+except InternalError as e:
+    logger.error(f"Failed to search users: {e}")
+    raise
+else:
+    logger.info(f"Found {len(users)} users")
 
+try:
     # Clear all user sessions
     keycloak.clear_user_sessions(user_id)
+except (NotFoundError, InternalError) as e:
+    logger.error(f"Failed to clear sessions: {e}")
+    raise
+else:
+    logger.info(f"Sessions cleared for user: {user_id}")
 
+try:
     # Delete a user
     keycloak.delete_user(user_id)
-except ValueError as e:
-    print(f"Keycloak error: {e}")
+except (NotFoundError, PermissionDeniedError, InternalError) as e:
+    logger.error(f"Failed to delete user: {e}")
+    raise
+else:
+    logger.info(f"User deleted: {user_id}")
 
 # Role operations
 try:
     # Get user roles
     roles = keycloak.get_user_roles(user_id)
+except (NotFoundError, PermissionDeniedError, InternalError) as e:
+    logger.error(f"Failed to get user roles: {e}")
+    raise
+else:
+    logger.info(f"User has {len(roles)} roles")
+
+try:
 
     # Get client roles for user
     client_roles = keycloak.get_client_roles_for_user(user_id, "client-id")
@@ -266,3 +374,12 @@ async_keycloak.clear_all_caches()
 - The adapter automatically refreshes admin tokens before they expire.
 - Write operations (like user creation/updates) automatically clear relevant caches.
 - For production use, prefer the authorization code flow over direct username/password authentication.
+
+## See Also
+
+- [Error Handling](../error_handling.md) - Exception handling patterns with proper chaining
+- [Configuration Management](../config_management.md) - Keycloak configuration setup
+- [BDD Testing](../bdd_testing.md) - Testing Keycloak operations
+- [Keycloak Adapter Feature](../../features/keycloak_adapter.feature) - BDD test scenarios for Keycloak
+- [Keycloak Utils](../helpers/utils.md#keycloak-utils) - Authentication utilities with Keycloak
+- [API Reference](../../api_reference/adapters.md) - Full Keycloak adapter API documentation

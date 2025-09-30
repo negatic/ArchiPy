@@ -271,8 +271,8 @@ class ErrorRecovery:
         """Handle service unavailability with fallback."""
         if error.service == "primary":
             try:
-            # Try fallback service
-            return fallback_service.get_data()
+                # Try fallback service
+                return fallback_service.get_data()
             except Exception as e:
                 # Preserve error chain
                 raise ServiceUnavailableError(
@@ -288,8 +288,8 @@ class ErrorRecovery:
             # Perform cleanup
             gc.collect()
             try:
-            # Retry operation
-            return retry_operation()
+                # Retry operation
+                return retry_operation()
             except Exception as e:
                 # Preserve error chain
                 raise ResourceExhaustedError(
