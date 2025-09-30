@@ -150,18 +150,43 @@ ci: ## Run CI pipeline locally
 	$(MAKE) build
 
 .PHONY: docs-serve
-docs-serve: ## Serve MkDocs documentation locally
+docs-serve: ## Serve MkDocs documentation locally (balanced mode)
 	@echo "${BLUE}Serving documentation...${NC}"
-	$(UV) run --group docs mkdocs serve
+	$(UV) run --group docs mkdocs serve -f docs/mkdocs.yml
+
+.PHONY: docs-serve-fast
+docs-serve-fast: ## Serve MkDocs documentation with fast build (for quick iterations)
+	@echo "${BLUE}Serving documentation (fast mode)...${NC}"
+	$(UV) run --group docs mkdocs serve -f docs/mkdocs-fast.yml
+
+.PHONY: docs-serve-no-api
+docs-serve-no-api: ## Serve MkDocs documentation without API auto-generation (fastest)
+	@echo "${BLUE}Serving documentation (no API generation)...${NC}"
+	ENABLE_MKDOCSTRINGS=false $(UV) run --group docs mkdocs serve -f docs/mkdocs.yml
 
 .PHONY: docs-build
-docs-build: ## Build MkDocs documentation
+docs-build: ## Build MkDocs documentation (balanced mode)
 	@echo "${BLUE}Building documentation...${NC}"
-	$(UV) run --group docs mkdocs build
+	$(UV) run --group docs mkdocs build -f docs/mkdocs.yml
+
+.PHONY: docs-build-fast
+docs-build-fast: ## Build MkDocs documentation with fast config
+	@echo "${BLUE}Building documentation (fast mode)...${NC}"
+	$(UV) run --group docs mkdocs build -f docs/mkdocs-fast.yml
+
+.PHONY: docs-build-full
+docs-build-full: ## Build MkDocs documentation with full features (for production)
+	@echo "${BLUE}Building documentation (full mode)...${NC}"
+	$(UV) run --group docs mkdocs build -f docs/mkdocs-full.yml --clean
+
+.PHONY: docs-time
+docs-time: ## Time the documentation build
+	@echo "${BLUE}Timing documentation build...${NC}"
+	time $(UV) run --group docs mkdocs build -f docs/mkdocs.yml
 
 .PHONY: docs-deploy
 docs-deploy: ## Deploy MkDocs to GitHub Pages
 	@echo "${BLUE}Deploying documentation...${NC}"
-	$(UV) run --group docs mkdocs gh-deploy --force
+	$(UV) run --group docs mkdocs gh-deploy --force -f docs/mkdocs-full.yml
 
 .DEFAULT_GOAL := help

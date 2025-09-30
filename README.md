@@ -28,17 +28,24 @@ ArchiPy is a Python framework designed to provide a standardized, scalable, and 
 
 ## 📋 Table of Contents
 
-- [Goals](#-goals)
-- [Features](#-features)
-- [Prerequisites](#-prerequisites)
-- [Installation](#-installation)
-- [Usage](#-usage)
-- [Development](#-development)
-- [Contributing](#-contributing)
-- [License](#-license)
-- [Sponsors](#-sponsors)
-- [Contact](#-contact)
-- [Links](#-links)
+- [ArchiPy - Architecture + Python](#archipy---architecture--python)
+  - [**Structured Python Development Made Simple**](#structured-python-development-made-simple)
+  - [📋 Table of Contents](#-table-of-contents)
+  - [🎯 Goals](#-goals)
+  - [✨ Features](#-features)
+  - [🛠️ Prerequisites](#️-prerequisites)
+  - [📥 Installation](#-installation)
+  - [🎯 Usage](#-usage)
+    - [Optional Dependencies](#optional-dependencies)
+  - [🛠️ Development](#️-development)
+    - [Quick Commands](#quick-commands)
+  - [🤝 Contributing](#-contributing)
+  - [📄 License](#-license)
+  - [🙌 Sponsors](#-sponsors)
+  - [📞 Contact](#-contact)
+  - [🔗 Links](#-links)
+  - [📚 Documentation](#-documentation)
+    - [Quick Start](#quick-start)
 
 ---
 
@@ -174,21 +181,27 @@ ArchiPy's documentation has been migrated from Sphinx to MkDocs for improved rea
 - **Improved Navigation**: Intuitive organization and search
 - **Clearer Examples**: Expanded code samples with explanations
 - **API Reference**: Auto-generated from source code docstrings
+- **Performance Optimized**: Multiple build modes for fast iteration
 
-To run the documentation locally:
+### Quick Start
 
 ```bash
 # Install documentation dependencies
 uv sync --group docs
 
-# Serve documentation locally
+# Fast mode for quick iterations (10-20s builds)
+make docs-serve-fast
+
+# Balanced mode for regular work (30-60s builds)
 make docs-serve
 
-# Build documentation
-make docs-build
+# Full production build (2-5min, all features)
+make docs-build-full
 
 # Deploy to GitHub Pages
 make docs-deploy
 ```
+
+**See [DOCS_QUICKSTART.md](DOCS_QUICKSTART.md) for more commands and tips.**
 
 [View the latest documentation](https://syntaxarc.github.io/ArchiPy/)
