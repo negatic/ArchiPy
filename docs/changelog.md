@@ -2,7 +2,7 @@
 
 All notable changes to ArchiPy are documented in this changelog, organized by version.
 
-## [Unreleased]
+## [3.13.2]
 
 ### Changed
 
