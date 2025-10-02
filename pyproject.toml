@@ -42,7 +42,7 @@ sentry = ["sentry-sdk (>=2.39.0)"]
 sqlalchemy = ["sqlalchemy (>=2.0.41)"]
 starrocks = ["starrocks (>=1.2.3,<2.0.0)", "pymysql (>=1.1.2,<2.0.0)"]
 starrocks-async = ["starrocks (>=1.2.2,<2.0.0)", "aiomysql (>=0.2.0,<0.3.0)"]
-temporalio = ["temporalio>=1.18.0"]
+temporalio = ["temporalio>=1.18.1"]
 testcontainers = ["testcontainers (>=4.13.1,<5.0.0)"]
 
 [tool.pytest.ini_options]
@@ -72,7 +72,7 @@ dev = [
     "pre-commit>=3.8.0",
     "ruff>=0.13.2",
     "types-cachetools>=6.2.0.20250827",
-    "types-grpcio>=1.0.0.20250914",
+    "types-grpcio>=1.0.0.20251001",
     "types-protobuf>=6.32.1.20250918",
     "types-pymysql>=1.1.0.20250916",
     "types-regex>=2025.9.18.20250921",
@@ -82,7 +82,7 @@ dev = [
 
 docs = [
     "mkdocs-autorefs>=1.4.3",
-    "mkdocs-material>=9.6.20",
+    "mkdocs-material>=9.6.21",
     "mkdocs>=1.6.1",
     "mkdocstrings-python>=1.18.2",
     "mkdocstrings>=0.30.1",
