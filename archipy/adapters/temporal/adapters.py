@@ -412,7 +412,8 @@ class TemporalAdapter(TemporalPort):
         workflow_class: Any,
         spec: ScheduleSpec,
         task_queue: str,
-        workflow_id_prefix: str | None = None,
+        workflow_id: str | None = None,
+        schedule_policy: SchedulePolicy | None = None,
     ) -> None:
         """Create a schedule for a workflow."""
         client = await self.get_client()
@@ -420,11 +421,12 @@ class TemporalAdapter(TemporalPort):
         sched = Schedule(
             action=ScheduleActionStartWorkflow(
                 workflow_class,
-                id=workflow_id_prefix,
+                id=workflow_id,
                 task_queue=task_queue,
             ),
             spec=spec,
-            policy=SchedulePolicy(
+            policy=schedule_policy
+            or SchedulePolicy(
                 overlap=ScheduleOverlapPolicy.SKIP,
             ),
         )
