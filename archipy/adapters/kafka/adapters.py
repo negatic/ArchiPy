@@ -128,12 +128,12 @@ class KafkaAdminAdapter(KafkaAdminPort, KafkaExceptionHandlerMixin):
             self._handle_kafka_exception(e, "KafkaAdmin_init")
 
     @override
-    def create_topic(self, topic: str, num_partitions: int = 1, replication_factor: int = 1) -> None:
+    def create_topic(self, topic: str, num_partitions: int = 3, replication_factor: int = 1) -> None:
         """Creates a new Kafka topic.
 
         Args:
             topic (str): Name of the topic to create.
-            num_partitions (int, optional): Number of partitions for the topic. Defaults to 1.
+            num_partitions (int, optional): Number of partitions for the topic. Defaults to 3.
             replication_factor (int, optional): Replication factor for the topic. Defaults to 1.
 
         Raises:
@@ -348,7 +348,7 @@ class KafkaConsumerAdapter(KafkaConsumerPort, KafkaExceptionHandlerMixin):
             return message
 
     @override
-    def commit(self, message: Message, asynchronous: bool = True) -> None | list[TopicPartition]:
+    def commit(self, message: Message | None = None, asynchronous: bool = True) -> None | list[TopicPartition]:
         """Commits the offset for a message.
 
         Args:
@@ -365,10 +365,15 @@ class KafkaConsumerAdapter(KafkaConsumerPort, KafkaExceptionHandlerMixin):
         """
         try:
             if asynchronous:
-                self._adapter.commit(message=message, asynchronous=True)
+                if message is not None:
+                    self._adapter.commit(message=message, asynchronous=True)
+                else:
+                    self._adapter.commit(asynchronous=True)
                 result = None
-            else:
+            elif message is not None:
                 result = self._adapter.commit(message=message, asynchronous=False)
+            else:
+                result = self._adapter.commit(asynchronous=False)
         except Exception as e:
             self._handle_kafka_exception(e, "commit")
         else:
@@ -990,7 +995,7 @@ class AsyncKafkaConsumerAdapter(AsyncKafkaConsumerPort, KafkaExceptionHandlerMix
             return message
 
     @override
-    async def commit(self, message: Message, asynchronous: bool = True) -> None | list[TopicPartition]:
+    async def commit(self, message: Message | None = None, asynchronous: bool = True) -> None | list[TopicPartition]:
         """Commits the offset for a message asynchronously.
 
         Args:

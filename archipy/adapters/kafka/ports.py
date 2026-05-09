@@ -11,7 +11,7 @@ class KafkaAdminPort:
     """
 
     @abstractmethod
-    def create_topic(self, topic: str, num_partitions: int = 1, replication_factor: int = 1) -> None:
+    def create_topic(self, topic: str, num_partitions: int = 3, replication_factor: int = 1) -> None:
         """Creates a new Kafka topic.
 
         Args:
@@ -92,7 +92,7 @@ class KafkaConsumerPort:
         raise NotImplementedError
 
     @abstractmethod
-    def commit(self, message: Message, asynchronous: bool) -> None | list[TopicPartition]:
+    def commit(self, message: Message | None = None, asynchronous: bool = True) -> None | list[TopicPartition]:
         """Commits the offset of a consumed message.
 
         Args:
@@ -247,7 +247,7 @@ class AsyncKafkaConsumerPort:
         raise NotImplementedError
 
     @abstractmethod
-    async def commit(self, message: Message, asynchronous: bool) -> None | list[TopicPartition]:
+    async def commit(self, message: Message | None = None, asynchronous: bool = True) -> None | list[TopicPartition]:
         """Commits the offset of a consumed message.
 
         Args:

@@ -121,3 +121,41 @@ Feature: Kafka Adapter Operations Testing
     Then the async consumer should receive message "async-commit-me" from topic "test-topic-commit-async" with group "test-group-commit-async"
     And I async commit the consumed offset for topic "test-topic-commit-async" with group "test-group-commit-async"
     And the async commit should succeed
+
+  Scenario: Commit without message (null commit)
+    Given a test topic named "test-topic-null-commit"
+    And a Kafka producer for topic "test-topic-null-commit"
+    And a Kafka consumer subscribed to topic "test-topic-null-commit" with group "test-group-null-commit"
+    When I produce a message "null-commit-test" to topic "test-topic-null-commit"
+    Then the consumer should receive message "null-commit-test" from topic "test-topic-null-commit" with group "test-group-null-commit"
+    When I commit without message for topic "test-topic-null-commit" with group "test-group-null-commit"
+    Then the null commit should succeed
+
+  @async
+  Scenario: Async commit without message (null commit)
+    Given a test topic named "test-topic-null-commit-async"
+    And an async Kafka producer for topic "test-topic-null-commit-async"
+    And an async Kafka consumer subscribed to topic "test-topic-null-commit-async" with group "test-group-null-commit-async"
+    When I async produce a message "async-null-commit-test" to topic "test-topic-null-commit-async"
+    Then the async consumer should receive message "async-null-commit-test" from topic "test-topic-null-commit-async" with group "test-group-null-commit-async"
+    When I async commit without message for topic "test-topic-null-commit-async" with group "test-group-null-commit-async"
+    Then the async null commit should succeed
+
+  Scenario: Batch consume multiple messages
+    Given a test topic named "test-topic-batch-consume"
+    And a Kafka producer for topic "test-topic-batch-consume"
+    And a Kafka consumer subscribed to topic "test-topic-batch-consume" with group "test-group-batch-consume"
+    When I produce 5 messages to topic "test-topic-batch-consume"
+    Then the consumer should receive 5 messages from topic "test-topic-batch-consume" with group "test-group-batch-consume"
+    And I commit the batch for topic "test-topic-batch-consume" with group "test-group-batch-consume"
+    And the commit should succeed
+
+  @async
+  Scenario: Async batch consume multiple messages
+    Given a test topic named "test-topic-batch-consume-async"
+    And an async Kafka producer for topic "test-topic-batch-consume-async"
+    And an async Kafka consumer subscribed to topic "test-topic-batch-consume-async" with group "test-group-batch-consume-async"
+    When I async produce 5 messages to topic "test-topic-batch-consume-async"
+    Then the async consumer should receive 5 messages from topic "test-topic-batch-consume-async" with group "test-group-batch-consume-async"
+    And I async commit the batch for topic "test-topic-batch-consume-async" with group "test-group-batch-consume-async"
+    And the async commit should succeed

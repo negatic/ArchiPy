@@ -446,6 +446,88 @@ def step_commit_consumed_offset(context, topic_name, group_id):
         raise
 
 
+@when('I commit without message for topic "{topic_name}" with group "{group_id}"')
+def step_commit_without_message(context, topic_name, group_id):
+    """Commit without a specific message (commits current position)."""
+    adapter = get_kafka_consumer_adapter(context, topic_name, group_id)
+    scenario_context = get_current_scenario_context(context)
+    try:
+        adapter.commit(message=None, asynchronous=False)
+        scenario_context.commit_error = None
+        context.logger.info(f"Committed without message for '{topic_name}' group '{group_id}'")
+    except Exception as e:
+        scenario_context.commit_error = e
+        context.logger.exception(f"Null commit failed: {str(e)}")
+        raise
+
+
+@then("the null commit should succeed")
+def step_null_commit_should_succeed(context):
+    """Assert that a null commit completed without error."""
+    scenario_context = get_current_scenario_context(context)
+    commit_error = getattr(scenario_context, "commit_error", None)
+    assert commit_error is None, f"Null commit failed with error: {commit_error}"
+    context.logger.info("Verified null commit succeeded")
+
+
+@then('I commit the batch for topic "{topic_name}" with group "{group_id}"')
+def step_commit_batch(context, topic_name, group_id):
+    """Commit offsets for a batch of consumed messages."""
+    adapter = get_kafka_consumer_adapter(context, topic_name, group_id)
+    scenario_context = get_current_scenario_context(context)
+    try:
+        messages = getattr(scenario_context, "last_messages", None)
+        assert messages and len(messages) > 0, "No consumed messages available to commit"
+        adapter.commit()
+        scenario_context.commit_error = None
+        context.logger.info(f"Committed batch for '{topic_name}' group '{group_id}'")
+    except Exception as e:
+        scenario_context.commit_error = e
+        context.logger.exception(f"Batch commit failed: {str(e)}")
+        raise
+
+
+@then("the async null commit should succeed")
+def step_async_null_commit_should_succeed(context):
+    """Assert that an async null commit completed without error."""
+    scenario_context = get_current_scenario_context(context)
+    commit_error = getattr(scenario_context, "async_commit_error", None)
+    assert commit_error is None, f"Async null commit failed with error: {commit_error}"
+    context.logger.info("Verified async null commit succeeded")
+
+
+@when('I async commit without message for topic "{topic_name}" with group "{group_id}"')
+async def step_async_commit_without_message(context, topic_name, group_id):
+    """Async commit without a specific message (commits current position)."""
+    adapter = get_async_kafka_consumer_adapter(context, topic_name, group_id)
+    scenario_context = get_current_scenario_context(context)
+    try:
+        await adapter.commit(message=None, asynchronous=False)
+        scenario_context.async_commit_error = None
+        context.logger.info(f"Async committed without message for '{topic_name}' group '{group_id}'")
+    except Exception as e:
+        scenario_context.async_commit_error = e
+        context.logger.exception(f"Async null commit failed: {str(e)}")
+        raise
+
+
+@then('I async commit the batch for topic "{topic_name}" with group "{group_id}"')
+async def step_async_commit_batch(context, topic_name, group_id):
+    """Async commit offsets for a batch of consumed messages."""
+    adapter = get_async_kafka_consumer_adapter(context, topic_name, group_id)
+    scenario_context = get_current_scenario_context(context)
+    try:
+        messages = getattr(scenario_context, "last_messages", None)
+        assert messages and len(messages) > 0, "No consumed messages available to commit"
+        await adapter.commit()
+        scenario_context.async_commit_error = None
+        context.logger.info(f"Async committed batch for '{topic_name}' group '{group_id}'")
+    except Exception as e:
+        scenario_context.async_commit_error = e
+        context.logger.exception(f"Async batch commit failed: {str(e)}")
+        raise
+
+
 @then("the producer health check should pass")
 def step_health_check_pass(context):
     """Assert that the most recently initialized sync producer is healthy.
