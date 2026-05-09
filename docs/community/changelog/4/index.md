@@ -9,6 +9,7 @@ description: "Release history for ArchiPy 4.x series"
 
 | Version           | Date       | Summary                                                                                         |
 |-------------------|------------|-------------------------------------------------------------------------------------------------|
+| [4.9.0](4.9.0.md) | 2026-05-09 | Null commit and batch consume support for Kafka adapters                                       |
 | [4.8.1](4.8.1.md) | 2026-05-06 | Prometheus utils class refactor, stricter ScyllaDB CQL validation, and dependency refresh      |
 | [4.8.0](4.8.0.md) | 2026-05-03 | Async tracing decorators, improved error handling, gRPC interceptor fixes                    |
 | [4.7.1](4.7.1.md) | 2026-05-03 | `TracingUtils` class, extended Sentry config, consolidated error handling tests              |
