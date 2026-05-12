@@ -111,7 +111,7 @@ class SamanShaparakPaymentAdapter(SamanShaparakPaymentPort):
             resp.raise_for_status()
             data = resp.json()
 
-            transaction_detail = data.get("TransactionDetail", {})
+            transaction_detail = data.get("TransactionDetail") or {}
             return VerifyResponseDTO(
                 success=data.get("Success", False),
                 result_code=data.get("ResultCode", -1),
@@ -305,7 +305,7 @@ class AsyncSamanShaparakPaymentAdapter(AsyncSamanShaparakPaymentPort):
             resp.raise_for_status()
             data = resp.json()
 
-            transaction_detail = data.get("TransactionDetail", {})
+            transaction_detail = data.get("TransactionDetail") or {}
             return VerifyResponseDTO(
                 success=data.get("Success", False),
                 result_code=data.get("ResultCode", -1),
