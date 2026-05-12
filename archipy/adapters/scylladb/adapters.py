@@ -13,7 +13,7 @@ from typing import Any, NoReturn, override
 from async_lru import alru_cache
 from cassandra import ConsistencyLevel
 from cassandra.auth import PlainTextAuthProvider
-from cassandra.cluster import Cluster
+from cassandra.cluster import Cluster, ResultSet
 from cassandra.policies import (
     AddressTranslator,
     DCAwareRoundRobinPolicy,
@@ -913,16 +913,34 @@ class AsyncScyllaDBAdapter(AsyncScyllaDBPort, ScyllaDBExceptionHandlerMixin):
         return cluster
 
     async def _await_future(self, future: Any) -> Any:
-        """Convert ResponseFuture to awaitable.
+        """Convert ResponseFuture to awaitable without holding an executor thread.
+
+        Bridges cassandra-driver's ResponseFuture (callback-based, fired from the
+        driver's internal IO thread) directly to an asyncio.Future, avoiding the
+        default ThreadPoolExecutor bottleneck under high concurrency.
 
         Args:
-            future (ResponseFuture): The response future from async execution.
+            future: The ResponseFuture from session.execute_async().
 
         Returns:
-            Any: The result from the future.
+            Any: The query result (typically a ResultSet).
         """
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, future.result)
+        loop = asyncio.get_running_loop()
+        asyncio_future: asyncio.Future[Any] = loop.create_future()
+
+        def _on_success(rows: Any) -> None:
+            # add_callback passes raw _final_result (first page rows), not ResultSet;
+            # match ResponseFuture.result() which returns ResultSet(self, self._final_result).
+            if not asyncio_future.done():
+                result_set = ResultSet(future, rows)
+                loop.call_soon_threadsafe(asyncio_future.set_result, result_set)
+
+        def _on_error(exc: BaseException) -> None:
+            if not asyncio_future.done():
+                loop.call_soon_threadsafe(asyncio_future.set_exception, exc)
+
+        future.add_callbacks(_on_success, _on_error)
+        return await asyncio_future
 
     @override
     async def execute(self, query: str, params: dict[str, Any] | tuple | list | None = None) -> Any:

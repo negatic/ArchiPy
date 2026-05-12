@@ -186,7 +186,7 @@ class FastAPIUtils:
 
             apm_client = elasticapm.get_client()
             if apm_client is None:
-                apm_client = make_apm_client(config.ELASTIC_APM.model_dump())
+                apm_client = make_apm_client(config.ELASTIC_APM.model_dump(exclude=["IS_ENABLED"]))
             app.add_middleware(ElasticAPM, client=apm_client)  # type: ignore[arg-type]
         except Exception:
             logger.exception("Failed to initialize Elastic APM")

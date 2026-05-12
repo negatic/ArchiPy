@@ -119,8 +119,8 @@ class TracingUtils:
                     import elasticapm
 
                     if elasticapm.get_client() is None:
-                        _ = elasticapm.Client(config.ELASTIC_APM.model_dump())
-                        elasticapm.instrument()
+                        _ = elasticapm.Client(config.ELASTIC_APM.model_dump(exclude=["IS_ENABLED"]))
+                    elasticapm.instrument()
                     TracingUtils._elastic_apm_initialized = True
                 except ImportError:
                     TracingUtils._elastic_apm_initialized = True  # package absent — no point retrying
