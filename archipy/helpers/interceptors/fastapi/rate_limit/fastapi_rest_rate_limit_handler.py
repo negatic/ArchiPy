@@ -1,13 +1,17 @@
+from __future__ import annotations
+
 from ipaddress import ip_address
 from math import ceil
+from typing import TYPE_CHECKING
 
 from fastapi import HTTPException, Request
 from pydantic import StrictInt, StrictStr
 from starlette.datastructures import QueryParams
 from starlette.status import HTTP_429_TOO_MANY_REQUESTS
 
-from archipy.adapters.redis.adapters import AsyncRedisAdapter
-from archipy.adapters.redis.ports import RedisResponseType
+if TYPE_CHECKING:
+    from archipy.adapters.redis.adapters import AsyncRedisAdapter
+    from archipy.adapters.redis.ports import RedisResponseType
 
 
 class FastAPIRestRateLimitHandler:
@@ -72,7 +76,14 @@ class FastAPIRestRateLimitHandler:
         self.milliseconds = (
             milliseconds + 1000 * seconds + 60 * 1000 * minutes + 60 * 60 * 1000 * hours + 24 * 60 * 60 * 1000 * days
         )
-        self.redis_client = AsyncRedisAdapter()
+        self._redis_client: AsyncRedisAdapter = self._create_redis_client()
+
+    @staticmethod
+    def _create_redis_client() -> AsyncRedisAdapter:
+        """Lazily initialized Redis client for rate limiting."""
+        from archipy.adapters.redis.adapters import AsyncRedisAdapter  # noqa: PLC0415
+
+        return AsyncRedisAdapter()
 
     async def _check(self, key: str) -> RedisResponseType:
         """Checks if the request count for the given key exceeds the allowed limit.
@@ -84,19 +95,19 @@ class FastAPIRestRateLimitHandler:
             int: The remaining time-to-live (TTL) in milliseconds if the limit is exceeded, otherwise 0.
         """
         # Use await for getting value from Redis as it's asynchronous
-        current_request = await self.redis_client.get(key)
+        current_request = await self._redis_client.get(key)
         if current_request is None:
-            await self.redis_client.set(key, 1, px=self.milliseconds)
+            await self._redis_client.set(key, 1, px=self.milliseconds)
             return 0
 
         current_request = int(current_request)
         if current_request < self.calls_count:
-            await self.redis_client.incrby(key)
+            await self._redis_client.incrby(key)
             return 0
 
-        ttl = await self.redis_client.pttl(key)
+        ttl = await self._redis_client.pttl(key)
         if ttl == -1:
-            await self.redis_client.delete(key)
+            await self._redis_client.delete(key)
         return ttl
 
     async def __call__(self, request: Request) -> None:
