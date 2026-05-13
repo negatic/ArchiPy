@@ -9,6 +9,7 @@ description: "Release history for ArchiPy 4.x series"
 
 | Version           | Date       | Summary                                                                                         |
 |-------------------|------------|-------------------------------------------------------------------------------------------------|
+| [4.9.3](4.9.3.md) | 2026-05-13 | Lazy Redis client initialization in rate limiter, `__future__` typing, and dependency updates |
 | [4.9.2](4.9.2.md) | 2026-05-12 | Fix graceful handling of missing TransactionDetail in Saman payment adapters                     |
 | [4.9.1](4.9.1.md) | 2026-05-12 | ScyllaDB async callback fix, driver upgrades (scylla-driver 3.29.10), and dependency updates |
 | [4.9.0](4.9.0.md) | 2026-05-09 | Null commit and batch consume support for Kafka adapters                                       |
