@@ -10,7 +10,7 @@ import functools
 import logging
 import warnings
 from collections.abc import Callable, Coroutine
-from typing import Any
+from typing import Any, Protocol
 
 from archipy.configs.base_config import BaseConfig
 from archipy.helpers.utils.tracing_utils import TracingUtils
@@ -18,7 +18,23 @@ from archipy.helpers.utils.tracing_utils import TracingUtils
 logger = logging.getLogger(__name__)
 
 
-def capture_transaction[F: Callable[..., Any]](
+class _Function(Protocol):
+    """A callable with a __name__ attribute."""
+
+    __name__: str
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any: ...
+
+
+class _AsyncFunction(Protocol):
+    """An async callable with a __name__ attribute."""
+
+    __name__: str
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Coroutine[Any, Any, Any]: ...
+
+
+def capture_transaction[F: _Function](
     name: str | None = None,
     *,
     op: str = "function",
@@ -133,7 +149,7 @@ def capture_transaction[F: Callable[..., Any]](
     return decorator
 
 
-def capture_span[F: Callable[..., Any]](
+def capture_span[F: _Function](
     name: str | None = None,
     *,
     op: str = "function",
@@ -270,7 +286,7 @@ def capture_span[F: Callable[..., Any]](
     return decorator
 
 
-def async_capture_transaction[F: Callable[..., Coroutine[Any, Any, Any]]](
+def async_capture_transaction[F: _AsyncFunction](
     name: str | None = None,
     *,
     op: str = "function",
@@ -391,7 +407,7 @@ def async_capture_transaction[F: Callable[..., Coroutine[Any, Any, Any]]](
     return decorator
 
 
-def async_capture_span[F: Callable[..., Coroutine[Any, Any, Any]]](
+def async_capture_span[F: _AsyncFunction](
     name: str | None = None,
     *,
     op: str = "function",

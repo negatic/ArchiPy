@@ -30,7 +30,6 @@ from archipy.models.errors import (
     InsufficientPermissionsError,
     InternalError,
     InvalidCredentialsError,
-    InvalidTokenError,
     KeycloakConnectionTimeoutError,
     KeycloakServiceUnavailableError,
     PasswordPolicyError,
@@ -512,7 +511,10 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
 
     @override
     def get_userinfo(self, token: str) -> KeycloakUserType | None:
-        """Get user information from a token.
+        """Get user information from a token via the UserInfo endpoint.
+
+        The UserInfo endpoint validates the token server-side, so no local
+        validation is needed here.
 
         Args:
             token: Access token
@@ -523,8 +525,6 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
         Raises:
             ValueError: If getting user info fails
         """
-        if not self.validate_token(token):
-            raise InvalidTokenError()
         try:
             # _get_userinfo_cached returns KeycloakUserType (dict[str, Any])
             # The ttl_cache_decorator loses type info, but runtime behavior is correct
@@ -1330,8 +1330,47 @@ class KeycloakAdapter(KeycloakPort, KeycloakExceptionHandlerMixin):
             return False
 
     @override
+    @ttl_cache_decorator(ttl_seconds=30, maxsize=200)
+    def check_permissions_batch(
+        self,
+        token: str,
+        permissions: tuple[tuple[str, str], ...],
+    ) -> frozenset[tuple[str, str]]:
+        """Return the subset of (resource, scope) pairs the token is authorized for in one UMA call.
+
+        Prefer this over :meth:`check_permissions` when multiple pairs must be checked per request.
+
+        Args:
+            token: Access token
+            permissions: Tuple of (resource, scope) pairs to check
+
+        Returns:
+            Subset of ``permissions`` that are granted
+        """
+        if not permissions:
+            return frozenset()
+        perm_strs = [f"{resource}#{scope}" for resource, scope in permissions]
+        try:
+            results = self._openid_adapter.uma_permissions(token, permissions=perm_strs)
+        except KeycloakError as e:
+            self._handle_keycloak_exception(e, "check_permissions_batch")
+        if not results or not isinstance(results, list):
+            return frozenset()
+        granted: set[tuple[str, str]] = set()
+        requested = set(permissions)
+        for perm in results:
+            rsname = perm.get("rsname")
+            for scope in perm.get("scopes", []) or []:
+                pair = (rsname, scope)
+                if pair in requested:
+                    granted.add(pair)
+        return frozenset(granted)
+
+    @override
     def check_permissions(self, token: str, resource: str, scope: str) -> bool:
         """Check if a user has permission to access a resource with the specified scope.
+
+        Prefer :meth:`check_permissions_batch` when checking multiple pairs per request.
 
         Args:
             token: Access token
@@ -1941,7 +1980,10 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
 
     @override
     async def get_userinfo(self, token: str) -> KeycloakUserType | None:
-        """Get user information from a token.
+        """Get user information from a token via the UserInfo endpoint.
+
+        The UserInfo endpoint validates the token server-side, so no local
+        validation is needed here.
 
         Args:
             token: Access token
@@ -1952,8 +1994,6 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
         Raises:
             ValueError: If getting user info fails
         """
-        if not await self.validate_token(token):
-            raise InvalidTokenError()
         try:
             return await self._get_userinfo_cached(token)
         except KeycloakError as e:
@@ -2748,8 +2788,47 @@ class AsyncKeycloakAdapter(AsyncKeycloakPort, KeycloakExceptionHandlerMixin):
             return False
 
     @override
+    @alru_cache(ttl=30, maxsize=200)
+    async def check_permissions_batch(
+        self,
+        token: str,
+        permissions: tuple[tuple[str, str], ...],
+    ) -> frozenset[tuple[str, str]]:
+        """Return the subset of (resource, scope) pairs the token is authorized for in one UMA call.
+
+        Prefer this over :meth:`check_permissions` when multiple pairs must be checked per request.
+
+        Args:
+            token: Access token
+            permissions: Tuple of (resource, scope) pairs to check
+
+        Returns:
+            Subset of ``permissions`` that are granted
+        """
+        if not permissions:
+            return frozenset()
+        perm_strs = [f"{resource}#{scope}" for resource, scope in permissions]
+        try:
+            results = await self.openid_adapter.a_uma_permissions(token, permissions=perm_strs)
+        except KeycloakError as e:
+            self._handle_keycloak_exception(e, "check_permissions_batch")
+        if not results or not isinstance(results, list):
+            return frozenset()
+        granted: set[tuple[str, str]] = set()
+        requested = set(permissions)
+        for perm in results:
+            rsname = perm.get("rsname")
+            for scope in perm.get("scopes", []) or []:
+                pair = (rsname, scope)
+                if pair in requested:
+                    granted.add(pair)
+        return frozenset(granted)
+
+    @override
     async def check_permissions(self, token: str, resource: str, scope: str) -> bool:
         """Check if a user has permission to access a resource with the specified scope.
+
+        Prefer :meth:`check_permissions_batch` when checking multiple pairs per request.
 
         Args:
             token: Access token

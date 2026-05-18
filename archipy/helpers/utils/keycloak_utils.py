@@ -2,6 +2,7 @@ import functools
 import logging
 from collections.abc import Callable
 from contextvars import ContextVar
+from functools import cache
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -47,6 +48,18 @@ DEFAULT_LANG = LanguageType.FA
 logger = logging.getLogger(__name__)
 
 
+@cache
+def _shared_sync_adapter() -> KeycloakAdapter:
+    """Return a process-wide shared synchronous Keycloak adapter."""
+    return KeycloakAdapter()
+
+
+@cache
+def _shared_async_adapter() -> AsyncKeycloakAdapter:
+    """Return a process-wide shared asynchronous Keycloak adapter."""
+    return AsyncKeycloakAdapter()
+
+
 def _abort_grpc_sync_if_servicer_context(error: BaseError, context: object) -> None:
     """Invoke ``error.abort_grpc_sync`` when ``context`` is a sync gRPC servicer context."""
     if not GRPC_AVAILABLE or not hasattr(error, "abort_grpc_sync"):
@@ -65,6 +78,153 @@ async def _abort_grpc_async_if_servicer_context(error: BaseError, context: objec
         await error.abort_grpc_async(aio_ctx)  # ty: ignore[invalid-argument-type]
 
 
+def _extract_roles(user_info: dict[str, Any], client_id: str | None) -> set[str]:
+    """Collect realm and client roles from a UserInfo response."""
+    roles: set[str] = set(user_info.get("realm_access", {}).get("roles", []) or [])
+    if client_id:
+        roles.update(user_info.get("resource_access", {}).get(client_id, {}).get("roles", []) or [])
+    return roles
+
+
+def _check_resource_access(
+    user_info: dict[str, Any],
+    resource_uuid: str,
+    user_roles: set[str],
+    admin_roles: frozenset[str] | None,
+    lang: LanguageType,
+    resource_type: str | None = None,
+) -> None:
+    """Verify the caller owns the resource or holds an admin role."""
+    sub = user_info.get("sub")
+    is_owner = sub == resource_uuid
+    is_admin = bool(admin_roles) and not user_roles.isdisjoint(admin_roles)
+    if not (is_owner or is_admin):
+        additional_data: dict[str, Any] = {"resource_id": resource_uuid}
+        if resource_type:
+            additional_data["resource_type"] = resource_type
+        raise PermissionDeniedError(lang=lang, additional_data=additional_data)
+
+
+def _authorize_sync(
+    keycloak: KeycloakAdapter,
+    token_str: str,
+    resource_uuid: str | None,
+    required_roles: frozenset[str] | None,
+    all_roles_required: bool,
+    required_permissions: tuple[tuple[str, str], ...] | None,
+    admin_roles: frozenset[str] | None,
+    lang: LanguageType,
+    resource_type: str | None = None,
+) -> tuple[dict[str, Any], dict[str, Any], set[str]]:
+    """Authenticate and authorize a request using local JWT verify and UserInfo.
+
+    Args:
+        keycloak: Shared Keycloak adapter instance.
+        token_str: Bearer access token.
+        resource_uuid: Optional resource identifier for ownership checks.
+        required_roles: Roles the caller must hold.
+        all_roles_required: Whether all or any of ``required_roles`` must match.
+        required_permissions: UMA (resource, scope) pairs that must be granted.
+        admin_roles: Roles that bypass resource ownership checks.
+        lang: Language for error messages.
+        resource_type: Optional resource type label for error payloads.
+
+    Returns:
+        Tuple of (user_info, token_info, user_roles).
+
+    Raises:
+        TokenExpiredError: If the token fails local validation.
+        UnauthenticatedError: If UserInfo cannot be retrieved.
+        PermissionDeniedError: If authorization checks fail.
+    """
+    if not keycloak.validate_token(token_str):
+        raise TokenExpiredError(lang=lang)
+
+    token_info = keycloak.get_token_info(token_str)
+    if not token_info:
+        raise TokenExpiredError(lang=lang)
+
+    user_info = keycloak.get_userinfo(token_str)
+    if not user_info:
+        raise UnauthenticatedError(lang=lang)
+
+    user_roles = _extract_roles(user_info, keycloak.configs.CLIENT_ID)
+
+    if resource_uuid is not None:
+        _check_resource_access(user_info, resource_uuid, user_roles, admin_roles, lang, resource_type)
+
+    if required_roles:
+        roles_ok = (
+            user_roles.issuperset(required_roles) if all_roles_required else not user_roles.isdisjoint(required_roles)
+        )
+        if not roles_ok:
+            raise PermissionDeniedError(
+                lang=lang,
+                additional_data={"required_roles": list(required_roles)},
+            )
+
+    if required_permissions:
+        granted = keycloak.check_permissions_batch(token_str, required_permissions)
+        missing = set(required_permissions) - granted
+        if missing:
+            raise PermissionDeniedError(
+                lang=lang,
+                additional_data={"missing_permissions": [f"{r}#{s}" for r, s in missing]},
+            )
+
+    return user_info, token_info, user_roles
+
+
+async def _authorize_async(
+    keycloak: AsyncKeycloakAdapter,
+    token_str: str,
+    resource_uuid: str | None,
+    required_roles: frozenset[str] | None,
+    all_roles_required: bool,
+    required_permissions: tuple[tuple[str, str], ...] | None,
+    admin_roles: frozenset[str] | None,
+    lang: LanguageType,
+    resource_type: str | None = None,
+) -> tuple[dict[str, Any], dict[str, Any], set[str]]:
+    """Async variant of :func:`_authorize_sync`."""
+    if not await keycloak.validate_token(token_str):
+        raise TokenExpiredError(lang=lang)
+
+    token_info = await keycloak.get_token_info(token_str)
+    if not token_info:
+        raise TokenExpiredError(lang=lang)
+
+    user_info = await keycloak.get_userinfo(token_str)
+    if not user_info:
+        raise UnauthenticatedError(lang=lang)
+
+    user_roles = _extract_roles(user_info, keycloak.configs.CLIENT_ID)
+
+    if resource_uuid is not None:
+        _check_resource_access(user_info, resource_uuid, user_roles, admin_roles, lang, resource_type)
+
+    if required_roles:
+        roles_ok = (
+            user_roles.issuperset(required_roles) if all_roles_required else not user_roles.isdisjoint(required_roles)
+        )
+        if not roles_ok:
+            raise PermissionDeniedError(
+                lang=lang,
+                additional_data={"required_roles": list(required_roles)},
+            )
+
+    if required_permissions:
+        granted = await keycloak.check_permissions_batch(token_str, required_permissions)
+        missing = set(required_permissions) - granted
+        if missing:
+            raise PermissionDeniedError(
+                lang=lang,
+                additional_data={"missing_permissions": [f"{r}#{s}" for r, s in missing]},
+            )
+
+    return user_info, token_info, user_roles
+
+
 class AuthContext(BaseModel):
     """Authentication context passed to business logic."""
 
@@ -74,6 +234,21 @@ class AuthContext(BaseModel):
     roles: list[str]
     token: str
     raw_user_info: dict[str, Any]
+
+
+def _build_auth_context(user_info: dict[str, Any], token_str: str, user_roles: set[str]) -> AuthContext:
+    """Build an :class:`AuthContext` from UserInfo claims."""
+    user_id = user_info.get("sub")
+    if not user_id:
+        raise UnauthenticatedError()
+    return AuthContext(
+        user_id=user_id,
+        username=user_info.get("preferred_username", ""),
+        email=user_info.get("email", ""),
+        roles=list(user_roles),
+        token=token_str,
+        raw_user_info=user_info,
+    )
 
 
 # Solution 1: Using contextvars (Recommended)
@@ -104,11 +279,11 @@ class KeycloakUtils:
 
     @staticmethod
     def _get_keycloak_adapter() -> KeycloakAdapter:
-        return KeycloakAdapter()
+        return _shared_sync_adapter()
 
     @staticmethod
     def _get_async_keycloak_adapter() -> AsyncKeycloakAdapter:
-        return AsyncKeycloakAdapter()
+        return _shared_async_adapter()
 
     @classmethod
     # Synchronous decorator
@@ -147,72 +322,29 @@ class KeycloakUtils:
         ) -> dict[str, Any]:
             if token is None:
                 raise UnauthenticatedError(lang=lang)
-            token_str = token.credentials  # Extract the token string
-            # Validate token
-            if not keycloak.validate_token(token_str):
-                token_info = keycloak.introspect_token(token_str)
-                if not token_info or not token_info.get("active", False):
-                    raise TokenExpiredError(lang=lang)
+            token_str = token.credentials
 
-            # Get user info from token
-            user_info = keycloak.get_userinfo(token_str)
-            if not user_info:
-                raise UnauthenticatedError(lang=lang)
-
-            token_info = keycloak.get_token_info(token_str)
-
-            # Resource-based authorization if resource type is provided
+            resource_uuid: str | None = None
             if resource_type and resource_type_param:
-                # Extract resource UUID from path parameters
                 resource_uuid = request.path_params.get(resource_type_param)
                 if not resource_uuid:
                     raise InvalidArgumentError(argument_name=resource_type_param, lang=lang)
 
-                # Verify resource exists and user has access
-                user_uuid = user_info.get("sub")
+            user_info, token_info, user_roles = _authorize_sync(
+                keycloak,
+                token_str,
+                resource_uuid,
+                required_roles,
+                all_roles_required,
+                required_permissions,
+                admin_roles,
+                lang,
+                resource_type,
+            )
 
-                # Check if resource exists
-                resource_user = keycloak.get_user_by_id(resource_uuid)
-                if not resource_user:
-                    raise PermissionDeniedError(
-                        lang=lang,
-                        additional_data={"resource_type": resource_type, "resource_id": resource_uuid},
-                    )
-
-                # Authorization check: either owns the resource or has admin privileges
-                has_admin_privileges = admin_roles and keycloak.has_any_of_roles(token_str, admin_roles)
-                if user_uuid != resource_uuid and not has_admin_privileges:
-                    raise PermissionDeniedError(
-                        lang=lang,
-                        additional_data={"resource_type": resource_type, "resource_id": resource_uuid},
-                    )
-
-            # Check additional roles if specified
-            if required_roles:
-                if all_roles_required:
-                    if not keycloak.has_all_roles(token_str, required_roles):
-                        raise PermissionDeniedError(
-                            lang=lang,
-                            additional_data={"required_roles": required_roles},
-                        )
-                elif not keycloak.has_any_of_roles(token_str, required_roles):
-                    raise PermissionDeniedError(
-                        lang=lang,
-                        additional_data={"required_roles": required_roles},
-                    )
-
-            # Check permissions if specified
-            if required_permissions:
-                for resource, scope in required_permissions:
-                    if not keycloak.check_permissions(token_str, resource, scope):
-                        raise PermissionDeniedError(
-                            lang=lang,
-                            additional_data={"required_permission": f"{resource}#{scope}"},
-                        )
-
-            # Add user info to request state
             request.state.user_info = user_info
             request.state.token_info = token_info
+            request.state.user_roles = user_roles
             return user_info
 
         return dependency
@@ -253,76 +385,29 @@ class KeycloakUtils:
         ) -> dict[str, Any]:
             if token is None:
                 raise UnauthenticatedError(lang=lang)
-            token_str = token.credentials  # Extract the token string
+            token_str = token.credentials
 
-            # Validate token
-            if not await keycloak.validate_token(token_str):
-                # Handle token validation error
-                token_info = await keycloak.introspect_token(token_str)
-                if not token_info or not token_info.get("active", False):
-                    raise TokenExpiredError(lang=lang)
-
-            # Get user info from token
-            user_info = await keycloak.get_userinfo(token_str)
-            if not user_info:
-                raise UnauthenticatedError(lang=lang)
-
-            token_info = await keycloak.get_token_info(token_str)
-
-            # Resource-based authorization if resource type is provided
+            resource_uuid: str | None = None
             if resource_type and resource_type_param:
-                # Extract resource UUID from path parameters
                 resource_uuid = request.path_params.get(resource_type_param)
                 if not resource_uuid:
                     raise InvalidArgumentError(argument_name=resource_type_param, lang=lang)
 
-                # Verify resource exists and user has access
-                user_uuid = user_info.get("sub")
+            user_info, token_info, user_roles = await _authorize_async(
+                keycloak,
+                token_str,
+                resource_uuid,
+                required_roles,
+                all_roles_required,
+                required_permissions,
+                admin_roles,
+                lang,
+                resource_type,
+            )
 
-                # Check if resource exists
-                resource_user = await keycloak.get_user_by_id(resource_uuid)
-                if not resource_user:
-                    raise PermissionDeniedError(
-                        lang=lang,
-                        additional_data={"resource_type": resource_type, "resource_id": resource_uuid},
-                    )
-
-                # Authorization check: either owns the resource or has admin privileges
-                has_admin_privileges = admin_roles and await keycloak.has_any_of_roles(token_str, admin_roles)
-                if user_uuid != resource_uuid and not has_admin_privileges:
-                    raise PermissionDeniedError(
-                        lang=lang,
-                        additional_data={"resource_type": resource_type, "resource_id": resource_uuid},
-                    )
-
-            # Check additional roles if specified
-            if required_roles:
-                if all_roles_required:
-                    if not await keycloak.has_all_roles(token_str, required_roles):
-                        raise PermissionDeniedError(
-                            lang=lang,
-                            additional_data={"required_roles": required_roles},
-                        )
-                elif not await keycloak.has_any_of_roles(token_str, required_roles):
-                    raise PermissionDeniedError(
-                        lang=lang,
-                        additional_data={"required_roles": required_roles},
-                    )
-
-            # Check permissions if specified
-            if required_permissions:
-                for resource, scope in required_permissions:
-                    if not await keycloak.check_permissions(token_str, resource, scope):
-                        raise PermissionDeniedError(
-                            lang=lang,
-                            additional_data={"required_permission": f"{resource}#{scope}"},
-                        )
-
-            # Add user info to request state
             request.state.user_info = user_info
             request.state.token_info = token_info
-            if not user_info:
-                raise UnauthenticatedError(lang=lang)
+            request.state.user_roles = user_roles
             return user_info
 
         return dependency
@@ -363,8 +448,7 @@ class KeycloakUtils:
 
                 if auth_value_str.startswith(("Bearer ", "bearer ")):
                     return auth_value_str[7:]
-                else:
-                    return auth_value_str
+                return auth_value_str
 
         return None
 
@@ -403,108 +487,44 @@ class KeycloakUtils:
             @functools.wraps(func)
             def wrapper(self: object, request: object, context: object) -> object:
                 try:
-                    # 1. Extract and validate token
                     token_str = cls._extract_token_from_metadata(context)
                     if not token_str:
                         raise UnauthenticatedError(lang=lang)
 
-                    # 2. Get Keycloak adapter (synchronous)
-                    keycloak: KeycloakAdapter = cls._get_keycloak_adapter()
+                    keycloak = cls._get_keycloak_adapter()
 
-                    # 3. Validate token
-                    if not keycloak.validate_token(token_str):
-                        token_info = keycloak.introspect_token(token_str)
-                        if not token_info or not token_info.get("active", False):
-                            raise TokenExpiredError(lang=lang)
-
-                    # 4. Get user info from token
-                    user_info = keycloak.get_userinfo(token_str)
-                    if not user_info:
-                        raise UnauthenticatedError(lang=lang)
-
-                    # 5. Resource-based authorization if resource_attribute_name is provided
+                    resource_uuid: str | None = None
                     if resource_attribute_name:
-                        # Extract resource UUID from context
-                        resource_uuid = getattr(request, resource_attribute_name)
+                        resource_uuid = getattr(request, resource_attribute_name, None)
                         if not resource_uuid:
                             raise InvalidArgumentError(argument_name=resource_attribute_name, lang=lang)
 
-                        # Verify resource exists and user has access
-                        user_uuid = user_info.get("sub")
-
-                        # Check if resource exists
-                        resource_user = keycloak.get_user_by_id(resource_uuid)
-                        if not resource_user:
-                            raise PermissionDeniedError(
-                                lang=lang,
-                                additional_data={"resource_id": resource_uuid},
-                            )
-
-                        # Authorization check: either owns the resource or has admin privileges
-                        has_admin_privileges = admin_roles and keycloak.has_any_of_roles(token_str, admin_roles)
-                        if user_uuid != resource_uuid and not has_admin_privileges:
-                            raise PermissionDeniedError(lang=lang, additional_data={"resource_id": resource_uuid})
-
-                    # 6. Check roles if specified
-                    if required_roles:
-                        if all_roles_required:
-                            if not keycloak.has_all_roles(token_str, required_roles):
-                                raise PermissionDeniedError(
-                                    lang=lang,
-                                    additional_data={
-                                        "required_roles": list(required_roles),
-                                        "check_type": "all_required",
-                                    },
-                                )
-
-                        elif not keycloak.has_any_of_roles(token_str, required_roles):
-                            raise PermissionDeniedError(
-                                lang=lang,
-                                additional_data={"required_roles": list(required_roles), "check_type": "any_required"},
-                            )
-
-                    # 7. Check permissions if specified
-                    if required_permissions:
-                        for resource, scope in required_permissions:
-                            if not keycloak.check_permissions(token_str, resource, scope):
-                                raise PermissionDeniedError(
-                                    lang=lang,
-                                    additional_data={
-                                        "required_permission": f"{resource}#{scope}",
-                                        "resource": resource,
-                                        "scope": scope,
-                                    },
-                                )
-
-                    # 8. Create auth context for business logic
-                    user_id = user_info.get("sub")
-                    if not user_id:
-                        raise UnauthenticatedError(lang=lang)
-                    auth_context = AuthContext(
-                        user_id=user_id,
-                        username=user_info.get("preferred_username", ""),
-                        email=user_info.get("email", ""),
-                        roles=user_info.get("realm_access", {}).get("roles", []),
-                        token=token_str,
-                        raw_user_info=user_info,
+                    user_info, _token_info, user_roles = _authorize_sync(
+                        keycloak,
+                        token_str,
+                        resource_uuid,
+                        required_roles,
+                        all_roles_required,
+                        required_permissions,
+                        admin_roles,
+                        lang,
                     )
 
-                    # 9. Set auth context using contextvars
+                    auth_context = _build_auth_context(user_info, token_str, user_roles)
                     AuthContextManager.set_auth_context(auth_context)
 
-                    # 10. Call the original method - business logic handles ownership
                     return func(self, request, context)
 
                 except Exception as e:
                     if isinstance(e, BaseError):
                         _abort_grpc_sync_if_servicer_context(e, context)
+                        raise
                     raise InternalError(
                         lang=lang,
                         additional_data={"original_error": str(e), "error_type": type(e).__name__},
                     ) from e
 
                 finally:
-                    # Clean up auth context
                     AuthContextManager.clear_auth_context()
 
             return wrapper
@@ -546,96 +566,32 @@ class KeycloakUtils:
             @functools.wraps(func)
             async def wrapper(self: object, request: object, context: object) -> object:
                 try:
-                    # 1. Extract and validate token
                     token_str = cls._extract_token_from_metadata(context)
                     if not token_str:
                         raise UnauthenticatedError(lang=lang)
 
-                    # 2. Get Keycloak adapter
-                    keycloak: AsyncKeycloakAdapter = cls._get_async_keycloak_adapter()
+                    keycloak = cls._get_async_keycloak_adapter()
 
-                    # 3. Validate token
-                    if not await keycloak.validate_token(token_str):
-                        token_info = await keycloak.introspect_token(token_str)
-                        if not token_info or not token_info.get("active", False):
-                            raise TokenExpiredError(lang=lang)
-
-                    # 4. Get user info from token
-                    user_info = await keycloak.get_userinfo(token_str)
-                    if not user_info:
-                        raise UnauthenticatedError(lang=lang)
-
-                    # 5. Resource-based authorization if resource_attribute_name is provided
+                    resource_uuid: str | None = None
                     if resource_attribute_name:
-                        # Extract resource UUID from context
-                        resource_uuid = getattr(request, resource_attribute_name)
+                        resource_uuid = getattr(request, resource_attribute_name, None)
                         if not resource_uuid:
                             raise InvalidArgumentError(argument_name=resource_attribute_name, lang=lang)
 
-                        # Verify resource exists and user has access
-                        user_uuid = user_info.get("sub")
-
-                        # Check if resource exists
-                        resource_user = await keycloak.get_user_by_id(resource_uuid)
-                        if not resource_user:
-                            raise PermissionDeniedError(
-                                lang=lang,
-                                additional_data={"resource_id": resource_uuid},
-                            )
-
-                        # Authorization check: either owns the resource or has admin privileges
-                        has_admin_privileges = admin_roles and await keycloak.has_any_of_roles(token_str, admin_roles)
-                        if user_uuid != resource_uuid and not has_admin_privileges:
-                            raise PermissionDeniedError(lang=lang, additional_data={"resource_id": resource_uuid})
-
-                    # 6. Check roles if specified
-                    if required_roles:
-                        if all_roles_required:
-                            if not await keycloak.has_all_roles(token_str, required_roles):
-                                raise PermissionDeniedError(
-                                    lang=lang,
-                                    additional_data={
-                                        "required_roles": list(required_roles),
-                                        "check_type": "all_required",
-                                    },
-                                )
-
-                        elif not await keycloak.has_any_of_roles(token_str, required_roles):
-                            raise PermissionDeniedError(
-                                lang=lang,
-                                additional_data={"required_roles": list(required_roles), "check_type": "any_required"},
-                            )
-
-                    # 7. Check permissions if specified
-                    if required_permissions:
-                        for resource, scope in required_permissions:
-                            if not await keycloak.check_permissions(token_str, resource, scope):
-                                raise PermissionDeniedError(
-                                    lang=lang,
-                                    additional_data={
-                                        "required_permission": f"{resource}#{scope}",
-                                        "resource": resource,
-                                        "scope": scope,
-                                    },
-                                )
-
-                    # 8. Create auth context for business logic
-                    user_id = user_info.get("sub")
-                    if not user_id:
-                        raise UnauthenticatedError(lang=lang)
-                    auth_context = AuthContext(
-                        user_id=user_id,
-                        username=user_info.get("preferred_username", ""),
-                        email=user_info.get("email", ""),
-                        roles=user_info.get("realm_access", {}).get("roles", []),
-                        token=token_str,
-                        raw_user_info=user_info,
+                    user_info, _token_info, user_roles = await _authorize_async(
+                        keycloak,
+                        token_str,
+                        resource_uuid,
+                        required_roles,
+                        all_roles_required,
+                        required_permissions,
+                        admin_roles,
+                        lang,
                     )
 
-                    # 9. Set auth context using contextvars
+                    auth_context = _build_auth_context(user_info, token_str, user_roles)
                     AuthContextManager.set_auth_context(auth_context)
 
-                    # 10. Call the original method - business logic handles ownership
                     return await func(self, request, context)
 
                 except Exception as e:
@@ -655,7 +611,6 @@ class KeycloakUtils:
                     raise
 
                 finally:
-                    # Clean up auth context
                     AuthContextManager.clear_auth_context()
 
             return wrapper

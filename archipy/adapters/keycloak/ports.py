@@ -221,6 +221,15 @@ class KeycloakPort:
         raise NotImplementedError
 
     @abstractmethod
+    def check_permissions_batch(
+        self,
+        token: str,
+        permissions: tuple[tuple[str, str], ...],
+    ) -> frozenset[tuple[str, str]]:
+        """Return the subset of (resource, scope) pairs the token is authorized for in one UMA call."""
+        raise NotImplementedError
+
+    @abstractmethod
     def delete_user(self, user_id: str) -> None:
         """Delete a user from Keycloak by their ID."""
         raise NotImplementedError
@@ -541,6 +550,15 @@ class AsyncKeycloakPort:
     @abstractmethod
     async def check_permissions(self, token: str, resource: str, scope: str) -> bool:
         """Check if a user has permission to access a resource with the specified scope."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def check_permissions_batch(
+        self,
+        token: str,
+        permissions: tuple[tuple[str, str], ...],
+    ) -> frozenset[tuple[str, str]]:
+        """Return the subset of (resource, scope) pairs the token is authorized for in one UMA call."""
         raise NotImplementedError
 
     @abstractmethod
