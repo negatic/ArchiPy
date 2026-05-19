@@ -195,3 +195,4 @@ If you need assistance with contributing:
 - **Consult documentation**: [https://archipy.readthedocs.io/](https://archipy.readthedocs.io/)
 
 Thank you for contributing to ArchiPy! Your efforts help make this project better for everyone.
+
