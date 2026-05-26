@@ -1218,7 +1218,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         Args:
             configs (RedisConfig): Configuration settings for Redis cluster.
         """
-        from redis.cluster import ClusterNode
+        from redis.asyncio.cluster import ClusterNode
 
         startup_nodes = []
         for node in configs.CLUSTER_NODES:

@@ -1,5 +1,7 @@
 # features/steps/keycloak_auth_steps.py
 
+import logging
+
 from behave import given, then, when
 from behave.runner import Context
 from features.scenario_context import ScenarioContext
@@ -194,6 +196,52 @@ async def update_adapter_config(
         raise
 
 
+async def _ensure_introspection_audience_mapper(
+    adapter: AsyncKeycloakAdapter | KeycloakAdapter,
+    realm_name: str,
+    client_name: str,
+    internal_client_id: str,
+    *,
+    is_async: bool,
+    logger: logging.Logger,
+) -> None:
+    """Add audience mapper so the introspecting client is included in token ``aud`` (Keycloak 26.6.2+)."""
+    adapter.configs.REALM_NAME = realm_name
+    adapter._admin_adapter = None
+    adapter._admin_token_expiry = 0
+    if adapter.configs.IS_ADMIN_MODE_ENABLED:
+        adapter._initialize_admin_client()
+
+    mapper_name = f"audience-{client_name}"
+    mapper_payload = {
+        "name": mapper_name,
+        "protocol": "openid-connect",
+        "protocolMapper": "oidc-audience-mapper",
+        "config": {
+            "included.client.audience": client_name,
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+        },
+    }
+
+    try:
+        if is_async:
+            existing = await adapter.admin_adapter.a_get_mappers_from_client(internal_client_id)
+            if any(m.get("name") == mapper_name for m in existing):
+                logger.info(f"Audience mapper already exists for client {client_name}")
+                return
+            await adapter.admin_adapter.a_add_mapper_to_client(internal_client_id, mapper_payload)
+        else:
+            existing = adapter.admin_adapter.get_mappers_from_client(internal_client_id)
+            if any(m.get("name") == mapper_name for m in existing):
+                logger.info(f"Audience mapper already exists for client {client_name}")
+                return
+            adapter.admin_adapter.add_mapper_to_client(internal_client_id, mapper_payload)
+        logger.info(f"Added audience mapper for client {client_name}")
+    except Exception as e:
+        logger.warning(f"Could not add audience mapper for {client_name}: {e}")
+
+
 @given(
     'I create a client named "{client_name}" in realm "{realm_name}" with service accounts and update adapter using {adapter_type} adapter',
 )
@@ -286,12 +334,14 @@ async def step_create_client_and_update_adapter(
             new_adapter = AsyncKeycloakAdapter(new_config)
             scenario_context.async_adapter = new_adapter
 
-            # Enable token introspection for the client
-            try:
-                await new_adapter.assign_client_role(client_id, "realm-management", "token-introspection")
-                context.logger.info(f"Assigned token-introspection role to client {client_name}")
-            except Exception as e:
-                context.logger.warning(f"Could not assign token-introspection role: {e}")
+            await _ensure_introspection_audience_mapper(
+                new_adapter,
+                realm_name,
+                client_name,
+                client_id,
+                is_async=True,
+                logger=context.logger,
+            )
 
         else:
             # Create the client first
@@ -349,12 +399,14 @@ async def step_create_client_and_update_adapter(
             if adapter.configs.IS_ADMIN_MODE_ENABLED:
                 adapter._initialize_admin_client()
 
-            # Enable token introspection for the client
-            try:
-                adapter.assign_client_role(client_id, "realm-management", "token-introspection")
-                context.logger.info(f"Assigned token-introspection role to client {client_name}")
-            except Exception as e:
-                context.logger.warning(f"Could not assign token-introspection role: {e}")
+            await _ensure_introspection_audience_mapper(
+                adapter,
+                realm_name,
+                client_name,
+                client_id,
+                is_async=False,
+                logger=context.logger,
+            )
 
         context.logger.info(f"Created client {client_name} in realm {realm_name} and updated adapter configuration")
     except Exception as e:
