@@ -11,7 +11,6 @@ from starlette.status import HTTP_429_TOO_MANY_REQUESTS
 
 if TYPE_CHECKING:
     from archipy.adapters.redis.adapters import AsyncRedisAdapter
-    from archipy.adapters.redis.ports import RedisResponseType
 
 
 class FastAPIRestRateLimitHandler:
@@ -85,7 +84,7 @@ class FastAPIRestRateLimitHandler:
 
         return AsyncRedisAdapter()
 
-    async def _check(self, key: str) -> RedisResponseType:
+    async def _check(self, key: str) -> int:
         """Checks if the request count for the given key exceeds the allowed limit.
 
         Args:

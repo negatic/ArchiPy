@@ -7,10 +7,7 @@ from redis.asyncio.client import Redis as AsyncRedis
 from redis.client import Redis
 
 from archipy.adapters.redis.adapters import AsyncRedisAdapter, RedisAdapter
-from archipy.adapters.redis.ports import (
-    AsyncRedisPort,
-    RedisResponseType,
-)
+from archipy.adapters.redis.ports import AsyncRedisPort
 from archipy.configs.config_template import RedisConfig, RedisMode
 
 
@@ -154,10 +151,10 @@ class AsyncRedisMock(AsyncRedisAdapter):
         self,
         method_name: str,
         sync_method: Callable[..., Any],
-    ) -> Callable[..., Awaitable[RedisResponseType]]:
+    ) -> Callable[..., Awaitable[Any]]:
         """Create an async wrapper around a synchronous method."""
 
-        async def wrapper(*args: Any, **kwargs: Any) -> RedisResponseType:
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Remove 'self' from args when calling the sync method
             if args and args[0] is self:
                 args = args[1:]

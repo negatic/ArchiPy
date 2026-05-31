@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Awaitable, Iterable, Iterator, Mapping
+from datetime import datetime, timedelta
 from typing import Any, override
 
 from redis import RedisCluster, Sentinel
@@ -8,20 +11,13 @@ from redis.client import Pipeline, PubSub, Redis
 
 from archipy.adapters.redis.ports import (
     AsyncRedisPort,
-    RedisAbsExpiryType,
-    RedisExpiryType,
-    RedisIntegerResponseType,
-    RedisKeyType,
-    RedisListResponseType,
-    RedisPatternType,
     RedisPort,
-    RedisResponseType,
     RedisScoreCastType,
-    RedisSetResponseType,
-    RedisSetType,
 )
 from archipy.configs.base_config import BaseConfig
 from archipy.configs.config_template import RedisConfig, RedisMode
+
+_set = set
 
 
 class RedisAdapter(RedisPort):
@@ -144,42 +140,42 @@ class RedisAdapter(RedisPort):
 
     # Override cluster methods to work when in cluster mode
     @override
-    def cluster_info(self) -> RedisResponseType:
+    def cluster_info(self) -> dict[str, str] | None:
         """Get cluster information."""
         if isinstance(self.client, RedisCluster):
             return self.client.cluster_info()
         return None
 
     @override
-    def cluster_nodes(self) -> RedisResponseType:
+    def cluster_nodes(self) -> dict[str, dict[str, str | bool | list[list[str]] | list[dict[str, str]]]] | None:
         """Get cluster nodes information."""
         if isinstance(self.client, RedisCluster):
             return self.client.cluster_nodes()
         return None
 
     @override
-    def cluster_slots(self) -> RedisResponseType:
+    def cluster_slots(self) -> list[Any] | None:
         """Get cluster slots mapping."""
         if isinstance(self.client, RedisCluster):
             return self.client.cluster_slots()
         return None
 
     @override
-    def cluster_key_slot(self, key: str) -> RedisResponseType:
+    def cluster_key_slot(self, key: str) -> int | None:
         """Get the hash slot for a key."""
         if isinstance(self.client, RedisCluster):
             return self.client.cluster_keyslot(key)
         return None
 
     @override
-    def cluster_count_keys_in_slot(self, slot: int) -> RedisResponseType:
+    def cluster_count_keys_in_slot(self, slot: int) -> int | None:
         """Count keys in a specific slot."""
         if isinstance(self.client, RedisCluster):
             return self.client.cluster_countkeysinslot(slot)
         return None
 
     @override
-    def cluster_get_keys_in_slot(self, slot: int, count: int) -> RedisResponseType:
+    def cluster_get_keys_in_slot(self, slot: int, count: int) -> list[bytes | str] | None:
         """Get keys in a specific slot."""
         if isinstance(self.client, RedisCluster):
             return self.client.cluster_get_keys_in_slot(slot, count)
@@ -213,7 +209,7 @@ class RedisAdapter(RedisPort):
         return int(value)
 
     @override
-    def pttl(self, name: bytes | str) -> RedisResponseType:
+    def pttl(self, name: bytes | str) -> int:
         """Get the time to live in milliseconds for a key.
 
         Args:
@@ -225,11 +221,11 @@ class RedisAdapter(RedisPort):
         return self.read_only_client.pttl(name)
 
     @override
-    def incrby(self, name: RedisKeyType, amount: int = 1) -> RedisResponseType:
+    def incrby(self, name: bytes | str, amount: int = 1) -> int:
         """Increment the integer value of a key by the given amount.
 
         Args:
-            name (RedisKeyType): The key name.
+            name (bytes | str): The key name.
             amount (int): Amount to increment by. Defaults to 1.
 
         Returns:
@@ -240,30 +236,30 @@ class RedisAdapter(RedisPort):
     @override
     def set(
         self,
-        name: RedisKeyType,
-        value: RedisSetType,
-        ex: RedisExpiryType | None = None,
-        px: RedisExpiryType | None = None,
+        name: bytes | str,
+        value: bytes | str | float,
+        ex: int | timedelta | None = None,
+        px: int | timedelta | None = None,
         nx: bool = False,
         xx: bool = False,
         keepttl: bool = False,
         get: bool = False,
-        exat: RedisAbsExpiryType | None = None,
-        pxat: RedisAbsExpiryType | None = None,
-    ) -> RedisResponseType:
+        exat: int | datetime | None = None,
+        pxat: int | datetime | None = None,
+    ) -> bool | str | bytes | None:
         """Set the value of a key with optional expiration and conditions.
 
         Args:
-            name (RedisKeyType): The key name.
-            value (RedisSetType): The value to set.
-            ex (RedisExpiryType | None): Expire time in seconds.
-            px (RedisExpiryType | None): Expire time in milliseconds.
+            name (bytes | str): The key name.
+            value (int | bytes | str | float): The value to set.
+            ex (int | timedelta | None): Expire time in seconds.
+            px (int | timedelta | None): Expire time in milliseconds.
             nx (bool): Only set if key doesn't exist.
             xx (bool): Only set if key exists.
             keepttl (bool): Retain the TTL from the previous value.
             get (bool): Return the old value.
-            exat (RedisAbsExpiryType | None): Absolute expiration time in seconds.
-            pxat (RedisAbsExpiryType | None): Absolute expiration time in milliseconds.
+            exat (int | datetime | None): Absolute expiration time in seconds.
+            pxat (int | datetime | None): Absolute expiration time in milliseconds.
 
         Returns:
             RedisResponseType: Result of the operation.
@@ -271,7 +267,7 @@ class RedisAdapter(RedisPort):
         return self.client.set(name, value, ex, px, nx, xx, keepttl, get, exat, pxat)
 
     @override
-    def get(self, key: str) -> RedisResponseType:
+    def get(self, key: str) -> bytes | str | None:
         """Get the value of a key.
 
         Args:
@@ -285,13 +281,13 @@ class RedisAdapter(RedisPort):
     @override
     def mget(
         self,
-        keys: RedisKeyType | Iterable[RedisKeyType],
+        keys: bytes | str | Iterable[bytes | str],
         *args: bytes | str,
-    ) -> RedisResponseType:
+    ) -> list[bytes | str | None]:
         """Get the values of multiple keys.
 
         Args:
-            keys (RedisKeyType | Iterable[RedisKeyType]): Single key or iterable of keys.
+            keys (bytes | str | Iterable[bytes | str]): Single key or iterable of keys.
             *args (bytes | str): Additional keys.
 
         Returns:
@@ -300,11 +296,11 @@ class RedisAdapter(RedisPort):
         return self.read_only_client.mget(keys, *args)
 
     @override
-    def mset(self, mapping: Mapping[RedisKeyType, bytes | str | float]) -> RedisResponseType:
+    def mset(self, mapping: Mapping[bytes | str, bytes | str | float]) -> bool:
         """Set multiple keys to their respective values.
 
         Args:
-            mapping (Mapping[RedisKeyType, bytes | str | float]): Dictionary of key-value pairs.
+            mapping (Mapping[bytes | str, bytes | str | float]): Dictionary of key-value pairs.
 
         Returns:
             RedisResponseType: Always returns 'OK'.
@@ -314,11 +310,11 @@ class RedisAdapter(RedisPort):
         return self.client.mset(dict_mapping)
 
     @override
-    def keys(self, pattern: RedisPatternType = "*", **kwargs: Any) -> RedisResponseType:
+    def keys(self, pattern: bytes | str = "*", **kwargs: Any) -> list[bytes | str]:
         """Find all keys matching the given pattern.
 
         Args:
-            pattern (RedisPatternType): Pattern to match keys against. Defaults to "*".
+            pattern (bytes | str): Pattern to match keys against. Defaults to "*".
             **kwargs (Any): Additional arguments.
 
         Returns:
@@ -327,11 +323,11 @@ class RedisAdapter(RedisPort):
         return self.read_only_client.keys(pattern, **kwargs)
 
     @override
-    def getset(self, key: RedisKeyType, value: bytes | str | float) -> RedisResponseType:
+    def getset(self, key: bytes | str, value: bytes | str | float) -> bytes | str | None:
         """Set the value of a key and return its old value.
 
         Args:
-            key (RedisKeyType): The key name.
+            key (bytes | str): The key name.
             value (bytes | str | float): The new value.
 
         Returns:
@@ -340,7 +336,7 @@ class RedisAdapter(RedisPort):
         return self.client.getset(key, value)
 
     @override
-    def getdel(self, key: bytes | str) -> RedisResponseType:
+    def getdel(self, key: bytes | str) -> bytes | str | None:
         """Get the value of a key and delete it.
 
         Args:
@@ -352,7 +348,7 @@ class RedisAdapter(RedisPort):
         return self.client.getdel(key)
 
     @override
-    def exists(self, *names: bytes | str) -> RedisResponseType:
+    def exists(self, *names: bytes | str) -> int:
         """Check if one or more keys exist.
 
         Args:
@@ -364,7 +360,7 @@ class RedisAdapter(RedisPort):
         return self.read_only_client.exists(*names)
 
     @override
-    def delete(self, *names: bytes | str) -> RedisResponseType:
+    def delete(self, *names: bytes | str) -> int:
         """Delete one or more keys.
 
         Args:
@@ -376,11 +372,11 @@ class RedisAdapter(RedisPort):
         return self.client.delete(*names)
 
     @override
-    def append(self, key: RedisKeyType, value: bytes | str | float) -> RedisResponseType:
+    def append(self, key: bytes | str, value: bytes | str | float) -> int:
         """Append a value to a key.
 
         Args:
-            key (RedisKeyType): The key name.
+            key (bytes | str): The key name.
             value (bytes | str | float): The value to append.
 
         Returns:
@@ -389,7 +385,7 @@ class RedisAdapter(RedisPort):
         return self.client.append(key, value)
 
     @override
-    def ttl(self, name: bytes | str) -> RedisResponseType:
+    def ttl(self, name: bytes | str) -> int:
         """Get the time to live in seconds for a key.
 
         Args:
@@ -401,7 +397,7 @@ class RedisAdapter(RedisPort):
         return self.read_only_client.ttl(name)
 
     @override
-    def type(self, name: bytes | str) -> RedisResponseType:
+    def type(self, name: bytes | str) -> bytes | str:
         """Determine the type stored at key.
 
         Args:
@@ -413,7 +409,7 @@ class RedisAdapter(RedisPort):
         return self.read_only_client.type(name)
 
     @override
-    def llen(self, name: str) -> RedisIntegerResponseType:
+    def llen(self, name: str) -> int:
         """Get the length of a list.
 
         Args:
@@ -427,7 +423,7 @@ class RedisAdapter(RedisPort):
         return self._ensure_sync_int(result)
 
     @override
-    def lpop(self, name: str, count: int | None = None) -> Any:
+    def lpop(self, name: str, count: int | None = None) -> bytes | str | list[bytes | str] | None:
         """Remove and return elements from the left of a list.
 
         Args:
@@ -440,7 +436,7 @@ class RedisAdapter(RedisPort):
         return self.client.lpop(name, count)
 
     @override
-    def lpush(self, name: str, *values: bytes | str | float) -> RedisIntegerResponseType:
+    def lpush(self, name: str, *values: bytes | str | float) -> int:
         """Push elements to the left of a list.
 
         Args:
@@ -454,7 +450,7 @@ class RedisAdapter(RedisPort):
         return self._ensure_sync_int(result)
 
     @override
-    def lrange(self, name: str, start: int, end: int) -> RedisListResponseType:
+    def lrange(self, name: str, start: int, end: int) -> list[bytes | str]:
         """Get a range of elements from a list.
 
         Args:
@@ -471,7 +467,7 @@ class RedisAdapter(RedisPort):
         return list(result)
 
     @override
-    def lrem(self, name: str, count: int, value: str) -> RedisIntegerResponseType:
+    def lrem(self, name: str, count: int, value: str) -> int:
         """Remove elements from a list.
 
         Args:
@@ -500,7 +496,7 @@ class RedisAdapter(RedisPort):
         return bool(self.client.lset(name, index, value))
 
     @override
-    def rpop(self, name: str, count: int | None = None) -> Any:
+    def rpop(self, name: str, count: int | None = None) -> bytes | str | list[bytes | str] | None:
         """Remove and return elements from the right of a list.
 
         Args:
@@ -513,7 +509,7 @@ class RedisAdapter(RedisPort):
         return self.client.rpop(name, count)
 
     @override
-    def rpush(self, name: str, *values: bytes | str | float) -> RedisIntegerResponseType:
+    def rpush(self, name: str, *values: bytes | str | float) -> int:
         """Push elements to the right of a list.
 
         Args:
@@ -534,7 +530,7 @@ class RedisAdapter(RedisPort):
         count: int | None = None,
         _type: str | None = None,
         **kwargs: Any,
-    ) -> RedisResponseType:
+    ) -> tuple[int, list[bytes | str]]:
         """Scan keys in the database incrementally.
 
         Args:
@@ -556,7 +552,7 @@ class RedisAdapter(RedisPort):
         count: int | None = None,
         _type: str | None = None,
         **kwargs: Any,
-    ) -> Iterator:
+    ) -> Iterator[bytes | str]:
         """Iterate over keys in the database.
 
         Args:
@@ -573,15 +569,15 @@ class RedisAdapter(RedisPort):
     @override
     def sscan(
         self,
-        name: RedisKeyType,
+        name: bytes | str,
         cursor: int = 0,
         match: bytes | str | None = None,
         count: int | None = None,
-    ) -> RedisResponseType:
+    ) -> tuple[int, list[bytes | str]]:
         """Scan members of a set incrementally.
 
         Args:
-            name (RedisKeyType): The set key name.
+            name (bytes | str): The set key name.
             cursor (int): Cursor position. Defaults to 0.
             match (bytes | str | None): Pattern to match. Defaults to None.
             count (int | None): Hint for number of elements. Defaults to None.
@@ -594,14 +590,14 @@ class RedisAdapter(RedisPort):
     @override
     def sscan_iter(
         self,
-        name: RedisKeyType,
+        name: bytes | str,
         match: bytes | str | None = None,
         count: int | None = None,
-    ) -> Iterator:
+    ) -> Iterator[bytes | str]:
         """Iterate over members of a set.
 
         Args:
-            name (RedisKeyType): The set key name.
+            name (bytes | str): The set key name.
             match (bytes | str | None): Pattern to match. Defaults to None.
             count (int | None): Hint for number of elements. Defaults to None.
 
@@ -611,7 +607,7 @@ class RedisAdapter(RedisPort):
         return self.read_only_client.sscan_iter(name, match, count)
 
     @override
-    def sadd(self, name: str, *values: bytes | str | float) -> RedisIntegerResponseType:
+    def sadd(self, name: str, *values: bytes | str | float) -> int:
         """Add members to a set.
 
         Args:
@@ -625,7 +621,7 @@ class RedisAdapter(RedisPort):
         return self._ensure_sync_int(result)
 
     @override
-    def scard(self, name: str) -> RedisIntegerResponseType:
+    def scard(self, name: str) -> int:
         """Get the number of members in a set.
 
         Args:
@@ -652,7 +648,7 @@ class RedisAdapter(RedisPort):
         return bool(result)
 
     @override
-    def smembers(self, name: str) -> RedisSetResponseType:
+    def smembers(self, name: str) -> _set[bytes | str]:
         """Get all members of a set.
 
         Args:
@@ -680,10 +676,12 @@ class RedisAdapter(RedisPort):
         result = self.client.spop(name, count)
         if isinstance(result, Awaitable):
             raise TypeError("Unexpected awaitable from sync Redis client")
+        if isinstance(result, set):
+            return list(result)
         return result
 
     @override
-    def srem(self, name: str, *values: bytes | str | float) -> RedisIntegerResponseType:
+    def srem(self, name: str, *values: bytes | str | float) -> int:
         """Remove members from a set.
 
         Args:
@@ -697,11 +695,11 @@ class RedisAdapter(RedisPort):
         return self._ensure_sync_int(result)
 
     @override
-    def sunion(self, keys: RedisKeyType, *args: bytes | str) -> RedisSetResponseType:
+    def sunion(self, keys: bytes | str, *args: bytes | str) -> _set[bytes | str]:
         """Get the union of multiple sets.
 
         Args:
-            keys (RedisKeyType): First set key.
+            keys (bytes | str): First set key.
             *args (bytes | str): Additional set keys.
 
         Returns:
@@ -717,20 +715,20 @@ class RedisAdapter(RedisPort):
     @override
     def zadd(
         self,
-        name: RedisKeyType,
-        mapping: Mapping[RedisKeyType, bytes | str | float],
+        name: bytes | str,
+        mapping: Mapping[bytes | str, bytes | str | float],
         nx: bool = False,
         xx: bool = False,
         ch: bool = False,
         incr: bool = False,
         gt: bool = False,
         lt: bool = False,
-    ) -> RedisResponseType:
+    ) -> int | float | None:
         """Add members to a sorted set with scores.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
-            mapping (Mapping[RedisKeyType, bytes | str | float]): Member-score pairs.
+            name (bytes | str): The sorted set key name.
+            mapping (Mapping[bytes | str, bytes | str | float]): Member-score pairs.
             nx (bool): Only add new elements. Defaults to False.
             xx (bool): Only update existing elements. Defaults to False.
             ch (bool): Return number of changed elements. Defaults to False.
@@ -747,7 +745,7 @@ class RedisAdapter(RedisPort):
         return self.client.zadd(str_name, dict_mapping, nx, xx, ch, incr, gt, lt)
 
     @override
-    def zcard(self, name: bytes | str) -> RedisResponseType:
+    def zcard(self, name: bytes | str) -> int:
         """Get the number of members in a sorted set.
 
         Args:
@@ -759,11 +757,11 @@ class RedisAdapter(RedisPort):
         return self.client.zcard(name)
 
     @override
-    def zcount(self, name: RedisKeyType, min: float | str, max: float | str) -> RedisResponseType:
+    def zcount(self, name: bytes | str, min: float | str, max: float | str) -> int:
         """Count members in a sorted set with scores in range.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             min (float | str): Minimum score.
             max (float | str): Maximum score.
 
@@ -773,11 +771,15 @@ class RedisAdapter(RedisPort):
         return self.client.zcount(name, min, max)
 
     @override
-    def zpopmax(self, name: RedisKeyType, count: int | None = None) -> RedisResponseType:
+    def zpopmax(
+        self,
+        name: bytes | str,
+        count: int | None = None,
+    ) -> list[bytes | str] | list[tuple[bytes | str, Any]] | list[list[Any]]:
         """Remove and return members with highest scores from sorted set.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             count (int | None): Number of members to pop. Defaults to None.
 
         Returns:
@@ -786,11 +788,15 @@ class RedisAdapter(RedisPort):
         return self.client.zpopmax(name, count)
 
     @override
-    def zpopmin(self, name: RedisKeyType, count: int | None = None) -> RedisResponseType:
+    def zpopmin(
+        self,
+        name: bytes | str,
+        count: int | None = None,
+    ) -> list[bytes | str] | list[tuple[bytes | str, Any]] | list[list[Any]]:
         """Remove and return members with lowest scores from sorted set.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             count (int | None): Number of members to pop. Defaults to None.
 
         Returns:
@@ -801,7 +807,7 @@ class RedisAdapter(RedisPort):
     @override
     def zrange(
         self,
-        name: RedisKeyType,
+        name: bytes | str,
         start: int,
         end: int,
         desc: bool = False,
@@ -811,11 +817,11 @@ class RedisAdapter(RedisPort):
         bylex: bool = False,
         offset: int | None = None,
         num: int | None = None,
-    ) -> RedisResponseType:
+    ) -> list[bytes | str] | list[tuple[bytes | str, Any]] | list[list[Any]]:
         """Get a range of members from a sorted set.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             start (int): Start index or score.
             end (int): End index or score.
             desc (bool): Sort in descending order. Defaults to False.
@@ -845,16 +851,16 @@ class RedisAdapter(RedisPort):
     @override
     def zrevrange(
         self,
-        name: RedisKeyType,
+        name: bytes | str,
         start: int,
         end: int,
         withscores: bool = False,
         score_cast_func: RedisScoreCastType = float,
-    ) -> RedisResponseType:
+    ) -> list[bytes | str] | list[tuple[bytes | str, Any]] | list[list[Any]]:
         """Get a range of members from a sorted set in reverse order.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             start (int): Start index.
             end (int): End index.
             withscores (bool): Include scores in result. Defaults to False.
@@ -868,18 +874,18 @@ class RedisAdapter(RedisPort):
     @override
     def zrangebyscore(
         self,
-        name: RedisKeyType,
+        name: bytes | str,
         min: float | str,
         max: float | str,
         start: int | None = None,
         num: int | None = None,
         withscores: bool = False,
         score_cast_func: RedisScoreCastType = float,
-    ) -> RedisResponseType:
+    ) -> list[bytes | str] | list[tuple[bytes | str, Any]] | list[list[Any]]:
         """Get members from a sorted set by score range.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             min (float | str): Minimum score.
             max (float | str): Maximum score.
             start (int | None): Offset. Defaults to None.
@@ -893,11 +899,11 @@ class RedisAdapter(RedisPort):
         return self.client.zrangebyscore(name, min, max, start, num, withscores, score_cast_func)
 
     @override
-    def zrank(self, name: RedisKeyType, value: bytes | str | float) -> RedisResponseType:
+    def zrank(self, name: bytes | str, value: bytes | str | float) -> int | list[Any] | None:
         """Get the rank of a member in a sorted set.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             value (bytes | str | float): Member to find rank for.
 
         Returns:
@@ -906,11 +912,11 @@ class RedisAdapter(RedisPort):
         return self.client.zrank(name, value)
 
     @override
-    def zrem(self, name: RedisKeyType, *values: bytes | str | float) -> RedisResponseType:
+    def zrem(self, name: bytes | str, *values: bytes | str | float) -> int:
         """Remove members from a sorted set.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             *values (bytes | str | float): Members to remove.
 
         Returns:
@@ -919,11 +925,11 @@ class RedisAdapter(RedisPort):
         return self.client.zrem(name, *values)
 
     @override
-    def zscore(self, name: RedisKeyType, value: bytes | str | float) -> RedisResponseType:
+    def zscore(self, name: bytes | str, value: bytes | str | float) -> float | None:
         """Get the score of a member in a sorted set.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             value (bytes | str | float): Member to get score for.
 
         Returns:
@@ -932,7 +938,7 @@ class RedisAdapter(RedisPort):
         return self.client.zscore(name, value)
 
     @override
-    def hdel(self, name: str, *keys: str | bytes) -> RedisIntegerResponseType:
+    def hdel(self, name: str, *keys: str | bytes) -> int:
         """Delete fields from a hash.
 
         Args:
@@ -962,7 +968,7 @@ class RedisAdapter(RedisPort):
         return bool(result)
 
     @override
-    def hget(self, name: str, key: str) -> str | None:
+    def hget(self, name: str, key: str) -> bytes | str | None:
         """Get the value of a field in a hash.
 
         Args:
@@ -976,7 +982,7 @@ class RedisAdapter(RedisPort):
         return str(result) if result is not None else None
 
     @override
-    def hgetall(self, name: str) -> dict[str, Any]:
+    def hgetall(self, name: str) -> dict[bytes | str, bytes | str]:
         """Get all fields and values in a hash.
 
         Args:
@@ -993,7 +999,7 @@ class RedisAdapter(RedisPort):
         return {}
 
     @override
-    def hkeys(self, name: str) -> RedisListResponseType:
+    def hkeys(self, name: str) -> list[bytes | str]:
         """Get all fields in a hash.
 
         Args:
@@ -1008,7 +1014,7 @@ class RedisAdapter(RedisPort):
         return list(result) if result else []
 
     @override
-    def hlen(self, name: str) -> RedisIntegerResponseType:
+    def hlen(self, name: str) -> int:
         """Get the number of fields in a hash.
 
         Args:
@@ -1028,7 +1034,7 @@ class RedisAdapter(RedisPort):
         value: str | bytes | None = None,
         mapping: dict | None = None,
         items: list | None = None,
-    ) -> RedisIntegerResponseType:
+    ) -> int:
         """Set fields in a hash.
 
         Args:
@@ -1048,7 +1054,7 @@ class RedisAdapter(RedisPort):
         return self._ensure_sync_int(result)
 
     @override
-    def hmget(self, name: str, keys: list, *args: str | bytes) -> RedisListResponseType:
+    def hmget(self, name: str, keys: list, *args: str | bytes) -> list[bytes | str | None]:
         """Get values of multiple fields in a hash.
 
         Args:
@@ -1067,7 +1073,7 @@ class RedisAdapter(RedisPort):
         return list(result) if result else []
 
     @override
-    def hvals(self, name: str) -> RedisListResponseType:
+    def hvals(self, name: str) -> list[bytes | str]:
         """Get all values in a hash.
 
         Args:
@@ -1082,11 +1088,11 @@ class RedisAdapter(RedisPort):
         return list(result) if result else []
 
     @override
-    def publish(self, channel: RedisKeyType, message: bytes | str, **kwargs: Any) -> RedisResponseType:
+    def publish(self, channel: bytes | str, message: bytes | str, **kwargs: Any) -> int:
         """Publish a message to a channel.
 
         Args:
-            channel (RedisKeyType): Channel name.
+            channel (bytes | str): Channel name.
             message (bytes | str): Message to publish.
             **kwargs (Any): Additional arguments.
 
@@ -1096,11 +1102,11 @@ class RedisAdapter(RedisPort):
         return self.client.publish(channel, message, **kwargs)
 
     @override
-    def pubsub_channels(self, pattern: RedisPatternType = "*", **kwargs: Any) -> RedisResponseType:
+    def pubsub_channels(self, pattern: bytes | str = "*", **kwargs: Any) -> list[bytes | str]:
         """List active channels matching a pattern.
 
         Args:
-            pattern (RedisPatternType): Pattern to match channels. Defaults to "*".
+            pattern (bytes | str): Pattern to match channels. Defaults to "*".
             **kwargs (Any): Additional arguments.
 
         Returns:
@@ -1109,11 +1115,11 @@ class RedisAdapter(RedisPort):
         return self.client.pubsub_channels(pattern, **kwargs)
 
     @override
-    def zincrby(self, name: RedisKeyType, amount: float, value: bytes | str | float) -> RedisResponseType:
+    def zincrby(self, name: bytes | str, amount: float, value: bytes | str | float) -> float | None:
         """Increment the score of a member in a sorted set.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             amount (float): Amount to increment by.
             value (bytes | str | float): Member to increment.
 
@@ -1148,7 +1154,7 @@ class RedisAdapter(RedisPort):
         return self.client.pipeline(transaction, shard_hint)
 
     @override
-    def ping(self) -> RedisResponseType:
+    def ping(self) -> bool:
         """Ping the Redis server.
 
         Returns:
@@ -1277,42 +1283,42 @@ class AsyncRedisAdapter(AsyncRedisPort):
 
     # Override cluster methods to work when in cluster mode
     @override
-    async def cluster_info(self) -> RedisResponseType:
+    async def cluster_info(self) -> dict[str, str] | None:
         """Get cluster information asynchronously."""
         if isinstance(self.client, AsyncRedisCluster):
             return await self.client.cluster_info()
         return None
 
     @override
-    async def cluster_nodes(self) -> RedisResponseType:
+    async def cluster_nodes(self) -> dict[str, dict[str, str | bool | list[list[str]] | list[dict[str, str]]]] | None:
         """Get cluster nodes information asynchronously."""
         if isinstance(self.client, AsyncRedisCluster):
             return await self.client.cluster_nodes()
         return None
 
     @override
-    async def cluster_slots(self) -> RedisResponseType:
+    async def cluster_slots(self) -> list[Any] | None:
         """Get cluster slots mapping asynchronously."""
         if isinstance(self.client, AsyncRedisCluster):
             return await self.client.cluster_slots()
         return None
 
     @override
-    async def cluster_key_slot(self, key: str) -> RedisResponseType:
+    async def cluster_key_slot(self, key: str) -> int | None:
         """Get the hash slot for a key asynchronously."""
         if isinstance(self.client, AsyncRedisCluster):
             return await self.client.cluster_keyslot(key)
         return None
 
     @override
-    async def cluster_count_keys_in_slot(self, slot: int) -> RedisResponseType:
+    async def cluster_count_keys_in_slot(self, slot: int) -> int | None:
         """Count keys in a specific slot asynchronously."""
         if isinstance(self.client, AsyncRedisCluster):
             return await self.client.cluster_countkeysinslot(slot)
         return None
 
     @override
-    async def cluster_get_keys_in_slot(self, slot: int, count: int) -> RedisResponseType:
+    async def cluster_get_keys_in_slot(self, slot: int, count: int) -> list[bytes | str] | None:
         """Get keys in a specific slot asynchronously."""
         if isinstance(self.client, AsyncRedisCluster):
             return await self.client.cluster_get_keys_in_slot(slot, count)
@@ -1357,13 +1363,17 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return bool(value)
 
     @staticmethod
-    async def _ensure_async_str(value: str | None | Awaitable[str | None]) -> str | None:
+    async def _ensure_async_str(value: str | None | bytes | Awaitable[str | None | bytes]) -> str | None:
         """Ensure an async string result, awaiting if necessary."""
         if isinstance(value, Awaitable):
             result = await value
+            if isinstance(result, bytes):
+                return result.decode("utf-8") if result else None
             if result is not None and not isinstance(result, str):
                 raise TypeError(f"Expected str | None, got {type(result)}")
             return result
+        if isinstance(value, bytes):
+            return value.decode("utf-8") if value else None
         return value
 
     @staticmethod
@@ -1393,7 +1403,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return []
 
     @override
-    async def pttl(self, name: bytes | str) -> RedisResponseType:
+    async def pttl(self, name: bytes | str) -> int:
         """Get the time to live in milliseconds for a key asynchronously.
 
         Args:
@@ -1405,11 +1415,11 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.read_only_client.pttl(name)
 
     @override
-    async def incrby(self, name: RedisKeyType, amount: int = 1) -> RedisResponseType:
+    async def incrby(self, name: bytes | str, amount: int = 1) -> int:
         """Increment the integer value of a key by the given amount asynchronously.
 
         Args:
-            name (RedisKeyType): The key name.
+            name (bytes | str): The key name.
             amount (int): Amount to increment by. Defaults to 1.
 
         Returns:
@@ -1420,30 +1430,30 @@ class AsyncRedisAdapter(AsyncRedisPort):
     @override
     async def set(
         self,
-        name: RedisKeyType,
-        value: RedisSetType,
-        ex: RedisExpiryType | None = None,
-        px: RedisExpiryType | None = None,
+        name: bytes | str,
+        value: bytes | str | float,
+        ex: int | timedelta | None = None,
+        px: int | timedelta | None = None,
         nx: bool = False,
         xx: bool = False,
         keepttl: bool = False,
         get: bool = False,
-        exat: RedisAbsExpiryType | None = None,
-        pxat: RedisAbsExpiryType | None = None,
-    ) -> RedisResponseType:
+        exat: int | datetime | None = None,
+        pxat: int | datetime | None = None,
+    ) -> bool | str | bytes | None:
         """Set the value of a key with optional expiration asynchronously.
 
         Args:
-            name (RedisKeyType): The key name.
-            value (RedisSetType): The value to set.
-            ex (RedisExpiryType | None): Expire time in seconds.
-            px (RedisExpiryType | None): Expire time in milliseconds.
+            name (bytes | str): The key name.
+            value (int | bytes | str | float): The value to set.
+            ex (int | timedelta | None): Expire time in seconds.
+            px (int | timedelta | None): Expire time in milliseconds.
             nx (bool): Only set if key doesn't exist.
             xx (bool): Only set if key exists.
             keepttl (bool): Retain the TTL from the previous value.
             get (bool): Return the old value.
-            exat (RedisAbsExpiryType | None): Absolute expiration time in seconds.
-            pxat (RedisAbsExpiryType | None): Absolute expiration time in milliseconds.
+            exat (int | datetime | None): Absolute expiration time in seconds.
+            pxat (int | datetime | None): Absolute expiration time in milliseconds.
 
         Returns:
             RedisResponseType: Result of the operation.
@@ -1451,7 +1461,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.client.set(name, value, ex, px, nx, xx, keepttl, get, exat, pxat)
 
     @override
-    async def get(self, key: str) -> RedisResponseType:
+    async def get(self, key: str) -> bytes | str | None:
         """Get the value of a key asynchronously.
 
         Args:
@@ -1465,13 +1475,13 @@ class AsyncRedisAdapter(AsyncRedisPort):
     @override
     async def mget(
         self,
-        keys: RedisKeyType | Iterable[RedisKeyType],
+        keys: bytes | str | Iterable[bytes | str],
         *args: bytes | str,
-    ) -> RedisResponseType:
+    ) -> list[bytes | str | None]:
         """Get the values of multiple keys asynchronously.
 
         Args:
-            keys (RedisKeyType | Iterable[RedisKeyType]): Single key or iterable of keys.
+            keys (bytes | str | Iterable[bytes | str]): Single key or iterable of keys.
             *args (bytes | str): Additional keys.
 
         Returns:
@@ -1480,11 +1490,11 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.read_only_client.mget(keys, *args)
 
     @override
-    async def mset(self, mapping: Mapping[RedisKeyType, bytes | str | float]) -> RedisResponseType:
+    async def mset(self, mapping: Mapping[bytes | str, bytes | str | float]) -> bool:
         """Set multiple keys to their values asynchronously.
 
         Args:
-            mapping (Mapping[RedisKeyType, bytes | str | float]): Dictionary of key-value pairs.
+            mapping (Mapping[bytes | str, bytes | str | float]): Dictionary of key-value pairs.
 
         Returns:
             RedisResponseType: Always returns 'OK'.
@@ -1494,11 +1504,11 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.client.mset(dict_mapping)
 
     @override
-    async def keys(self, pattern: RedisPatternType = "*", **kwargs: Any) -> RedisResponseType:
+    async def keys(self, pattern: bytes | str = "*", **kwargs: Any) -> list[bytes | str]:
         """Find all keys matching the pattern asynchronously.
 
         Args:
-            pattern (RedisPatternType): Pattern to match keys against. Defaults to "*".
+            pattern (bytes | str): Pattern to match keys against. Defaults to "*".
             **kwargs (Any): Additional arguments.
 
         Returns:
@@ -1507,11 +1517,11 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.read_only_client.keys(pattern, **kwargs)
 
     @override
-    async def getset(self, key: RedisKeyType, value: bytes | str | float) -> RedisResponseType:
+    async def getset(self, key: bytes | str, value: bytes | str | float) -> bytes | str | None:
         """Set a key's value and return its old value asynchronously.
 
         Args:
-            key (RedisKeyType): The key name.
+            key (bytes | str): The key name.
             value (bytes | str | float): The new value.
 
         Returns:
@@ -1520,7 +1530,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.client.getset(key, value)
 
     @override
-    async def getdel(self, key: bytes | str) -> RedisResponseType:
+    async def getdel(self, key: bytes | str) -> bytes | str | None:
         """Get a key's value and delete it asynchronously.
 
         Args:
@@ -1532,7 +1542,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.client.getdel(key)
 
     @override
-    async def exists(self, *names: bytes | str) -> RedisResponseType:
+    async def exists(self, *names: bytes | str) -> int:
         """Check if keys exist asynchronously.
 
         Args:
@@ -1544,7 +1554,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.read_only_client.exists(*names)
 
     @override
-    async def delete(self, *names: bytes | str) -> RedisResponseType:
+    async def delete(self, *names: bytes | str) -> int:
         """Delete keys asynchronously.
 
         Args:
@@ -1556,11 +1566,11 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.client.delete(*names)
 
     @override
-    async def append(self, key: RedisKeyType, value: bytes | str | float) -> RedisResponseType:
+    async def append(self, key: bytes | str, value: bytes | str | float) -> int:
         """Append a value to a key asynchronously.
 
         Args:
-            key (RedisKeyType): The key name.
+            key (bytes | str): The key name.
             value (bytes | str | float): The value to append.
 
         Returns:
@@ -1569,7 +1579,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.client.append(key, value)
 
     @override
-    async def ttl(self, name: bytes | str) -> RedisResponseType:
+    async def ttl(self, name: bytes | str) -> int:
         """Get the time to live in seconds for a key asynchronously.
 
         Args:
@@ -1581,7 +1591,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.read_only_client.ttl(name)
 
     @override
-    async def type(self, name: bytes | str) -> RedisResponseType:
+    async def type(self, name: bytes | str) -> bytes | str:
         """Determine the type stored at key asynchronously.
 
         Args:
@@ -1593,7 +1603,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.read_only_client.type(name)
 
     @override
-    async def llen(self, name: str) -> RedisIntegerResponseType:
+    async def llen(self, name: str) -> int:
         """Get the length of a list asynchronously.
 
         Args:
@@ -1606,7 +1616,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self._ensure_async_int(result)
 
     @override
-    async def lpop(self, name: str, count: int | None = None) -> Any:
+    async def lpop(self, name: str, count: int | None = None) -> bytes | str | list[bytes | str] | None:
         """Remove and return elements from list left asynchronously.
 
         Args:
@@ -1622,7 +1632,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return result
 
     @override
-    async def lpush(self, name: str, *values: bytes | str | float) -> RedisIntegerResponseType:
+    async def lpush(self, name: str, *values: bytes | str | float) -> int:
         """Push elements to list left asynchronously.
 
         Args:
@@ -1636,7 +1646,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self._ensure_async_int(result)
 
     @override
-    async def lrange(self, name: str, start: int, end: int) -> RedisListResponseType:
+    async def lrange(self, name: str, start: int, end: int) -> list[bytes | str]:
         """Get a range of elements from a list asynchronously.
 
         Args:
@@ -1661,7 +1671,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return []
 
     @override
-    async def lrem(self, name: str, count: int, value: str) -> RedisIntegerResponseType:
+    async def lrem(self, name: str, count: int, value: str) -> int:
         """Remove elements from a list asynchronously.
 
         Args:
@@ -1693,7 +1703,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return bool(result)
 
     @override
-    async def rpop(self, name: str, count: int | None = None) -> Any:
+    async def rpop(self, name: str, count: int | None = None) -> bytes | str | list[bytes | str] | None:
         """Remove and return elements from list right asynchronously.
 
         Args:
@@ -1709,7 +1719,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return result
 
     @override
-    async def rpush(self, name: str, *values: bytes | str | float) -> RedisIntegerResponseType:
+    async def rpush(self, name: str, *values: bytes | str | float) -> int:
         """Push elements to list right asynchronously.
 
         Args:
@@ -1730,7 +1740,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         count: int | None = None,
         _type: str | None = None,
         **kwargs: Any,
-    ) -> RedisResponseType:
+    ) -> tuple[int, list[bytes | str]]:
         """Scan keys in database incrementally asynchronously.
 
         Args:
@@ -1775,15 +1785,15 @@ class AsyncRedisAdapter(AsyncRedisPort):
     @override
     async def sscan(
         self,
-        name: RedisKeyType,
+        name: bytes | str,
         cursor: int = 0,
         match: bytes | str | None = None,
         count: int | None = None,
-    ) -> RedisResponseType:
+    ) -> tuple[int, list[bytes | str]]:
         """Scan set members incrementally asynchronously.
 
         Args:
-            name (RedisKeyType): The set key name.
+            name (bytes | str): The set key name.
             cursor (int): Cursor position. Defaults to 0.
             match (bytes | str | None): Pattern to match. Defaults to None.
             count (int | None): Hint for number of elements. Defaults to None.
@@ -1793,21 +1803,21 @@ class AsyncRedisAdapter(AsyncRedisPort):
         """
         result = self.read_only_client.sscan(name, cursor, match, count)
         if isinstance(result, Awaitable):
-            awaited_result: RedisResponseType = await result
+            awaited_result: tuple[int, list[bytes | str]] = await result
             return awaited_result
         return result
 
     @override
     async def sscan_iter(
         self,
-        name: RedisKeyType,
+        name: bytes | str,
         match: bytes | str | None = None,
         count: int | None = None,
     ) -> Iterator[Any]:
         """Iterate over set members asynchronously.
 
         Args:
-            name (RedisKeyType): The set key name.
+            name (bytes | str): The set key name.
             match (bytes | str | None): Pattern to match. Defaults to None.
             count (int | None): Hint for number of elements. Defaults to None.
 
@@ -1826,7 +1836,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return result
 
     @override
-    async def sadd(self, name: str, *values: bytes | str | float) -> RedisIntegerResponseType:
+    async def sadd(self, name: str, *values: bytes | str | float) -> int:
         """Add members to a set asynchronously.
 
         Args:
@@ -1840,7 +1850,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self._ensure_async_int(result)
 
     @override
-    async def scard(self, name: str) -> RedisIntegerResponseType:
+    async def scard(self, name: str) -> int:
         """Get number of members in a set asynchronously.
 
         Args:
@@ -1869,7 +1879,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return bool(result)
 
     @override
-    async def smembers(self, name: str) -> RedisSetResponseType:
+    async def smembers(self, name: str) -> _set[bytes | str]:
         """Get all members of a set asynchronously.
 
         Args:
@@ -1912,7 +1922,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return result
 
     @override
-    async def srem(self, name: str, *values: bytes | str | float) -> RedisIntegerResponseType:
+    async def srem(self, name: str, *values: bytes | str | float) -> int:
         """Remove members from a set asynchronously.
 
         Args:
@@ -1926,11 +1936,11 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self._ensure_async_int(result)
 
     @override
-    async def sunion(self, keys: RedisKeyType, *args: bytes | str) -> RedisSetResponseType:
+    async def sunion(self, keys: bytes | str, *args: bytes | str) -> _set[bytes | str]:
         """Get union of multiple sets asynchronously.
 
         Args:
-            keys (RedisKeyType): First set key.
+            keys (bytes | str): First set key.
             *args (bytes | str): Additional set keys.
 
         Returns:
@@ -1954,20 +1964,20 @@ class AsyncRedisAdapter(AsyncRedisPort):
     @override
     async def zadd(
         self,
-        name: RedisKeyType,
-        mapping: Mapping[RedisKeyType, bytes | str | float],
+        name: bytes | str,
+        mapping: Mapping[bytes | str, bytes | str | float],
         nx: bool = False,
         xx: bool = False,
         ch: bool = False,
         incr: bool = False,
         gt: bool = False,
         lt: bool = False,
-    ) -> RedisResponseType:
+    ) -> int | float | None:
         """Add members to sorted set asynchronously.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
-            mapping (Mapping[RedisKeyType, bytes | str | float]): Member-score pairs.
+            name (bytes | str): The sorted set key name.
+            mapping (Mapping[bytes | str, bytes | str | float]): Member-score pairs.
             nx (bool): Only add new elements. Defaults to False.
             xx (bool): Only update existing. Defaults to False.
             ch (bool): Return changed count. Defaults to False.
@@ -1990,7 +2000,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return result
 
     @override
-    async def zcard(self, name: bytes | str) -> RedisResponseType:
+    async def zcard(self, name: bytes | str) -> int:
         """Get number of members in sorted set asynchronously.
 
         Args:
@@ -2002,11 +2012,11 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.client.zcard(name)
 
     @override
-    async def zcount(self, name: RedisKeyType, min: float | str, max: float | str) -> RedisResponseType:
+    async def zcount(self, name: bytes | str, min: float | str, max: float | str) -> int:
         """Count members in score range asynchronously.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             min (float | str): Minimum score.
             max (float | str): Maximum score.
 
@@ -2016,11 +2026,15 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.client.zcount(name, min, max)
 
     @override
-    async def zpopmax(self, name: RedisKeyType, count: int | None = None) -> RedisResponseType:
+    async def zpopmax(
+        self,
+        name: bytes | str,
+        count: int | None = None,
+    ) -> list[bytes | str] | list[tuple[bytes | str, Any]] | list[list[Any]]:
         """Pop highest scored members asynchronously.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             count (int | None): Number to pop. Defaults to None.
 
         Returns:
@@ -2029,11 +2043,15 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.client.zpopmax(name, count)
 
     @override
-    async def zpopmin(self, name: RedisKeyType, count: int | None = None) -> RedisResponseType:
+    async def zpopmin(
+        self,
+        name: bytes | str,
+        count: int | None = None,
+    ) -> list[bytes | str] | list[tuple[bytes | str, Any]] | list[list[Any]]:
         """Pop lowest scored members asynchronously.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             count (int | None): Number to pop. Defaults to None.
 
         Returns:
@@ -2044,7 +2062,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
     @override
     async def zrange(
         self,
-        name: RedisKeyType,
+        name: bytes | str,
         start: int,
         end: int,
         desc: bool = False,
@@ -2054,11 +2072,11 @@ class AsyncRedisAdapter(AsyncRedisPort):
         bylex: bool = False,
         offset: int | None = None,
         num: int | None = None,
-    ) -> RedisResponseType:
+    ) -> list[bytes | str] | list[tuple[bytes | str, Any]] | list[list[Any]]:
         """Get range from sorted set asynchronously.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             start (int): Start index or score.
             end (int): End index or score.
             desc (bool): Descending order. Defaults to False.
@@ -2088,16 +2106,16 @@ class AsyncRedisAdapter(AsyncRedisPort):
     @override
     async def zrevrange(
         self,
-        name: RedisKeyType,
+        name: bytes | str,
         start: int,
         end: int,
         withscores: bool = False,
         score_cast_func: RedisScoreCastType = float,
-    ) -> RedisResponseType:
+    ) -> list[bytes | str] | list[tuple[bytes | str, Any]] | list[list[Any]]:
         """Get reverse range from sorted set asynchronously.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             start (int): Start index.
             end (int): End index.
             withscores (bool): Include scores. Defaults to False.
@@ -2111,18 +2129,18 @@ class AsyncRedisAdapter(AsyncRedisPort):
     @override
     async def zrangebyscore(
         self,
-        name: RedisKeyType,
+        name: bytes | str,
         min: float | str,
         max: float | str,
         start: int | None = None,
         num: int | None = None,
         withscores: bool = False,
         score_cast_func: RedisScoreCastType = float,
-    ) -> RedisResponseType:
+    ) -> list[bytes | str] | list[tuple[bytes | str, Any]] | list[list[Any]]:
         """Get members by score range asynchronously.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             min (float | str): Minimum score.
             max (float | str): Maximum score.
             start (int | None): Offset. Defaults to None.
@@ -2136,11 +2154,11 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.client.zrangebyscore(name, min, max, start, num, withscores, score_cast_func)
 
     @override
-    async def zrank(self, name: RedisKeyType, value: bytes | str | float) -> RedisResponseType:
+    async def zrank(self, name: bytes | str, value: bytes | str | float) -> int | list[Any] | None:
         """Get rank of member in sorted set asynchronously.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             value (bytes | str | float): Member to find rank for.
 
         Returns:
@@ -2149,11 +2167,11 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.client.zrank(name, value)
 
     @override
-    async def zrem(self, name: RedisKeyType, *values: bytes | str | float) -> RedisResponseType:
+    async def zrem(self, name: bytes | str, *values: bytes | str | float) -> int:
         """Remove members from sorted set asynchronously.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             *values (bytes | str | float): Members to remove.
 
         Returns:
@@ -2162,11 +2180,11 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.client.zrem(name, *values)
 
     @override
-    async def zscore(self, name: RedisKeyType, value: bytes | str | float) -> RedisResponseType:
+    async def zscore(self, name: bytes | str, value: bytes | str | float) -> float | None:
         """Get score of member in sorted set asynchronously.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             value (bytes | str | float): Member to get score for.
 
         Returns:
@@ -2175,7 +2193,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self.client.zscore(name, value)
 
     @override
-    async def hdel(self, name: str, *keys: str | bytes) -> RedisIntegerResponseType:
+    async def hdel(self, name: str, *keys: str | bytes) -> int:
         """Delete fields from hash asynchronously.
 
         Args:
@@ -2205,7 +2223,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self._ensure_async_bool(result)
 
     @override
-    async def hget(self, name: str, key: str) -> str | None:
+    async def hget(self, name: str, key: str) -> bytes | str | None:
         """Get field value from hash asynchronously.
 
         Args:
@@ -2220,7 +2238,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return str(resolved) if resolved is not None else None
 
     @override
-    async def hgetall(self, name: str) -> dict[str, Any]:
+    async def hgetall(self, name: str) -> dict[bytes | str, bytes | str]:
         """Get all fields and values from hash asynchronously.
 
         Args:
@@ -2252,7 +2270,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return {}
 
     @override
-    async def hkeys(self, name: str) -> RedisListResponseType:
+    async def hkeys(self, name: str) -> list[bytes | str]:
         """Get all fields from hash asynchronously.
 
         Args:
@@ -2265,7 +2283,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self._ensure_async_list(result)
 
     @override
-    async def hlen(self, name: str) -> RedisIntegerResponseType:
+    async def hlen(self, name: str) -> int:
         """Get number of fields in hash asynchronously.
 
         Args:
@@ -2285,7 +2303,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         value: str | bytes | None = None,
         mapping: dict | None = None,
         items: list | None = None,
-    ) -> RedisIntegerResponseType:
+    ) -> int:
         """Set fields in hash asynchronously.
 
         Args:
@@ -2305,7 +2323,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self._ensure_async_int(result)
 
     @override
-    async def hmget(self, name: str, keys: list, *args: str | bytes) -> RedisListResponseType:
+    async def hmget(self, name: str, keys: list, *args: str | bytes) -> list[bytes | str | None]:
         """Get multiple field values from hash asynchronously.
 
         Args:
@@ -2322,7 +2340,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self._ensure_async_list(result)
 
     @override
-    async def hvals(self, name: str) -> RedisListResponseType:
+    async def hvals(self, name: str) -> list[bytes | str]:
         """Get all values from hash asynchronously.
 
         Args:
@@ -2335,11 +2353,11 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return await self._ensure_async_list(result)
 
     @override
-    async def publish(self, channel: RedisKeyType, message: bytes | str, **kwargs: Any) -> RedisResponseType:
+    async def publish(self, channel: bytes | str, message: bytes | str, **kwargs: Any) -> int:
         """Publish message to channel asynchronously.
 
         Args:
-            channel (RedisKeyType): Channel name.
+            channel (bytes | str): Channel name.
             message (bytes | str): Message to publish.
             **kwargs (Any): Additional arguments.
 
@@ -2356,11 +2374,11 @@ class AsyncRedisAdapter(AsyncRedisPort):
         raise AttributeError("publish method not available on Redis client")
 
     @override
-    async def pubsub_channels(self, pattern: RedisPatternType = "*", **kwargs: Any) -> RedisResponseType:
+    async def pubsub_channels(self, pattern: bytes | str = "*", **kwargs: Any) -> list[bytes | str]:
         """List active channels matching pattern asynchronously.
 
         Args:
-            pattern (RedisPatternType): Pattern to match. Defaults to "*".
+            pattern (bytes | str): Pattern to match. Defaults to "*".
             **kwargs (Any): Additional arguments.
 
         Returns:
@@ -2376,11 +2394,11 @@ class AsyncRedisAdapter(AsyncRedisPort):
         raise AttributeError("pubsub_channels method not available on Redis client")
 
     @override
-    async def zincrby(self, name: RedisKeyType, amount: float, value: bytes | str | float) -> RedisResponseType:
+    async def zincrby(self, name: bytes | str, amount: float, value: bytes | str | float) -> float | None:
         """Increment member score in sorted set asynchronously.
 
         Args:
-            name (RedisKeyType): The sorted set key name.
+            name (bytes | str): The sorted set key name.
             amount (float): Amount to increment by.
             value (bytes | str | float): Member to increment.
 
@@ -2423,7 +2441,7 @@ class AsyncRedisAdapter(AsyncRedisPort):
         return result
 
     @override
-    async def ping(self) -> RedisResponseType:
+    async def ping(self) -> bool:
         """Ping the Redis server asynchronously.
 
         Returns:
