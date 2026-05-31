@@ -396,8 +396,8 @@ class AppUtils:
 
         FastAPIUtils.setup_sentry(config)
         FastAPIUtils.setup_cors(app, config)
-        FastAPIUtils.setup_elastic_apm(app, config)
         FastAPIUtils.setup_metric_interceptor(app, config)
+        FastAPIUtils.setup_elastic_apm(app, config)
 
         if configure_exception_handlers:
             FastAPIUtils.setup_exception_handlers(app)
