@@ -9,6 +9,7 @@ description: "Release history for ArchiPy 4.x series"
 
 | Version             | Date       | Summary                                                                                         |
 |---------------------|------------|-------------------------------------------------------------------------------------------------|
+| [4.10.2](4.10.2.md) | 2026-06-15 | httpx2 HTTP client migration, gRPC/app-utils fixes, and dependency updates                      |
 | [4.10.1](4.10.1.md) | 2026-05-31 | FastAPI APM middleware ordering fix, Redis type-hint refactor, and dependency updates           |
 | [4.10.0](4.10.0.md) | 2026-05-18 | Batch UMA permission checks for Keycloak, shared adapter instances, and auth pipeline refactor  |
 | [4.9.3](4.9.3.md)   | 2026-05-13 | Lazy Redis client initialization in rate limiter, `__future__` typing, and dependency updates   |
