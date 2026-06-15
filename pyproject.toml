@@ -48,18 +48,6 @@ starrocks-async = ["starrocks>=1.3.3", "aiomysql>=0.3.2", "asyncmy2>=0.2.20"]
 temporalio = ["temporalio>=1.24.0"]
 testcontainers = ["testcontainers[elasticsearch, minio]>=4.14.2"]
 
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-testpaths = 'tests'
-markers = []
-filterwarnings = [
-    'error',
-    'ignore:This is a placeholder until pydantic-settings.*:UserWarning',
-    'ignore::UserWarning',
-    'ignore::DeprecationWarning'
-]
-
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -179,7 +167,7 @@ lint.ignore = [
 ]
 
 # Define source directories
-src = ["archipy", "tests", "features"]
+src = ["archipy", "features"]
 
 exclude = [
     "features/*",
@@ -215,19 +203,18 @@ docstring-code-line-length = "dynamic"
 "archipy/helpers/interceptors/grpc/base/client_interceptor.py" = ["ANN401"]  # Allow Any type for gRPC message types
   # Allow Any type for gRPC message types
 "archipy/helpers/decorators/sqlalchemy_atomic.py" = ["BLE001"]  # Allow complex decorator patterns
-"archipy/helpers/utils/keycloak_utils.py" = ["FBT001", "FBT002", "PLC0415"]  # Allow lazy imports for optional dependencies
+"archipy/helpers/utils/keycloak_utils.py" = ["FBT001", "FBT002", "PLC0415", "B008"]  # Allow lazy imports for optional dependencies
 "archipy/helpers/utils/app_utils.py" = ["PLC0415", "ARG004"]  # Allow lazy imports and unused args in FastAPI handlers
 "archipy/helpers/utils/jwt_utils.py" = ["S105", "PLC0415"]  # Allow lazy imports for optional dependencies
 "archipy/helpers/utils/error_utils.py" = ["PLC0415"]  # Allow lazy imports for optional dependencies
 "archipy/helpers/utils/file_utils.py" = ["S324"]  # nginx secure_link requires MD5 (compatibility)
-"archipy/adapters/orm/sqlalchemy/ports.py" = ["ANN401", "ARG002", "PLR0913"]  # Allow Any, unused args, many params in interfaces
-"archipy/adapters/orm/sqlalchemy/adapters.py" = ["ANN401", "ARG002", "PERF401", "PLR0912", "PLR0915"]  # Allow Any, unused args, manual comprehensions, complexity
+"archipy/adapters/base/sqlalchemy/ports.py" = ["ANN401", "ARG002", "PLR0913"]  # Allow Any, unused args, many params in interfaces
+"archipy/adapters/base/sqlalchemy/adapters.py" = ["ANN401", "ARG002", "PERF401", "PLR0912", "PLR0915"]  # Allow Any, unused args, manual comprehensions, complexity
 "archipy/adapters/elasticsearch/ports.py" = ["ANN401"]  # Allow Any type for **kwargs parameters
 "archipy/adapters/keycloak/ports.py" = ["ANN401"]  # Allow Any type for **kwargs parameters
 "archipy/adapters/redis/ports.py" = ["ANN401", "D102", "FBT001", "FBT002", "A002", "ARG002"]  # Interface methods may have unused params
 "archipy/adapters/scylladb/ports.py" = ["ANN401"]  # Allow Any type for CQL parameters
 "archipy/models/dtos/base_protobuf_dto.py" = ["ANN401"]
-"archipy//helpers/utils/keycloak_utils.py" = ["B008"]
 "archipy/adapters/kafka/adapters.py" = ["BLE001"]
 "archipy/adapters/base/sqlalchemy/session_manager_registry.py" = ["PLC0415"]  # Circular import workaround
 "archipy/adapters/temporal/base.py" = ["ARG002"]  # Interface methods may have unused params

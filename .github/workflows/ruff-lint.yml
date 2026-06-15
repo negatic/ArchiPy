@@ -20,9 +20,9 @@ jobs:
       - name: Run Ruff check
         uses: astral-sh/ruff-action@v3
         with:
-          args: check --output-format=github archipy
+          args: check --output-format=github archipy features/steps scripts
 
       - name: Run Ruff format check
         uses: astral-sh/ruff-action@v3
         with:
-          args: format --check archipy
+          args: format --check archipy features/steps scripts

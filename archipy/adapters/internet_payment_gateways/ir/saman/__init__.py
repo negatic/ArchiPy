@@ -6,11 +6,13 @@ from archipy.adapters.internet_payment_gateways.ir.saman.adapters import (
 )
 from archipy.adapters.internet_payment_gateways.ir.saman.ports import (
     AsyncSamanShaparakPaymentPort,
+    SamanShaparakPaymentPort,
+)
+from archipy.models.dtos.saman_ipg_dtos import (
     PaymentRequestDTO,
     PaymentResponseDTO,
     ReverseRequestDTO,
     ReverseResponseDTO,
-    SamanShaparakPaymentPort,
     VerifyRequestDTO,
     VerifyResponseDTO,
 )

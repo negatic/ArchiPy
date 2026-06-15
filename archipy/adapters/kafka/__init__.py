@@ -1,0 +1,1 @@
+"""Kafka adapters for ArchiPy."""

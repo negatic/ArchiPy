@@ -4,11 +4,13 @@ from archipy.adapters.internet_payment_gateways.ir.parsian.adapters import (
 )
 from archipy.adapters.internet_payment_gateways.ir.parsian.ports import (
     AsyncParsianShaparakPaymentPort,
+    ParsianShaparakPaymentPort,
+)
+from archipy.models.dtos.parsian_ipg_dtos import (
     ConfirmRequestDTO,
     ConfirmResponseDTO,
     ConfirmWithAmountRequestDTO,
     ConfirmWithAmountResponseDTO,
-    ParsianShaparakPaymentPort,
     PaymentRequestDTO,
     PaymentResponseDTO,
     ReverseRequestDTO,

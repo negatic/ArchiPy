@@ -962,7 +962,7 @@ wheels = [
 
 [[package]]
 name = "fastapi"
-version = "0.137.0"
+version = "0.137.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "annotated-doc" },
@@ -971,9 +971,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "typing-inspection" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/da/fe/fb25c287ff7e0f79fc6acf2e8b812725dad28d2a1446c0410bab1422ac90/fastapi-0.137.0.tar.gz", hash = "sha256:d0565d551f65a803ecff245390840867186f456ef98971f750724eed16e1541c", size = 408023, upload-time = "2026-06-14T12:51:30.672Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d5/b1/e5b92c59d2c37817e77c1a8c2fc1f79cdcc04c68253e5406b43e3204cba7/fastapi-0.137.1.tar.gz", hash = "sha256:822360704230d9533d8d9475399613525968aa2f0b5bd2a3ccc9f18c88fd541c", size = 408293, upload-time = "2026-06-15T11:28:20.79Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e7/f1/b38481428e50131e5345b535414d11d196f14990122fe69c9020c64e5683/fastapi-0.137.0-py3-none-any.whl", hash = "sha256:6dcbde8d464f92117c1accb9e42720f8e423fa9b86cb563b1f5862f785a06498", size = 121777, upload-time = "2026-06-14T12:51:29.067Z" },
+    { url = "https://files.pythonhosted.org/packages/da/35/380b9a5922f4340e51c309cde09e5bd32e62f02302971bee30dc15aa0624/fastapi-0.137.1-py3-none-any.whl", hash = "sha256:64f6983c59e45c4b9fdc44e57cb8035c2451ee91ea8e8ec042aca37de7cf6b69", size = 121877, upload-time = "2026-06-15T11:28:19.523Z" },
 ]
 
 [package.optional-dependencies]
@@ -2467,20 +2467,20 @@ wheels = [
 
 [[package]]
 name = "scylla-driver"
-version = "3.29.10"
+version = "3.29.11"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "geomet" },
     { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/06/91/a8094825e1e6cdfea6f7fbb1b22e163520f73b18c649110e21bad25e0631/scylla_driver-3.29.10.tar.gz", hash = "sha256:fcd5852f404c9c57e08b1641f670cce0eab88a1fded0e8f2b4f5ba32320880d6", size = 315264, upload-time = "2026-05-10T13:27:08.677Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c1/ca/5080651593e74f72769e20754350c57519a33a75e7699d26ff657c8fc237/scylla_driver-3.29.11.tar.gz", hash = "sha256:a8f644d73713be556e99d6355cd2de41503ee50bff990865d71887e1f9f18b46", size = 316559, upload-time = "2026-06-15T11:52:41.896Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0c/f5/598a8e403a3c5d9bed08c1c1bd88907fea4efc160dabdb76f6f72d0f02fe/scylla_driver-3.29.10-cp314-cp314-macosx_14_0_arm64.whl", hash = "sha256:77a827d8f8e64fb3f8b2a5ed4fb548206a815629d4fd2724c6254e77ede5f452", size = 3341010, upload-time = "2026-05-10T13:26:48.61Z" },
-    { url = "https://files.pythonhosted.org/packages/6d/b6/a0a385f32f4f2b67b64f138ffcb65e422be6b3be983955c0b04d7421db7b/scylla_driver-3.29.10-cp314-cp314-macosx_15_0_x86_64.whl", hash = "sha256:e0e358af22ba5cfc63fb88081b6c39f80c897157b335cdb20046873854ed4c3b", size = 3717170, upload-time = "2026-05-10T13:26:50.74Z" },
-    { url = "https://files.pythonhosted.org/packages/7c/a3/2f372ac7464eedd7c018e575e35509dbd5f9184bab3b59234d5bfbf02aa9/scylla_driver-3.29.10-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:a0a28d164fe451e75af5023b44e7b6c8dc72a749aea9fc5d1d68f3c2e64f501f", size = 3809360, upload-time = "2026-05-10T13:26:53.101Z" },
-    { url = "https://files.pythonhosted.org/packages/29/31/ddbfeb1b090fa24a08dab7fd1ea5a8e1374401f632a6a17548d4dcc6d9aa/scylla_driver-3.29.10-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:e9bcfe1b3b98f62ad83e07562a193bb6e62ecf69b7432c927b69aca70b17c5bd", size = 4031711, upload-time = "2026-05-10T13:26:55.441Z" },
-    { url = "https://files.pythonhosted.org/packages/04/a5/94d5e2d33957d1eea15864a9170c7122735c5a31a14a43ac5cc580951ef3/scylla_driver-3.29.10-cp314-cp314-win32.whl", hash = "sha256:87b1f9fbf705d0965109d9f24426391cc693f49adcfb8df4180cb260ad4a36da", size = 2368928, upload-time = "2026-05-10T13:26:57.191Z" },
-    { url = "https://files.pythonhosted.org/packages/75/f4/14d6e8c0dc05c8c21d807a54ed90b479776f2a9ed1a55a949314bcab4deb/scylla_driver-3.29.10-cp314-cp314-win_amd64.whl", hash = "sha256:302ae3107bbc09e33f862873e7830a47e327976ee202cdb7da953f178106b8f7", size = 2881113, upload-time = "2026-05-10T13:26:59.932Z" },
+    { url = "https://files.pythonhosted.org/packages/b0/01/9c85bfd5aad430450e99a63ab5a9ca3d0c4b2e01582c90f8dfe01c997b8f/scylla_driver-3.29.11-cp314-cp314-macosx_14_0_arm64.whl", hash = "sha256:f222606faeb11f7d41197f16b97cfc3c9578608bd5c2813d51d30c4dc42e675b", size = 3348247, upload-time = "2026-06-15T11:52:25.643Z" },
+    { url = "https://files.pythonhosted.org/packages/57/ba/af50578a9055cf1645e7c164eeb61184e8359cf04f9b301a886052a78458/scylla_driver-3.29.11-cp314-cp314-macosx_15_0_x86_64.whl", hash = "sha256:844e61a13edf0d12f95a64f6dd8a9c0fd0b0919570e10631e33c640acff59db7", size = 3729362, upload-time = "2026-06-15T11:52:27.287Z" },
+    { url = "https://files.pythonhosted.org/packages/3d/ad/f7d6de9f357a78ba641be9280f52fa881d7e1ef7a5b5c12da598b3030740/scylla_driver-3.29.11-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:e74576dba8992b4dac6ea3fe4c8cfd92f5318aa08b20142aff6423f20e56da7d", size = 3785189, upload-time = "2026-06-15T11:52:28.91Z" },
+    { url = "https://files.pythonhosted.org/packages/d5/fa/23a0d73a0e9ea471c92d750692670843b929e83ca0b02c52eb947ab194c9/scylla_driver-3.29.11-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:bf33948e181c469f63108c01f319078051819c147f6446ea56b71975656efc1e", size = 4035669, upload-time = "2026-06-15T11:52:31.082Z" },
+    { url = "https://files.pythonhosted.org/packages/cc/87/4f4af09ff3c3ab7ad844f85c5d436d07144ca86aee78c48c7e58ca6e6c53/scylla_driver-3.29.11-cp314-cp314-win32.whl", hash = "sha256:cf98016b6ce61dc30d80ac5bc491e0a84aa9da09e326fead5bba888d55f56126", size = 2370153, upload-time = "2026-06-15T11:52:32.725Z" },
+    { url = "https://files.pythonhosted.org/packages/54/bc/810ec23f1f116391c23e0d4f1c60a9aa48dfef1e9e6678e306a788d90d5c/scylla_driver-3.29.11-cp314-cp314-win_amd64.whl", hash = "sha256:ae36b731481c9ded343811132bcce4f68c9f2de8af8a51248fcea4d9c3b36d52", size = 2882915, upload-time = "2026-06-15T11:52:34.442Z" },
 ]
 
 [[package]]
@@ -2815,14 +2815,14 @@ wheels = [
 
 [[package]]
 name = "tzlocal"
-version = "5.3.1"
+version = "5.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "tzdata", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8b/2e/c14812d3d4d9cd1773c6be938f89e5735a1f11a9f184ac3639b93cef35d5/tzlocal-5.3.1.tar.gz", hash = "sha256:cceffc7edecefea1f595541dbd6e990cb1ea3d19bf01b2809f362a03dd7921fd", size = 30761, upload-time = "2025-03-05T21:17:41.549Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d8/52/ee2e6d7031687c5bad28363148cb72f2bbf38201d2e220671bd9fb830bc2/tzlocal-5.4.tar.gz", hash = "sha256:41e1293f80d4b5ff38dff222601a8fbd06b4fdcaf25e224704047ad26a39af54", size = 30922, upload-time = "2026-06-15T12:06:56.594Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c2/14/e2a54fabd4f08cd7af1c07030603c3356b74da07f7cc056e600436edfa17/tzlocal-5.3.1-py3-none-any.whl", hash = "sha256:eb1a66c3ef5847adf7a834f1be0800581b683b5608e74f86ecbcef8ab91bb85d", size = 18026, upload-time = "2025-03-05T21:17:39.857Z" },
+    { url = "https://files.pythonhosted.org/packages/1d/70/5771c9ecbdb7cc0c3f3bbded7e0fa7911ee8e872ce5b5dc48ce7dce21a11/tzlocal-5.4-py3-none-any.whl", hash = "sha256:024d11221ff83453eae1f608f09b145b9779e1345d08c15404ce8ff7917cf629", size = 28261, upload-time = "2026-06-15T12:06:54.914Z" },
 ]
 
 [[package]]

@@ -9,18 +9,20 @@ from zeep.transports import AsyncTransport, Transport
 
 from archipy.adapters.internet_payment_gateways.ir.parsian.ports import (
     AsyncParsianShaparakPaymentPort,
+    ParsianShaparakPaymentPort,
+)
+from archipy.configs.base_config import BaseConfig
+from archipy.configs.config_template import ParsianShaparakConfig
+from archipy.models.dtos.parsian_ipg_dtos import (
     ConfirmRequestDTO,
     ConfirmResponseDTO,
     ConfirmWithAmountRequestDTO,
     ConfirmWithAmountResponseDTO,
-    ParsianShaparakPaymentPort,
     PaymentRequestDTO,
     PaymentResponseDTO,
     ReverseRequestDTO,
     ReverseResponseDTO,
 )
-from archipy.configs.base_config import BaseConfig
-from archipy.configs.config_template import ParsianShaparakConfig
 from archipy.models.errors import InternalError, UnavailableError
 
 logger = logging.getLogger(__name__)

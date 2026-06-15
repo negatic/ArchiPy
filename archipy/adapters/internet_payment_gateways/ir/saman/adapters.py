@@ -4,16 +4,18 @@ import httpx2
 
 from archipy.adapters.internet_payment_gateways.ir.saman.ports import (
     AsyncSamanShaparakPaymentPort,
+    SamanShaparakPaymentPort,
+)
+from archipy.configs.base_config import BaseConfig
+from archipy.configs.config_template import SamanShaparakConfig
+from archipy.models.dtos.saman_ipg_dtos import (
     PaymentRequestDTO,
     PaymentResponseDTO,
     ReverseRequestDTO,
     ReverseResponseDTO,
-    SamanShaparakPaymentPort,
     VerifyRequestDTO,
     VerifyResponseDTO,
 )
-from archipy.configs.base_config import BaseConfig
-from archipy.configs.config_template import SamanShaparakConfig
 from archipy.models.errors.system_errors import InternalError, UnavailableError
 
 logger = logging.getLogger(__name__)
