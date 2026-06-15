@@ -5,7 +5,7 @@ from __future__ import annotations
 import inspect
 import logging
 from collections.abc import Awaitable, Callable, Iterable
-from typing import Any, cast
+from typing import Any
 
 import grpc
 
@@ -227,14 +227,13 @@ class AsyncGrpcServerTraceInterceptor(BaseAsyncGrpcServerInterceptor):
 
     async def intercept_service(
         self,
-        continuation: Callable[[grpc.HandlerCallDetails], Awaitable[grpc.RpcMethodHandler]],
+        continuation: Callable[[grpc.HandlerCallDetails], Awaitable[grpc.RpcMethodHandler | None]],
         handler_call_details: grpc.HandlerCallDetails,
-    ) -> grpc.RpcMethodHandler:
+    ) -> grpc.RpcMethodHandler | None:
         """Skip tracing for streaming RPCs (matches ``elasticapm`` async gRPC server interceptor)."""
         next_handler = await continuation(handler_call_details)
         if next_handler is None:
-            # grpc stubs omit None; continuation may return no handler for unknown methods.
-            return cast("grpc.RpcMethodHandler", None)
+            return None
         if next_handler.request_streaming or next_handler.response_streaming:
             return next_handler
 

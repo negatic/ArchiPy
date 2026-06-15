@@ -1,4 +1,4 @@
-from typing import override
+from typing import Any, override
 
 from sqlalchemy import URL
 from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
@@ -25,12 +25,12 @@ def _patch_starrocks_uuid_mapping() -> None:
     This is patched at module level to ensure it's applied before engine creation.
     """
 
-    def visit_UUID(self: StarRocksTypeCompiler, type_: PostgresUUID, **kw: object) -> str:  # noqa: ARG001
+    def visit_UUID(self: StarRocksTypeCompiler, type_: PostgresUUID, **kw: Any) -> str:  # noqa: ARG001, ANN401
         """Map PostgreSQL UUID to VARCHAR(36) for StarRocks."""
         return "VARCHAR(36)"
 
     # Patch the type compiler class
-    StarRocksTypeCompiler.visit_UUID = visit_UUID  # ty:ignore[invalid-assignment]
+    StarRocksTypeCompiler.visit_UUID = visit_UUID  # type: ignore[invalid-assignment]  # ty: ignore[invalid-assignment]
 
 
 def _patch_starrocks_now_function() -> None:
@@ -42,7 +42,7 @@ def _patch_starrocks_now_function() -> None:
     # Store original visit_function if it exists
     original_visit_function = getattr(StarRocksSQLCompiler, "visit_function", None)
 
-    def visit_function(self: StarRocksSQLCompiler, func_: GenericFunction, **kw: object) -> str:
+    def visit_function(self: StarRocksSQLCompiler, func_: GenericFunction, **kw: Any) -> str:  # noqa: ANN401
         """Map func.now() to CURRENT_TIMESTAMP for StarRocks."""
         # Check if this is func.now()
         if func_.name == "now":
@@ -54,7 +54,7 @@ def _patch_starrocks_now_function() -> None:
         return f"{func_.name}()"
 
     # Patch the SQL compiler class
-    StarRocksSQLCompiler.visit_function = visit_function  # ty:ignore[invalid-assignment]
+    StarRocksSQLCompiler.visit_function = visit_function  # type: ignore[invalid-assignment]  # ty: ignore[invalid-assignment]
 
 
 # Apply the patches when the module is imported

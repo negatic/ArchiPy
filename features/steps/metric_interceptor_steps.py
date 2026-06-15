@@ -634,7 +634,7 @@ def step_given_temporal_adapter_metrics_disabled(context):
 @then("Temporal metrics should be present in Prometheus registry")
 def step_then_temporal_metrics_present(context):
     """Verify that Temporal metrics are present in Prometheus HTTP endpoint."""
-    import httpx
+    import httpx2
 
     scenario_context = get_current_scenario_context(context)
     temporal_config = scenario_context.get("temporal_config")
@@ -642,7 +642,7 @@ def step_then_temporal_metrics_present(context):
 
     # Query the Prometheus HTTP endpoint directly
     try:
-        response = httpx.get(f"http://localhost:{metrics_port}/metrics", timeout=5.0)
+        response = httpx2.get(f"http://localhost:{metrics_port}/metrics", timeout=5.0)
         response.raise_for_status()
         metrics_text = response.text
 
@@ -650,14 +650,14 @@ def step_then_temporal_metrics_present(context):
         temporal_metrics_found = "temporal_" in metrics_text
 
         assert temporal_metrics_found, "No Temporal metrics found in Prometheus HTTP endpoint"
-    except httpx.RequestError as e:
+    except httpx2.RequestError as e:
         raise AssertionError(f"Failed to query Prometheus endpoint: {e}") from e
 
 
 @then("Temporal metrics should not be present in Prometheus registry")
 def step_then_temporal_metrics_not_present(context):
     """Verify that Temporal metrics are NOT present in Prometheus HTTP endpoint."""
-    import httpx
+    import httpx2
 
     scenario_context = get_current_scenario_context(context)
     temporal_config = scenario_context.get("temporal_config")
@@ -665,13 +665,13 @@ def step_then_temporal_metrics_not_present(context):
 
     # Query the Prometheus HTTP endpoint directly
     try:
-        response = httpx.get(f"http://localhost:{metrics_port}/metrics", timeout=5.0)
+        response = httpx2.get(f"http://localhost:{metrics_port}/metrics", timeout=5.0)
         if response.status_code == 200:
             metrics_text = response.text
             # Check that no Temporal metrics are present
             temporal_metrics_found = "temporal_" in metrics_text
             assert not temporal_metrics_found, "Temporal metrics found when disabled"
-    except httpx.ConnectError:
+    except httpx2.ConnectError:
         # If server is not running, that's fine for disabled metrics
         pass
 
@@ -679,14 +679,14 @@ def step_then_temporal_metrics_not_present(context):
 @then("Temporal client metrics should include workflow operations")
 def step_then_temporal_client_metrics_workflow_ops(context):
     """Verify that Temporal client metrics include workflow-related operations."""
-    import httpx
+    import httpx2
 
     scenario_context = get_current_scenario_context(context)
     temporal_config = scenario_context.get("temporal_config")
     metrics_port = temporal_config.METRICS_PORT
 
     try:
-        response = httpx.get(f"http://localhost:{metrics_port}/metrics", timeout=5.0)
+        response = httpx2.get(f"http://localhost:{metrics_port}/metrics", timeout=5.0)
         response.raise_for_status()
         metrics_text = response.text
 
@@ -698,21 +698,21 @@ def step_then_temporal_client_metrics_workflow_ops(context):
         )
 
         assert workflow_metric_found, "No workflow operation metrics found in Temporal client metrics"
-    except httpx.RequestError as e:
+    except httpx2.RequestError as e:
         raise AssertionError(f"Failed to query Prometheus endpoint: {e}") from e
 
 
 @then("Temporal worker metrics should include task execution")
 def step_then_temporal_worker_metrics_task_execution(context):
     """Verify that Temporal worker metrics include task execution metrics."""
-    import httpx
+    import httpx2
 
     scenario_context = get_current_scenario_context(context)
     temporal_config = scenario_context.get("temporal_config")
     metrics_port = temporal_config.METRICS_PORT
 
     try:
-        response = httpx.get(f"http://localhost:{metrics_port}/metrics", timeout=5.0)
+        response = httpx2.get(f"http://localhost:{metrics_port}/metrics", timeout=5.0)
         response.raise_for_status()
         metrics_text = response.text
 
@@ -724,21 +724,21 @@ def step_then_temporal_worker_metrics_task_execution(context):
         )
 
         assert worker_metric_found, "No worker task execution metrics found in Temporal worker metrics"
-    except httpx.RequestError as e:
+    except httpx2.RequestError as e:
         raise AssertionError(f"Failed to query Prometheus endpoint: {e}") from e
 
 
 @then("Temporal worker task execution metrics should be recorded")
 def step_then_temporal_worker_task_execution_recorded(context):
     """Verify that worker task execution metrics are recorded."""
-    import httpx
+    import httpx2
 
     scenario_context = get_current_scenario_context(context)
     temporal_config = scenario_context.get("temporal_config")
     metrics_port = temporal_config.METRICS_PORT
 
     try:
-        response = httpx.get(f"http://localhost:{metrics_port}/metrics", timeout=5.0)
+        response = httpx2.get(f"http://localhost:{metrics_port}/metrics", timeout=5.0)
         response.raise_for_status()
         metrics_text = response.text
 
@@ -746,21 +746,21 @@ def step_then_temporal_worker_task_execution_recorded(context):
         task_metrics_found = "worker" in metrics_text and "task" in metrics_text and "temporal_" in metrics_text
 
         assert task_metrics_found, "No worker task execution metrics recorded"
-    except httpx.RequestError as e:
+    except httpx2.RequestError as e:
         raise AssertionError(f"Failed to query Prometheus endpoint: {e}") from e
 
 
 @then("worker metrics should include task queue labels")
 def step_then_worker_metrics_include_task_queue_labels(context):
     """Verify that worker metrics include task queue label information."""
-    import httpx
+    import httpx2
 
     scenario_context = get_current_scenario_context(context)
     temporal_config = scenario_context.get("temporal_config")
     metrics_port = temporal_config.METRICS_PORT
 
     try:
-        response = httpx.get(f"http://localhost:{metrics_port}/metrics", timeout=5.0)
+        response = httpx2.get(f"http://localhost:{metrics_port}/metrics", timeout=5.0)
         response.raise_for_status()
         metrics_text = response.text
 
@@ -768,21 +768,21 @@ def step_then_worker_metrics_include_task_queue_labels(context):
         metrics_with_task_queue = "task_queue=" in metrics_text and "temporal_worker" in metrics_text
 
         assert metrics_with_task_queue, "No worker metrics with task_queue labels found"
-    except httpx.RequestError as e:
+    except httpx2.RequestError as e:
         raise AssertionError(f"Failed to query Prometheus endpoint: {e}") from e
 
 
 @then("Temporal activity execution metrics should be recorded")
 def step_then_temporal_activity_execution_metrics_recorded(context):
     """Verify that activity execution metrics are recorded."""
-    import httpx
+    import httpx2
 
     scenario_context = get_current_scenario_context(context)
     temporal_config = scenario_context.get("temporal_config")
     metrics_port = temporal_config.METRICS_PORT
 
     try:
-        response = httpx.get(f"http://localhost:{metrics_port}/metrics", timeout=5.0)
+        response = httpx2.get(f"http://localhost:{metrics_port}/metrics", timeout=5.0)
         response.raise_for_status()
         metrics_text = response.text
 
@@ -790,21 +790,21 @@ def step_then_temporal_activity_execution_metrics_recorded(context):
         activity_metrics_found = "temporal_activity" in metrics_text
 
         assert activity_metrics_found, "No activity execution metrics recorded"
-    except httpx.RequestError as e:
+    except httpx2.RequestError as e:
         raise AssertionError(f"Failed to query Prometheus endpoint: {e}") from e
 
 
 @then("activity metrics should include activity type information")
 def step_then_activity_metrics_include_type_info(context):
     """Verify that activity metrics include activity type labels."""
-    import httpx
+    import httpx2
 
     scenario_context = get_current_scenario_context(context)
     temporal_config = scenario_context.get("temporal_config")
     metrics_port = temporal_config.METRICS_PORT
 
     try:
-        response = httpx.get(f"http://localhost:{metrics_port}/metrics", timeout=5.0)
+        response = httpx2.get(f"http://localhost:{metrics_port}/metrics", timeout=5.0)
         response.raise_for_status()
         metrics_text = response.text
 
@@ -812,7 +812,7 @@ def step_then_activity_metrics_include_type_info(context):
         has_activity_type = "activity_type=" in metrics_text or "activity" in metrics_text.lower()
 
         assert has_activity_type, "Activity metrics missing type information"
-    except httpx.RequestError as e:
+    except httpx2.RequestError as e:
         raise AssertionError(f"Failed to query Prometheus endpoint: {e}") from e
 
 
@@ -855,14 +855,14 @@ def step_then_workflow_execution_count(context, min_count):
     """Verify that workflow execution count meets minimum threshold."""
     import re
 
-    import httpx
+    import httpx2
 
     scenario_context = get_current_scenario_context(context)
     temporal_config = scenario_context.get("temporal_config")
     metrics_port = temporal_config.METRICS_PORT
 
     try:
-        response = httpx.get(f"http://localhost:{metrics_port}/metrics", timeout=5.0)
+        response = httpx2.get(f"http://localhost:{metrics_port}/metrics", timeout=5.0)
         response.raise_for_status()
         metrics_text = response.text
 
@@ -882,5 +882,5 @@ def step_then_workflow_execution_count(context, min_count):
                         break
 
         assert found_sufficient_count, f"No workflow execution count >= {min_count} found in metrics"
-    except httpx.RequestError as e:
+    except httpx2.RequestError as e:
         raise AssertionError(f"Failed to query Prometheus endpoint: {e}") from e

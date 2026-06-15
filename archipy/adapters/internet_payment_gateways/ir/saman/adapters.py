@@ -1,6 +1,6 @@
 import logging
 
-import httpx
+import httpx2
 
 from archipy.adapters.internet_payment_gateways.ir.saman.ports import (
     AsyncSamanShaparakPaymentPort,
@@ -38,7 +38,7 @@ class SamanShaparakPaymentAdapter(SamanShaparakPaymentPort):
         self.reverse_url = str(configs.REVERSE_URL)
 
         proxy = self._get_proxy(configs.PROXIES)
-        self.client = httpx.Client(proxy=proxy, timeout=30)
+        self.client = httpx2.Client(proxy=proxy, timeout=30)
 
         logger.info(f"SamanShaparakPaymentAdapter initialized with terminal {self.terminal_id}")
 
@@ -86,7 +86,7 @@ class SamanShaparakPaymentAdapter(SamanShaparakPaymentPort):
                 error_code=data.get("errorCode"),
                 error_desc=data.get("errorDesc"),
             )
-        except httpx.RequestError as e:
+        except httpx2.RequestError as e:
             raise UnavailableError(resource_type="Saman Token Service") from e
         except Exception as e:
             raise InternalError() from e
@@ -124,7 +124,7 @@ class SamanShaparakPaymentAdapter(SamanShaparakPaymentPort):
                 affective_amount=transaction_detail.get("AffectiveAmount"),
                 trace_no=transaction_detail.get("StraceNo"),
             )
-        except httpx.RequestError as e:
+        except httpx2.RequestError as e:
             raise UnavailableError(resource_type="Saman Verify Service") from e
         except Exception as e:
             raise InternalError() from e
@@ -153,7 +153,7 @@ class SamanShaparakPaymentAdapter(SamanShaparakPaymentPort):
                 result_code=data.get("ResultCode", -1),
                 result_description=data.get("ResultDescription", "Unknown"),
             )
-        except httpx.RequestError as e:
+        except httpx2.RequestError as e:
             raise UnavailableError(resource_type="Saman Reverse Service") from e
         except Exception as e:
             raise InternalError() from e
@@ -206,7 +206,7 @@ class SamanNeoPgShaparakPaymentAdapter(SamanShaparakPaymentAdapter):
                 error_desc=data.get("errorDesc"),
                 ipg_url=ipg_url,
             )
-        except httpx.RequestError as e:
+        except httpx2.RequestError as e:
             raise UnavailableError(resource_type="Saman Neo-PG Token Service") from e
         except Exception as e:
             raise InternalError() from e
@@ -215,7 +215,7 @@ class SamanNeoPgShaparakPaymentAdapter(SamanShaparakPaymentAdapter):
 class AsyncSamanShaparakPaymentAdapter(AsyncSamanShaparakPaymentPort):
     """Async Saman Shaparak (SEP) Classic Adapter - Full v3/.5 Protocol.
 
-    Async implementation of SamanShaparakPaymentPort using httpx.AsyncClient.
+    Async implementation of SamanShaparakPaymentPort using httpx2.AsyncClient.
     Provides async methods for initiating payments, verifying transactions,
     and reversing payments.
     """
@@ -232,7 +232,7 @@ class AsyncSamanShaparakPaymentAdapter(AsyncSamanShaparakPaymentPort):
         self.reverse_url = str(configs.REVERSE_URL)
 
         proxy = self._get_proxy(configs.PROXIES)
-        self.client = httpx.AsyncClient(proxy=proxy, timeout=30)
+        self.client = httpx2.AsyncClient(proxy=proxy, timeout=30)
 
         logger.info(f"AsyncSamanShaparakPaymentAdapter initialized with terminal {self.terminal_id}")
 
@@ -280,7 +280,7 @@ class AsyncSamanShaparakPaymentAdapter(AsyncSamanShaparakPaymentPort):
                 error_code=data.get("errorCode"),
                 error_desc=data.get("errorDesc"),
             )
-        except httpx.RequestError as e:
+        except httpx2.RequestError as e:
             raise UnavailableError(resource_type="Saman Token Service") from e
         except Exception as e:
             raise InternalError() from e
@@ -318,7 +318,7 @@ class AsyncSamanShaparakPaymentAdapter(AsyncSamanShaparakPaymentPort):
                 affective_amount=transaction_detail.get("AffectiveAmount"),
                 trace_no=transaction_detail.get("StraceNo"),
             )
-        except httpx.RequestError as e:
+        except httpx2.RequestError as e:
             raise UnavailableError(resource_type="Saman Verify Service") from e
         except Exception as e:
             raise InternalError() from e
@@ -347,7 +347,7 @@ class AsyncSamanShaparakPaymentAdapter(AsyncSamanShaparakPaymentPort):
                 result_code=data.get("ResultCode", -1),
                 result_description=data.get("ResultDescription", "Unknown"),
             )
-        except httpx.RequestError as e:
+        except httpx2.RequestError as e:
             raise UnavailableError(resource_type="Saman Reverse Service") from e
         except Exception as e:
             raise InternalError() from e
@@ -400,7 +400,7 @@ class AsyncSamanNeoPgShaparakPaymentAdapter(AsyncSamanShaparakPaymentAdapter):
                 error_desc=data.get("errorDesc"),
                 ipg_url=ipg_url,
             )
-        except httpx.RequestError as e:
+        except httpx2.RequestError as e:
             raise UnavailableError(resource_type="Saman Neo-PG Token Service") from e
         except Exception as e:
             raise InternalError() from e

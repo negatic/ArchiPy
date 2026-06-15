@@ -1,6 +1,6 @@
 import logging
 
-import httpx
+import httpx2
 import requests
 import zeep
 from zeep import AsyncClient
@@ -227,7 +227,7 @@ class AsyncParsianShaparakPaymentAdapter(AsyncParsianShaparakPaymentPort):
         proxy = self._get_proxy(configs.PROXIES)
         async_transport = None
         if proxy:
-            httpx_client = httpx.AsyncClient(proxy=proxy)
+            httpx_client = httpx2.AsyncClient(proxy=proxy)
             async_transport = AsyncTransport(client=httpx_client)
 
         self.sale_client = AsyncClient(wsdl=configs.PAYMENT_WSDL_URL, transport=async_transport)

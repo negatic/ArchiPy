@@ -133,7 +133,8 @@ class FastAPIUtils:
         Returns:
             str: A unique ID for the route.
         """
-        return f"{route.tags[0]}-{route.name}" if route.tags else route.name
+        tags = getattr(route, "tags", [])
+        return f"{tags[0]}-{route.name}" if tags else route.name
 
     @staticmethod
     def setup_sentry(config: BaseConfig) -> None:
