@@ -221,23 +221,17 @@ def step_verify_policy(context, bucket_name):
     context.logger.info(f"Verified read-only policy for '{bucket_name}'")
 
 
-@when('I upload the bytes "{content}" as "{object_name}" to bucket "{bucket_name}"')
-def step_upload_bytes_stream(context, content, object_name, bucket_name):
-    adapter = get_minio_adapter(context)
-    data = content.encode("utf-8")
-    adapter.put_object_stream(bucket_name, object_name, data, content_type="text/plain; charset=utf-8")
-    context.logger.info(f"Uploaded bytes stream '{object_name}' to '{bucket_name}'")
-
-
-@when('I upload a binary stream with content "{content}" as "{object_name}" to bucket "{bucket_name}"')
-def step_upload_binary_stream(context, content, object_name, bucket_name):
+@when('I upload {input_kind} "{content}" as "{object_name}" to bucket "{bucket_name}"')
+def step_upload_stream(context, input_kind, content, object_name, bucket_name):
     adapter = get_minio_adapter(context)
     raw = content.encode("utf-8")
-    stream = io.BytesIO(raw)
-    adapter.put_object_stream(
-        bucket_name, object_name, stream, length=len(raw), content_type="text/plain; charset=utf-8"
-    )
-    context.logger.info(f"Uploaded binary stream '{object_name}' to '{bucket_name}'")
+    if input_kind == "a binary stream":
+        adapter.put_object_stream(
+            bucket_name, object_name, io.BytesIO(raw), length=len(raw), content_type="text/plain; charset=utf-8",
+        )
+    else:
+        adapter.put_object_stream(bucket_name, object_name, raw, content_type="text/plain; charset=utf-8")
+    context.logger.info(f"Uploaded {input_kind} '{object_name}' to '{bucket_name}'")
 
 
 @then('the streaming download of "{object_name}" from "{bucket_name}" should return "{expected_content}"')

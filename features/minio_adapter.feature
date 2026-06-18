@@ -46,14 +46,13 @@ Feature: MinIO Operations Testing
     Then the object "test-copy.txt" should exist in bucket "test-bucket"
     And downloading "test-copy.txt" from "test-bucket" should return content "Hello World"
 
-  Scenario: Upload bytes buffer and retrieve via stream
+  Scenario Outline: Upload via <input_kind> and retrieve via stream
     Given a bucket named "test-bucket" exists
-    When I upload the bytes "Hello Streaming World" as "stream-bytes.txt" to bucket "test-bucket"
-    Then the object "stream-bytes.txt" should exist in bucket "test-bucket"
-    And the streaming download of "stream-bytes.txt" from "test-bucket" should return "Hello Streaming World"
+    When I upload <input_kind> "<content>" as "<object>" to bucket "test-bucket"
+    Then the object "<object>" should exist in bucket "test-bucket"
+    And the streaming download of "<object>" from "test-bucket" should return "<content>"
 
-  Scenario: Upload binary stream and retrieve via stream
-    Given a bucket named "test-bucket" exists
-    When I upload a binary stream with content "Binary Stream Data" as "stream-bio.txt" to bucket "test-bucket"
-    Then the object "stream-bio.txt" should exist in bucket "test-bucket"
-    And the streaming download of "stream-bio.txt" from "test-bucket" should return "Binary Stream Data"
+    Examples:
+      | input_kind      | content               | object           |
+      | the bytes       | Hello Streaming World | stream-bytes.txt |
+      | a binary stream | Binary Stream Data    | stream-bio.txt   |
