@@ -1,6 +1,6 @@
 import logging
 from collections.abc import Callable
-from typing import Any, NoReturn, TypeVar, override
+from typing import Any, BinaryIO, NoReturn, TypeVar, override
 
 import boto3
 from botocore.client import Config
@@ -811,3 +811,117 @@ class MinioAdapter(MinioPort, MinioExceptionHandlerMixin):
             self._handle_connection_exception(e, "copy_object")
         except Exception as e:
             self._handle_general_exception(e, "copy_object")
+
+    @override
+    def put_object_stream(
+        self,
+        bucket_name: str,
+        object_name: str,
+        data: bytes | BinaryIO,
+        length: int = -1,
+        content_type: str = "application/octet-stream",
+    ) -> None:
+        """Upload data from a bytes buffer or binary stream to a bucket.
+
+        Unlike put_object which requires a local file path, this method accepts
+        in-memory bytes or any binary stream, avoiding the need for a temporary file.
+
+        Args:
+            bucket_name: Destination bucket name.
+            object_name: Object name in the bucket.
+            data: Content to upload as raw bytes or a binary stream (BinaryIO).
+            length: Content length in bytes. If -1, computed automatically for bytes;
+                for streams, providing the exact length avoids buffering overhead.
+            content_type: MIME type of the content. Defaults to "application/octet-stream".
+
+        Raises:
+            InvalidArgumentError: If bucket_name, object_name, or data is invalid.
+            NotFoundError: If the bucket does not exist.
+            PermissionDeniedError: If permission to upload is denied.
+            ResourceExhaustedError: If storage limits are exceeded.
+            ServiceUnavailableError: If the S3 service is unavailable.
+            StorageError: If there's a storage-related error.
+        """
+        try:
+            if not bucket_name or not object_name:
+                raise InvalidArgumentError(
+                    argument_name=(
+                        "bucket_name or object_name"
+                        if not all([bucket_name, object_name])
+                        else "bucket_name"
+                        if not bucket_name
+                        else "object_name"
+                    ),
+                )
+
+            kwargs: dict[str, Any] = {
+                "Bucket": bucket_name,
+                "Key": object_name,
+                "Body": data,
+                "ContentType": content_type,
+            }
+
+            if isinstance(data, bytes):
+                kwargs["ContentLength"] = len(data) if length < 0 else length
+            elif length >= 0:
+                kwargs["ContentLength"] = length
+
+            self._client.put_object(**kwargs)
+            if hasattr(self.list_objects, "clear_cache"):
+                self.list_objects.clear_cache()
+        except InvalidArgumentError:
+            raise
+        except ClientError as e:
+            self._handle_client_exception(e, "put_object_stream")
+        except (ConnectionError, EndpointConnectionError) as e:
+            self._handle_connection_exception(e, "put_object_stream")
+        except Exception as e:
+            self._handle_general_exception(e, "put_object_stream")
+
+    @override
+    def get_object_stream(self, bucket_name: str, object_name: str) -> bytes:
+        """Download an object and return its content as bytes.
+
+        Unlike get_object which requires a local file path, this method returns
+        the object content directly in memory, avoiding a temporary file.
+
+        Args:
+            bucket_name: Source bucket name.
+            object_name: Object name in the bucket.
+
+        Returns:
+            bytes: The full content of the object.
+
+        Raises:
+            InvalidArgumentError: If any required parameter is empty.
+            NotFoundError: If the bucket or object does not exist.
+            PermissionDeniedError: If permission to download is denied.
+            ServiceUnavailableError: If the S3 service is unavailable.
+            StorageError: If there's a storage-related error.
+        """
+        try:
+            if not bucket_name or not object_name:
+                raise InvalidArgumentError(
+                    argument_name=(
+                        "bucket_name or object_name"
+                        if not all([bucket_name, object_name])
+                        else "bucket_name"
+                        if not bucket_name
+                        else "object_name"
+                    ),
+                )
+            response = self._client.get_object(Bucket=bucket_name, Key=object_name)
+        except InvalidArgumentError:
+            raise
+        except ClientError as e:
+            self._handle_client_exception(e, "get_object_stream")
+            raise
+        except (ConnectionError, EndpointConnectionError) as e:
+            self._handle_connection_exception(e, "get_object_stream")
+            raise
+        except Exception as e:
+            self._handle_general_exception(e, "get_object_stream")
+            raise
+        else:
+            content: bytes = response["Body"].read()
+            return content

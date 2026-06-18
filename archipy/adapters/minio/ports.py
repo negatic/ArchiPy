@@ -1,7 +1,7 @@
 """MinIO port definitions for ArchiPy."""
 
 from abc import abstractmethod
-from typing import Any
+from typing import Any, BinaryIO
 
 # Define type aliases for better type hinting
 MinioObjectType = dict[str, Any]
@@ -109,4 +109,44 @@ class MinioPort:
         dest_object_name: str,
     ) -> None:
         """Copy an object within or between buckets."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def put_object_stream(
+        self,
+        bucket_name: str,
+        object_name: str,
+        data: bytes | BinaryIO,
+        length: int = -1,
+        content_type: str = "application/octet-stream",
+    ) -> None:
+        """Upload data from a bytes buffer or binary stream to a bucket.
+
+        Unlike put_object which requires a local file path, this method accepts
+        in-memory bytes or any binary stream, avoiding the need for a temporary file.
+
+        Args:
+            bucket_name: Destination bucket name.
+            object_name: Object name in the bucket.
+            data: Content to upload as raw bytes or a binary stream (BinaryIO).
+            length: Content length in bytes. If -1, computed automatically for bytes;
+                for streams, providing the exact length avoids buffering overhead.
+            content_type: MIME type of the content. Defaults to "application/octet-stream".
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_object_stream(self, bucket_name: str, object_name: str) -> bytes:
+        """Download an object and return its content as bytes.
+
+        Unlike get_object which requires a local file path, this method returns
+        the object content directly in memory, avoiding a temporary file.
+
+        Args:
+            bucket_name: Source bucket name.
+            object_name: Object name in the bucket.
+
+        Returns:
+            bytes: The full content of the object.
+        """
         raise NotImplementedError
