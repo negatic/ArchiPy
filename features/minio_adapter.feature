@@ -45,3 +45,15 @@ Feature: MinIO Operations Testing
     When I copy object "test.txt" from bucket "test-bucket" to "test-copy.txt" in the same bucket
     Then the object "test-copy.txt" should exist in bucket "test-bucket"
     And downloading "test-copy.txt" from "test-bucket" should return content "Hello World"
+
+  Scenario: Upload bytes buffer and retrieve via stream
+    Given a bucket named "test-bucket" exists
+    When I upload the bytes "Hello Streaming World" as "stream-bytes.txt" to bucket "test-bucket"
+    Then the object "stream-bytes.txt" should exist in bucket "test-bucket"
+    And the streaming download of "stream-bytes.txt" from "test-bucket" should return "Hello Streaming World"
+
+  Scenario: Upload binary stream and retrieve via stream
+    Given a bucket named "test-bucket" exists
+    When I upload a binary stream with content "Binary Stream Data" as "stream-bio.txt" to bucket "test-bucket"
+    Then the object "stream-bio.txt" should exist in bucket "test-bucket"
+    And the streaming download of "stream-bio.txt" from "test-bucket" should return "Binary Stream Data"

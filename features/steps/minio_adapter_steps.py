@@ -1,4 +1,5 @@
 # features/steps/minio_steps.py
+import io
 import json
 import os
 import tempfile
@@ -218,3 +219,31 @@ def step_verify_policy(context, bucket_name):
     assert "s3:GetObject" in policy, "Policy doesn't contain read permission"
     assert "s3:PutObject" not in policy, "Policy contains write permission"
     context.logger.info(f"Verified read-only policy for '{bucket_name}'")
+
+
+@when('I upload the bytes "{content}" as "{object_name}" to bucket "{bucket_name}"')
+def step_upload_bytes_stream(context, content, object_name, bucket_name):
+    adapter = get_minio_adapter(context)
+    data = content.encode("utf-8")
+    adapter.put_object_stream(bucket_name, object_name, data, content_type="text/plain; charset=utf-8")
+    context.logger.info(f"Uploaded bytes stream '{object_name}' to '{bucket_name}'")
+
+
+@when('I upload a binary stream with content "{content}" as "{object_name}" to bucket "{bucket_name}"')
+def step_upload_binary_stream(context, content, object_name, bucket_name):
+    adapter = get_minio_adapter(context)
+    raw = content.encode("utf-8")
+    stream = io.BytesIO(raw)
+    adapter.put_object_stream(
+        bucket_name, object_name, stream, length=len(raw), content_type="text/plain; charset=utf-8"
+    )
+    context.logger.info(f"Uploaded binary stream '{object_name}' to '{bucket_name}'")
+
+
+@then('the streaming download of "{object_name}" from "{bucket_name}" should return "{expected_content}"')
+def step_stream_download_verify(context, object_name, bucket_name, expected_content):
+    adapter = get_minio_adapter(context)
+    content_bytes = adapter.get_object_stream(bucket_name, object_name)
+    content = content_bytes.decode("utf-8")
+    assert content == expected_content, f"Content mismatch: expected '{expected_content}', got '{content}'"
+    context.logger.info(f"Verified streaming download content of '{object_name}'")
