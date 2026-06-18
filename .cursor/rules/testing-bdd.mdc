@@ -69,9 +69,11 @@ Sync operations work fine inside `async def` steps, so steps with mixed sync/asy
 
 The only place `asyncio.run()` is acceptable is in **non-step** callbacks (e.g. `scenario_context.py` cleanup methods) that may be called from outside an event loop.
 
-## Parallel Execution
+## Test Execution Model
 
-Behave is configured to run with **8 parallel workers** (multiprocessing). Steps must not share mutable global state across scenarios.
+`make behave` uses stock Behave, which runs **sequentially** (one scenario at a time).
+
+Steps must not share mutable global state across scenarios — use `get_current_scenario_context(context)` and `ScenarioContext` for per-scenario isolation.
 
 ## Linting Exclusions
 

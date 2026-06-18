@@ -411,9 +411,6 @@ exclude_dirs = ["features", "docs", "scripts"]
 skips = ["B101", "B301", "B403"]
 
 [tool.behave]
-# Parallel execution settings
-parallel = 8
-parallel_scheme = "multiprocessing"
 
 # Output formatting
 show_snippets = false

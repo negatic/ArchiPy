@@ -151,7 +151,7 @@ BDD acceptance tests live at the **project root** in a `features/` directory, fo
 | `features/scenario_context_pool_manager.py` | Singleton pool mapping scenario ID → `ScenarioContext`          |
 | `features/environment.py`                   | `behave` hooks — container setup and teardown                   |
 
-`ScenarioContext` prevents cross-contamination between parallel scenarios by giving each one its own isolated storage.
+`ScenarioContext` prevents cross-contamination between scenarios by giving each one its own isolated storage.
 `ScenarioContextPoolManager` (a `Singleton`) creates or retrieves the context for a given scenario ID and disposes of it
 after the scenario completes.
 

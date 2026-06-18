@@ -39,8 +39,8 @@ Import direction (one-way): `configs ← models ← helpers ← adapters`
 ## Testing
 
 - BDD steps use native `async def` (no `asyncio.run()` wrapper)
-- Parallel execution: 8 workers (multiprocessing)
-- Steps must not share mutable global state
+- Sequential execution (`make behave` runs one scenario at a time)
+- Steps must not share mutable global state across scenarios
 
 ## Dev Setup
 
